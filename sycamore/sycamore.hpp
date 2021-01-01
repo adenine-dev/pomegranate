@@ -3,5 +3,6 @@
 #include <iostream>
 
 namespace sm {
-inline void hello() { std::cout << "hello world" << std::endl; }
+    inline void hello() { std::cout << "hi" << std::endl; }
+
 } // namespace sm
