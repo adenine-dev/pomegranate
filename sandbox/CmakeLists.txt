@@ -1,0 +1,10 @@
+file(GLOB_RECURSE SOURCES
+    ./*.cpp
+)
+
+add_executable(sandbox ${SOURCES})
+
+target_link_libraries(sandbox sycamore)
+
+target_include_directories(sandbox PUBLIC ../)
+
