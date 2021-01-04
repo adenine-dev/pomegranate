@@ -1,8 +1,4 @@
 #pragma once
 
-#include <iostream>
-
-namespace sm {
-    inline void hello() { std::cout << "hi" << std::endl; }
-
-} // namespace sm
+#include "debug/logging.hpp"
+#include "debug/profiler.hpp"

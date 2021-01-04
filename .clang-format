@@ -6,7 +6,7 @@ ColumnLimit: 120
 ---
 Language: Cpp
 
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: None
 
 BreakConstructorInitializers: AfterColon
 
@@ -19,4 +19,6 @@ BinPackArguments: false
 AllowAllParametersOfDeclarationOnNextLine: false
 BinPackParameters: false
 AlignAfterOpenBracket: Align
+
+IndentPPDirectives: AfterHash
 ---
