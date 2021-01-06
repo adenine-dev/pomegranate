@@ -1,7 +1,8 @@
+#include "pch.hpp"
+
 #include "profiler.hpp"
 
 #include "logging.hpp"
-#include <stdint.h>
 
 namespace sm {
     Profiler::Profiler(const std::string& funcName, const std::string& file, const uint64_t linenum) :

@@ -7,3 +7,5 @@ add_library(sycamore ${SOURCES})
 set_target_properties(sycamore PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(sycamore PUBLIC "./")
+
+target_precompile_headers(sycamore PRIVATE "pch.hpp")

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <iostream>
 
 #define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \

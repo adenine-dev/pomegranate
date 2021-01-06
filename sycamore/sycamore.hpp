@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pch.hpp"
+
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
 
