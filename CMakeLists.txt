@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 project(Sycamore LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED True)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 
@@ -10,6 +12,10 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 # Set the __FILENAME__ to be relative to the root directory instead of the drive with __FILE__.
+if (MSVC)
+    # MSVC doesn't always have __FILE__ be absolute.
+    add_compile_options(/FC)
+endif()
 string(LENGTH ${CMAKE_SOURCE_DIR}/ SOURCE_PATH_LEN)
 if (CMAKE_GENERATOR STREQUAL "Ninja" AND NOT MSVC)
     # This is dumb, but kinda has to be hardcoded because of ninja's weirdness
@@ -18,16 +24,15 @@ if (CMAKE_GENERATOR STREQUAL "Ninja" AND NOT MSVC)
     set(SOURCE_PATH_LEN "3")
 endif()
 add_compile_definitions("__FILENAME__=(&__FILE__[${SOURCE_PATH_LEN}])")
-# MSVC doesn't always have __FILE__ be absolute.
-if (MSVC)
-    add_compile_options(/FC)
-endif()
 
 # set warnings
 if (MSVC)
     add_compile_options(/W4)
 else()
-    add_compile_options(-Wall -Wextra -pedantic)
+    add_compile_options(-Wall -Wextra -Werror -Wno-missing-braces)
+    
+    # prevent clangd from complaining
+    add_compile_options(-Wno-missing-braces)
 endif()
 
 add_subdirectory(sycamore)
