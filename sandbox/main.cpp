@@ -9,6 +9,8 @@ int main()
     SM_LOG_INFO(v2.x);
     SM_LOG_INFO(v2[0]);
 
+    sm::platform::openErrorWindow("title", "body");
+
     // {
     //     SM_PROFILE_FUNCTION();
 
