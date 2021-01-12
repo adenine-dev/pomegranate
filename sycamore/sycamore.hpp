@@ -8,3 +8,4 @@
 #include "maths/maths.hpp"
 
 #include "platform/platform.hpp"
+#include "platform/terminal.hpp"

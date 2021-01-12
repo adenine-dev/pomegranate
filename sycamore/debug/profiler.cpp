@@ -19,7 +19,9 @@ namespace sm {
         // follow the same format as the other logging functions for now.
         // eventually replace this with file stuffs.
         _log(std::cout,
+             terminal::magenta,
              "[PROFILER] ",
+             terminal::reset,
              filename,
              ":",
              linenumber,

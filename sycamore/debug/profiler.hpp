@@ -9,7 +9,6 @@
 namespace sm {
     class Profiler {
     public:
-    public:
         Profiler(const std::string& functionName, const std::string& filename, const uint64_t linenumber);
         ~Profiler();
 
