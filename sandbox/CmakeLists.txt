@@ -4,7 +4,8 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(sandbox ${SOURCES})
 
+target_link_libraries(sandbox SDL2-static)
+
 target_link_libraries(sandbox sycamore)
 
 target_include_directories(sandbox PUBLIC ../)
-

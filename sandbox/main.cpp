@@ -2,7 +2,8 @@
 
 int main()
 {
-    SM_LOG_INFO("hello world");
+    // SM_LOG_INFO(argc, argv);
+    // SM_LOG_INFO("hello world");
 
     sm::maths::vec2 v2 = { 2.0f, 3.0f };
     SM_LOG_TRACE(v2[1]);
