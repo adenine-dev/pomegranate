@@ -9,7 +9,5 @@ To setup clone the repo then run these commands:
 mkdir build
 cd build
 cmake -GNinja ..
-cd ..
-ninja -j20 -Cbuild
-"./bin/sandbox.exe"
+ninja -j20 && "../bin/sandbox.exe"
 ```

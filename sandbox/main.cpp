@@ -1,8 +1,12 @@
 #include "sycamore/sycamore.hpp"
 
-int main()
+// #ifdef SDL_MAIN_HANDLED
+// #    warning "hi"
+// #endif
+
+int main(int argc, char* argv[])
 {
-    // SM_LOG_INFO(argc, argv);
+    SM_LOG_INFO(argc, argv);
     // SM_LOG_INFO("hello world");
 
     sm::maths::vec2 v2 = { 2.0f, 3.0f };

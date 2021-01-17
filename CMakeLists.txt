@@ -1,57 +1,62 @@
 cmake_minimum_required(VERSION 3.16)
 
-# =================================================== Project things ===================================================
+# ==================================================== Cmake things ====================================================
 project(Sycamore LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include("assign_source_group")
+include("define_filename_macro")
+
+set(SM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>)
 
 # ======================================================== SDL2 ========================================================
-# TODO: make sure SDL_MAIN_HANDLED doesn't break things
-add_compile_definitions(SDL_MAIN_HANDLED) # allows including SDL.h in precompiled headers
-# Produce a console
-if (WIN32)
-    if(MINGW OR CYGWIN)
-        list(APPEND EXTRA_LDFLAGS "-mconsole")
+# Produce a console in debug mode
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if (WIN32)
+        if(MINGW OR CYGWIN)
+            list(APPEND EXTRA_LDFLAGS "-mconsole")
+        endif()
     endif()
+endif() 
+
+if (MSVC)
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG /SUBSYSTEM:CONSOLE)
 endif()
+
+# Hack to disable the config logging for SDL because its annoying :p
+# Can be circumvented by specifying --log-level=STATUS when running cmake.
+SET(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
 
 set(SDL_SHARED OFF) # static libs so it can ship as a single executable
 add_subdirectory(vendor/SDL)
 
+SET(CMAKE_MESSAGE_LOG_LEVEL "STATUS")
 
-# ================================================ More project things =================================================
-# Set the __FILENAME__ to be relative to the root directory instead of the drive with __FILE__.
-if (MSVC)
-    # MSVC doesn't always have __FILE__ be absolute.
-    add_compile_options(/FC)
-endif()
-string(LENGTH ${CMAKE_SOURCE_DIR}/ SOURCE_PATH_LEN)
-if (CMAKE_GENERATOR STREQUAL "Ninja" AND NOT MSVC)
-    # This is dumb, but kinda has to be hardcoded because of ninja's weirdness
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/13894
-    # If you are doing out of source builing then this will probably break.
-    set(SOURCE_PATH_LEN "3")
-endif()
-add_compile_definitions("__FILENAME__=(&__FILE__[${SOURCE_PATH_LEN}])")
+# ================================================== Project things ====================================================
+# different definitions for __FILENAME__ means its technically invalid, it should still work however
+set(CMAKE_PCH_WARN_INVALID Off)
 
 # set warnings
 if (MSVC)
-    add_compile_options(/W4 /WX)
+    add_compile_options(/W4 /WX /wd4201)
 else()
-    add_compile_options(-Wall -Wextra -Werror -Wno-missing-braces)
-    
-    # prevent clangd from complaining
-    add_compile_options(-Wno-missing-braces)
+    add_compile_options(-Wall -Wextra -Wno-missing-braces -Werror)
 endif()
 
 
-# ================================================= Sycamore Projects =================================================
+# ================================================== Sycamore Projects =================================================
 add_subdirectory(sycamore)
 add_subdirectory(sandbox)
+
+
+# ===================================================== IDE things =====================================================
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_target_properties(SDL2main SDL2-static PROPERTIES FOLDER vendor)
+set_property(DIRECTORY PROPERTY FOLDER vendor)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT sandbox)
