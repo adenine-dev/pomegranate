@@ -13,17 +13,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include("assign_source_group")
 include("define_filename_macro")
 
-set(SM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>)
+set(SM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${GENERATOR_NAME}-$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
 
 # ======================================================== SDL2 ========================================================
 # Produce a console in debug mode
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if (WIN32)
-        if(MINGW OR CYGWIN)
-            list(APPEND EXTRA_LDFLAGS "-mconsole")
-        endif()
+if (WIN32)
+    if(MINGW OR CYGWIN)
+        list(APPEND EXTRA_LDFLAGS "$<$<CONFIG:Debug>:-mconsole>")
     endif()
-endif() 
+endif()
 
 if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG /SUBSYSTEM:CONSOLE)
@@ -58,5 +56,5 @@ add_subdirectory(sandbox)
 # ===================================================== IDE things =====================================================
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(SDL2main SDL2-static PROPERTIES FOLDER vendor)
-set_property(DIRECTORY PROPERTY FOLDER vendor)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/SDL PROPERTY FOLDER vendor)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT sandbox)
