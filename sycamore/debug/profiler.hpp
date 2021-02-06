@@ -3,19 +3,33 @@
 #include <chrono>
 #include <string>
 
-/// Eventually this will use speedscope, https://github.com/jlfwong/speedscope
-/// all schema stuff here: https://www.speedscope.app/file-format-schema.json
+/*! \file profiler.hpp
+    \brief testing defines
+
+    This is to test the documentation of defines.
+*/
 
 namespace sm {
+
+    /// A scope based Profiler. Not meant to be used directly.
+    ///
+    /// Meant to be used with the SM_PROFILE_SCOPE() and SM_PROFILE_FUNCTION() macros. Very simple, records time
+    /// when it is constructed, and when it is destructed, prints the difference. Eventually this will use speedscope,
+    /// [speedscope](https://github.com/jlfwong/speedscope) with this
+    /// [schema](https://www.speedscope.app/file-format-schema.json)
     class Profiler {
     public:
+        /// Constructor begins the timer.
         Profiler(const std::string& functionName, const std::string& filename, const uint64_t linenumber);
+
+        /// Destructor ends the timer and logs the output.
         ~Profiler();
 
     private:
         std::string functionName;
         std::string filename;
         uint64_t linenumber;
+
         std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
     };
 } // namespace sm
@@ -33,6 +47,8 @@ namespace sm {
 #        define SM_CURRENT_FUNCSIG __FUNC__
 #    elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901) || defined(__cplusplus) && (__cplusplus >= 201103)
 #        define SM_CURRENT_FUNCSIG __func__
+#    elif defined(DOXYGEN)
+#        define SM_CURRENT_FUNCSIG
 #    else
 #        warning                                                                                                       \
             "No way to detect the current function signature, define SM_CURRENT_FUNCSIG based on your compiler's way to detect it."
@@ -40,5 +56,12 @@ namespace sm {
 #    endif
 #endif
 
+/*! \def SM_PROFILE_SCOPE(name) */
+
+/// Profiles a scope, should be preferred over using Profiler directly.
 #define SM_PROFILE_SCOPE(name) ::sm::Profiler _SYCAMORE_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
+
+/*! \def SM_PROFILE_FUNCTION() */
+
+/// Profiles a function, should be preferred over using Profiler directly.
 #define SM_PROFILE_FUNCTION() SM_PROFILE_SCOPE(SM_CURRENT_FUNCSIG)

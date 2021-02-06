@@ -3,23 +3,38 @@
 #include <iostream>
 
 #define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \
-    inline T& operator[](size_t i)                                                                                     \
+    /** Returns a reference to the nth member of a vector. \n                                                          \
+        No bounds checking is preformed so using this improperly can crash.                                            \
+     */                                                                                                                \
+    inline T& operator[](size_t n)                                                                                     \
     {                                                                                                                  \
-        return data[i];                                                                                                \
+        return data[n];                                                                                                \
     }                                                                                                                  \
-    inline const T& operator[](size_t i) const                                                                         \
+    /** Returns a const reference to the nth member of a vector. \n                                                    \
+        No bounds checking is preformed so using this improperly can crash.                                            \
+     */                                                                                                                \
+    inline const T& operator[](size_t n) const                                                                         \
     {                                                                                                                  \
-        return data[i];                                                                                                \
+        return data[n];                                                                                                \
     }
 
 namespace sm { namespace maths {
+    /// @addtogroup vectors Vectors
+    /// @ingroup maths
+    /// @{
+
+    /// Generic Vector Type. Specialized by `vec2`, `vec3`, and `vec4`, but can be used independently for larger vectos.
+    /// See @ref vectors "Vectors"
     template <typename T, size_t N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
+        /// Raw data of the vector, recommended to access through operator[].
         T data[N];
+
         IMPL_COMMON_VECTOR_FUNCS(N)
     };
 
+    /// @private
     template <typename T> struct Vector<T, 2> {
         union {
             T data[2];
@@ -36,6 +51,7 @@ namespace sm { namespace maths {
         IMPL_COMMON_VECTOR_FUNCS(2)
     };
 
+    /// @private
     template <typename T> struct Vector<T, 3> {
         union {
             T data[3];
@@ -55,6 +71,7 @@ namespace sm { namespace maths {
         IMPL_COMMON_VECTOR_FUNCS(3)
     };
 
+    /// @private
     template <typename T> struct Vector<T, 4> {
         union {
             T data[4];
@@ -79,7 +96,7 @@ namespace sm { namespace maths {
 
     template <typename T, size_t N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
     {
-        os << "vec" << +N << " { ";
+        os << "vec" << N << " { ";
         for (size_t i = 0; i < N - 1; i++)
             os << vec.data[i] << ", ";
         os << vec.data[N - 1] << " }";
@@ -87,9 +104,15 @@ namespace sm { namespace maths {
         return os;
     }
 
-    using vec2 = Vector<float, 2>;
-    using vec3 = Vector<float, 3>;
-    using vec4 = Vector<float, 4>;
+    /// Vector specializations, mostly for convenience. Uses glsl notation, ie the first element can be accessed through
+    /// `x`, `r`, or `s`. Does not do swizzling.
+    /// @defgroup vector-specializations Vector Specializations
+    /// @{
+    typedef Vector<float, 2> vec2;
+    typedef Vector<float, 3> vec3;
+    typedef Vector<float, 4> vec4;
+    /// @}
+    /// @}
 
 }} // namespace sm::maths
 

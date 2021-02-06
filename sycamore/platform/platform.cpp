@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
-#include "../platform.hpp"
+#include "platform.hpp"
+
 #include "SDL.h"
 
 namespace sm { namespace platform {

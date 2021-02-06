@@ -24,14 +24,14 @@ If "%1" == "ninja" (
     echo echo invalid usage: build.bat ^^^<config:Debug^^^|Release^^^|RelWithDebInfo^^^>>>build.bat
     echo goto ^:eof>>build.bat
     echo ^)^)^) >>build.bat
-    echo ninja -j20 -Cninja -fbuild-%%1.ninja>>build.bat
+    echo ninja -j20 -Cninja -fbuild-%%1.ninja sandbox>>build.bat
 
     echo @echo off>run.bat
     echo If Not "%%1" ^=^= "Debug" ^( If Not "%%1" ^=^= "Release" ^( If Not "%%1" ^=^= "RelWithDebInfo" ^(>>run.bat
     echo echo invalid usage: run.bat ^^^<config:Debug^^^|Release^^^|RelWithDebInfo^^^>>>run.bat
     echo goto ^:eof>>run.bat
     echo ^)^)^) >>run.bat
-    echo ninja -j20 -Cninja -fbuild-%%1.ninja ^&^& "../bin/ninja-%%1/sandbox.exe">>run.bat
+    echo ninja -j20 -Cninja -fbuild-%%1.ninja sandbox ^&^& "../bin/ninja-%%1/sandbox.exe">>run.bat
 
 ) Else ( 
     If "%1" == "msvc" (

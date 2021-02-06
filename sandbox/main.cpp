@@ -1,9 +1,5 @@
 #include "sycamore/sycamore.hpp"
 
-// #ifdef SDL_MAIN_HANDLED
-// #    warning "hi"
-// #endif
-
 int main(int argc, char* argv[])
 {
     SM_LOG_INFO(argc, argv);

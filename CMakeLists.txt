@@ -47,6 +47,9 @@ else()
     add_compile_options(-Wall -Wextra -Wno-missing-braces -Werror)
 endif()
 
+# =================================================== Documentation ====================================================
+# option(BUILD_DOCS "Build documentation" OFF)
+add_subdirectory(docs)
 
 # ================================================== Sycamore Projects =================================================
 add_subdirectory(sycamore)

@@ -20,6 +20,5 @@ setup.bat msvc
 
 manual setup can be done, however for consistency and ease of use it is recommended to do it through the setup script.
 
-
 ## Third Party
 - [SDL2](https://www.libsdl.org/) [licence](https://www.libsdl.org/license.php)

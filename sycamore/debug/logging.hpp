@@ -6,6 +6,8 @@
 #include "platform/terminal.hpp"
 
 namespace sm {
+    /// Logs a set of arguments to an output string, not intended to be used manually.
+    ///
     template <typename... Args> void _log(std::ostream& os, Args&&... args)
     {
         ((os << args), ...) << std::endl;
@@ -14,6 +16,7 @@ namespace sm {
 
 // clang-format off
 
+/// Logs a trace command with all of the args needed
 #define SM_LOG_TRACE(...) ::sm::_log(::std::cout, ::sm::terminal::grey,   "[TRACE] ", ::sm::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 #define SM_LOG_INFO(...)  ::sm::_log(::std::cout, ::sm::terminal::blue,   "[INFO] ",  ::sm::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 #define SM_LOG_DEBUG(...) ::sm::_log(::std::cout, ::sm::terminal::green,  "[DEBUG] ", ::sm::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
