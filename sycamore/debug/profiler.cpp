@@ -5,7 +5,7 @@
 #include "logging.hpp"
 
 namespace sm {
-    Profiler::Profiler(const std::string& funcName, const std::string& file, const uint64_t linenum) :
+    Profiler::Profiler(const char* funcName, const char* file, const uint64_t linenum) :
         functionName(funcName), filename(file), linenumber(linenum),
         startTime(std::chrono::high_resolution_clock::now())
     {

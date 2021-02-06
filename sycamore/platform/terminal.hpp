@@ -24,6 +24,10 @@
 #define SM_ANSI_ESC_ON_GREY "\033[48;5;246m"
 
 namespace sm { namespace terminal {
+
+    /// @addtogroup terminal_output
+    /// @{
+
     /// Resets a styled ostream back to its original style.
     std::ostream& reset(std::ostream& os);
 
@@ -80,5 +84,7 @@ namespace sm { namespace terminal {
 
     /// Sets a styled ostream's background to grey.
     std::ostream& onGrey(std::ostream& os);
+
+    /// @}
 
 }} // namespace sm::terminal

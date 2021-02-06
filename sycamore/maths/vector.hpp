@@ -21,10 +21,12 @@
 namespace sm { namespace maths {
     /// @addtogroup vectors Vectors
     /// @ingroup maths
+    /// Vector specializations (typedefs of Vector), are mostly for convenience, and use glsl notation, ie the first
+    /// element can be accessed through `x`, `r`, or `s`. Does not do swizzling.
     /// @{
 
-    /// Generic Vector Type. Specialized by `vec2`, `vec3`, and `vec4`, but can be used independently for larger vectos.
-    /// See @ref vectors "Vectors"
+    /// Generic Vector Type. Specialized by `vec2`, `vec3`, and `vec4`, but can be used independently for larger
+    /// vectors.
     template <typename T, size_t N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
@@ -94,6 +96,11 @@ namespace sm { namespace maths {
         IMPL_COMMON_VECTOR_FUNCS(4)
     };
 
+    typedef Vector<float, 2> vec2;
+    typedef Vector<float, 3> vec3;
+    typedef Vector<float, 4> vec4;
+    /// @}
+
     template <typename T, size_t N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
     {
         os << "vec" << N << " { ";
@@ -103,16 +110,6 @@ namespace sm { namespace maths {
 
         return os;
     }
-
-    /// Vector specializations, mostly for convenience. Uses glsl notation, ie the first element can be accessed through
-    /// `x`, `r`, or `s`. Does not do swizzling.
-    /// @defgroup vector-specializations Vector Specializations
-    /// @{
-    typedef Vector<float, 2> vec2;
-    typedef Vector<float, 3> vec3;
-    typedef Vector<float, 4> vec4;
-    /// @}
-    /// @}
 
 }} // namespace sm::maths
 
