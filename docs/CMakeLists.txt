@@ -3,7 +3,7 @@ find_package(Doxygen REQUIRED)
 if (DOXYGEN_FOUND)
     set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
-    set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/sycamore)
+    set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/chione)
     set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
     set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
     set(DOXYFILE_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
@@ -13,14 +13,14 @@ if (DOXYGEN_FOUND)
 
     file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 
-    file(GLOB_RECURSE SYCAMORE_SOURCES
-        ${CMAKE_SOURCE_DIR}/sycamore/**.hpp
-        ${CMAKE_SOURCE_DIR}/sycamore/**.cpp
+    file(GLOB_RECURSE CHIONE_SOURCES
+        ${CMAKE_SOURCE_DIR}/chione/**.hpp
+        ${CMAKE_SOURCE_DIR}/chione/**.cpp
     )
 
     add_custom_target(docs
                       ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
-                      DEPENDS ${SYCAMORE_SOURCES} ${DOXYFILE_IN}
+                      DEPENDS ${CHIONE_SOURCES} ${DOXYFILE_IN}
                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                       COMMENT "Generating documentation." 
                       VERBATIM)

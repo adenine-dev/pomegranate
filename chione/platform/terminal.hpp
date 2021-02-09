@@ -2,28 +2,28 @@
 
 #include <iosfwd>
 
-#define SM_ANSI_ESC_RESET "\033[00m"
-#define SM_ANSI_ESC_BLACK "\033[30m"
-#define SM_ANSI_ESC_RED "\033[31m"
-#define SM_ANSI_ESC_GREEN "\033[32m"
-#define SM_ANSI_ESC_YELLOW "\033[33m"
-#define SM_ANSI_ESC_BLUE "\033[34m"
-#define SM_ANSI_ESC_MAGENTA "\033[35m"
-#define SM_ANSI_ESC_CYAN "\033[36m"
-#define SM_ANSI_ESC_WHITE "\033[37m"
-#define SM_ANSI_ESC_GREY "\033[38;5;246m"
+#define CE_ANSI_ESC_RESET "\033[00m"
+#define CE_ANSI_ESC_BLACK "\033[30m"
+#define CE_ANSI_ESC_RED "\033[31m"
+#define CE_ANSI_ESC_GREEN "\033[32m"
+#define CE_ANSI_ESC_YELLOW "\033[33m"
+#define CE_ANSI_ESC_BLUE "\033[34m"
+#define CE_ANSI_ESC_MAGENTA "\033[35m"
+#define CE_ANSI_ESC_CYAN "\033[36m"
+#define CE_ANSI_ESC_WHITE "\033[37m"
+#define CE_ANSI_ESC_GREY "\033[38;5;246m"
 
-#define SM_ANSI_ESC_ON_BLACK "\033[40m"
-#define SM_ANSI_ESC_ON_RED "\033[41m"
-#define SM_ANSI_ESC_ON_GREEN "\033[42m"
-#define SM_ANSI_ESC_ON_YELLOW "\033[43m"
-#define SM_ANSI_ESC_ON_BLUE "\033[44m"
-#define SM_ANSI_ESC_ON_MAGENTA "\033[45m"
-#define SM_ANSI_ESC_ON_CYAN "\033[46m"
-#define SM_ANSI_ESC_ON_WHITE "\033[47m"
-#define SM_ANSI_ESC_ON_GREY "\033[48;5;246m"
+#define CE_ANSI_ESC_ON_BLACK "\033[40m"
+#define CE_ANSI_ESC_ON_RED "\033[41m"
+#define CE_ANSI_ESC_ON_GREEN "\033[42m"
+#define CE_ANSI_ESC_ON_YELLOW "\033[43m"
+#define CE_ANSI_ESC_ON_BLUE "\033[44m"
+#define CE_ANSI_ESC_ON_MAGENTA "\033[45m"
+#define CE_ANSI_ESC_ON_CYAN "\033[46m"
+#define CE_ANSI_ESC_ON_WHITE "\033[47m"
+#define CE_ANSI_ESC_ON_GREY "\033[48;5;246m"
 
-namespace sm { namespace terminal {
+namespace ce { namespace terminal {
 
     /// @addtogroup terminal_output
     /// @{
@@ -87,4 +87,4 @@ namespace sm { namespace terminal {
 
     /// @}
 
-}} // namespace sm::terminal
+}} // namespace ce::terminal

@@ -7,7 +7,7 @@ add_executable(sandbox ${SOURCES})
 set_target_properties(sandbox PROPERTIES WIN32_EXECUTABLE TRUE)
 set_target_properties(sandbox PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SM_OUTPUT_DIRECTORY})
 
-target_link_libraries(sandbox sycamore)
+target_link_libraries(sandbox chione)
 
 target_include_directories(sandbox PUBLIC ../)
 

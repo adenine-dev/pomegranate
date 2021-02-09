@@ -1,22 +1,22 @@
-#include "sycamore/sycamore.hpp"
+#include "chione/chione.hpp"
 
 int main(int argc, char* argv[])
 {
-    SM_LOG_INFO(argc, argv);
-    // SM_LOG_INFO("hello world");
+    CE_LOG_INFO(argc, argv);
+    // CE_LOG_INFO("hello world");
 
-    sm::maths::vec2 v2 = { 2.0f, 3.0f };
-    SM_LOG_TRACE(v2[1]);
-    SM_LOG_INFO(v2);
-    SM_LOG_DEBUG(v2);
-    SM_LOG_WARN(v2.x);
-    SM_LOG_ERROR(v2[0]);
+    ce::maths::vec2 v2 = { 2.0f, 3.0f };
+    CE_LOG_TRACE(v2[1]);
+    CE_LOG_INFO(v2);
+    CE_LOG_DEBUG(v2);
+    CE_LOG_WARN(v2.x);
+    CE_LOG_ERROR(v2[0]);
 
     {
-        SM_PROFILE_SCOPE("Printing colors");
+        CE_PROFILE_SCOPE("Printing colors");
 
 #define COLOR(c, oc) std::cout << c << #c << reset << " " << oc << #oc << reset << std::endl;
-        using namespace sm::terminal;
+        using namespace ce::terminal;
         COLOR(black, onBlack)
         COLOR(red, onRed)
         COLOR(green, onGreen)
@@ -28,14 +28,14 @@ int main(int argc, char* argv[])
         COLOR(white, onWhite)
     }
 
-    sm::platform::openErrorWindow("title", "body");
+    ce::platform::openErrorWindow("title", "body");
 
-    SM_ASSERT(true, "noprint");
-    SM_ASSERT(false, "hi");
-    SM_ASSERT(false, "more hi");
+    CE_ASSERT(true, "noprint");
+    CE_ASSERT(false, "hi");
+    CE_ASSERT(false, "more hi");
 
     // {
-    //     SM_PROFILE_FUNCTION();
+    //     CE_PROFILE_FUNCTION();
 
     //     for (int i = 0; i < 1000; i++) {
     //         std::cout << i << ", ";

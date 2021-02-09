@@ -1,10 +1,10 @@
 #pragma once
 
-#ifdef SM_PLATFORM_WINDOWS
-#    define SM_DEBUGBREAK() __debugbreak()
+#ifdef CE_PLATFORM_WINDOWS
+#    define CE_DEBUGBREAK() __debugbreak()
 #endif
 
-namespace sm { namespace platform {
+namespace ce { namespace platform {
 
     /// @addtogroup platform
     /// @{
@@ -15,4 +15,4 @@ namespace sm { namespace platform {
 
     /// @}
 
-}} // namespace sm::platform
+}} // namespace ce::platform

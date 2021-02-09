@@ -7,13 +7,13 @@
 #include <iostream>
 #include <string>
 
-#ifdef SM_PLATFORM_WINDOWS
+#ifdef CE_PLATFORM_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
 #    include "windows.h"
 #endif
 
 #include "SDL.h"
 
-// sycamore stuffs.
+// chione stuffs.
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"

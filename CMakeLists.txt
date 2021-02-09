@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 # ==================================================== Cmake things ====================================================
-project(Sycamore LANGUAGES CXX C)
+project(Chione LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 11)
@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include("assign_source_group")
 include("define_filename_macro")
 
-set(SM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${GENERATOR_NAME}-$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+set(CE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${GENERATOR_NAME}-$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
 
 # ======================================================== SDL2 ========================================================
 # Produce a console in debug mode
@@ -51,8 +51,8 @@ endif()
 # option(BUILD_DOCS "Build documentation" OFF)
 add_subdirectory(docs)
 
-# ================================================== Sycamore Projects =================================================
-add_subdirectory(sycamore)
+# =================================================== Chione Projects ==================================================
+add_subdirectory(chione)
 add_subdirectory(sandbox)
 
 

@@ -3,7 +3,7 @@
 
 // NOTE: its possible that modern windows will accept ansi escape codes, therefore this may be able to be modified.
 
-namespace sm { namespace terminal {
+namespace ce { namespace terminal {
     static void setTerminalAttributes(std::ostream& os, int16_t fg, int16_t bg)
     {
         static WORD defaultAttribs = 0;
@@ -18,66 +18,66 @@ namespace sm { namespace terminal {
             if (fg != -1) {
                 switch (fg) {
                 case 0: {
-                    os << SM_ANSI_ESC_BLACK;
+                    os << CE_ANSI_ESC_BLACK;
                 } break;
                 case FOREGROUND_RED: {
-                    os << SM_ANSI_ESC_RED;
+                    os << CE_ANSI_ESC_RED;
                 } break;
                 case FOREGROUND_GREEN: {
-                    os << SM_ANSI_ESC_GREEN;
+                    os << CE_ANSI_ESC_GREEN;
                 } break;
                 case FOREGROUND_RED | FOREGROUND_GREEN: {
-                    os << SM_ANSI_ESC_YELLOW;
+                    os << CE_ANSI_ESC_YELLOW;
                 } break;
                 case FOREGROUND_BLUE: {
-                    os << SM_ANSI_ESC_BLUE;
+                    os << CE_ANSI_ESC_BLUE;
                 } break;
                 case FOREGROUND_RED | FOREGROUND_BLUE: {
-                    os << SM_ANSI_ESC_MAGENTA;
+                    os << CE_ANSI_ESC_MAGENTA;
                 } break;
                 case FOREGROUND_GREEN | FOREGROUND_BLUE: {
-                    os << SM_ANSI_ESC_CYAN;
+                    os << CE_ANSI_ESC_CYAN;
                 } break;
                 case FOREGROUND_INTENSITY: {
-                    os << SM_ANSI_ESC_GREY;
+                    os << CE_ANSI_ESC_GREY;
                 } break;
                 case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE: {
-                    os << SM_ANSI_ESC_WHITE;
+                    os << CE_ANSI_ESC_WHITE;
                 } break;
                 }
             } else if (bg == -1) {
-                os << SM_ANSI_ESC_RESET;
+                os << CE_ANSI_ESC_RESET;
                 return;
             }
 
             if (bg != -1) {
                 switch (bg) {
                 case 0: {
-                    os << SM_ANSI_ESC_ON_BLACK;
+                    os << CE_ANSI_ESC_ON_BLACK;
                 } break;
                 case BACKGROUND_RED: {
-                    os << SM_ANSI_ESC_ON_RED;
+                    os << CE_ANSI_ESC_ON_RED;
                 } break;
                 case BACKGROUND_GREEN: {
-                    os << SM_ANSI_ESC_ON_GREEN;
+                    os << CE_ANSI_ESC_ON_GREEN;
                 } break;
                 case BACKGROUND_RED | BACKGROUND_GREEN: {
-                    os << SM_ANSI_ESC_ON_YELLOW;
+                    os << CE_ANSI_ESC_ON_YELLOW;
                 } break;
                 case BACKGROUND_BLUE: {
-                    os << SM_ANSI_ESC_ON_BLUE;
+                    os << CE_ANSI_ESC_ON_BLUE;
                 } break;
                 case BACKGROUND_RED | BACKGROUND_BLUE: {
-                    os << SM_ANSI_ESC_ON_MAGENTA;
+                    os << CE_ANSI_ESC_ON_MAGENTA;
                 } break;
                 case BACKGROUND_GREEN | BACKGROUND_BLUE: {
-                    os << SM_ANSI_ESC_ON_CYAN;
+                    os << CE_ANSI_ESC_ON_CYAN;
                 } break;
                 case BACKGROUND_INTENSITY: {
-                    os << SM_ANSI_ESC_ON_GREY;
+                    os << CE_ANSI_ESC_ON_GREY;
                 } break;
                 case BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE: {
-                    os << SM_ANSI_ESC_ON_WHITE;
+                    os << CE_ANSI_ESC_ON_WHITE;
                 } break;
                 }
             }
@@ -165,7 +165,7 @@ namespace sm { namespace terminal {
     std::ostream& grey(std::ostream& os)
     {
         setTerminalAttributes(os, FOREGROUND_INTENSITY, -1);
-        // os << SM_ANSI_ESC_GREY;
+        // os << CE_ANSI_ESC_GREY;
         return os;
     }
 
@@ -222,4 +222,4 @@ namespace sm { namespace terminal {
         return os;
     }
 
-}} // namespace sm::terminal
+}} // namespace ce::terminal

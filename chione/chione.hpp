@@ -1,7 +1,7 @@
 #pragma once
 
-/*! @mainpage Sycamore Documentation
- * Sycamore is a hobby game engine. It is currently in pre-alpha and not even an engine. It is a personal project that I
+/*! @mainpage Introduction
+ * Chione is a hobby game engine. It is currently in pre-alpha and not even an engine. It is a personal project that I
  * am using in order to learn a bunch of things that I am interested in.
  *
  * @section setupandbuilding Setup & Building
@@ -9,7 +9,7 @@
  * the tools that will be used during development, clang should work but carries no guarantees. Currently only works on
  * windows, Linux & Web to come. To build the docs [Doxygen](https://www.doxygen.nl/index.html) is required.
  *
- * First clone [The reposotry](https://github.com/alexa-griffin/sycamore/) recursively.
+ * First clone [The reposotry](https://github.com/alexa-griffin/chione/) recursively.
  * Then run the setup.bat file to generate the build files.
  * ```
  * $ setup.bat <ninja|msvc>
@@ -23,10 +23,10 @@
  * ```
  * from the `/build/ninja/` directory. Which will either build, or build and run the sandbox.
  *
- * You can configure sycamore manually but it is somewhat complicated.
+ * You can configure Chione manually but it is somewhat complicated.
  *
  * @section Documentation
- * Sycamore consists of a bunch of modules (not c++20 modules) that are largely independent, if you want to do something
+ * Chione consists of a bunch of modules (not c++20 modules) that are largely independent, if you want to do something
  * with rendering it will be in the rendering module, etc. Thus it is recommended to learn by looking through the
  * <a href="modules.html">modules</a>.
  *
@@ -40,18 +40,18 @@
 #include "pch.hpp"
 
 /// @defgroup debug Debug Utilities
-/// Sycamore provides several debug functionalities, because Sycamore is meant to be crossplatform, profiling and debug
+/// Chione provides several debug functionalities, because Chione is meant to be crossplatform, profiling and debug
 /// capabilities are built in, and not reliant on any platform depdendent external tools.
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
 
 /// @defgroup maths Maths
-/// Sycamore implements its own maths functions, currently it is on a "first-needed first-served" basis. So *a lot* of
+/// Chione implements its own maths functions, currently it is on a "first-needed first-served" basis. So *a lot* of
 /// functionality is missing. This will be changed both as time goes on and when the 1.0 release happens.
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform Abstraction Layer
-/// Sycamore uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, sycamore provides a relatively
+/// Chione uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, Chione provides a relatively
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"

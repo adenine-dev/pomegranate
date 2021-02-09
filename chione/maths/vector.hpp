@@ -18,7 +18,7 @@
         return data[n];                                                                                                \
     }
 
-namespace sm { namespace maths {
+namespace ce { namespace maths {
     /// @addtogroup vectors Vectors
     /// @ingroup maths
     /// Vector specializations (typedefs of Vector), are mostly for convenience, and use glsl notation, ie the first
@@ -111,6 +111,6 @@ namespace sm { namespace maths {
         return os;
     }
 
-}} // namespace sm::maths
+}} // namespace ce::maths
 
 #undef IMPL_COMMON_VECTOR_FUNCS
