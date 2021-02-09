@@ -33,6 +33,10 @@ If "%1" == "ninja" (
     echo ^)^)^) >>run.bat
     echo ninja -j20 -Cninja -fbuild-%%1.ninja sandbox ^&^& "../bin/ninja-%%1/sandbox.exe">>run.bat
 
+    echo @echo off>doc.bat
+    echo ninja -j20 -Cninja docs >>doc.bat
+
+
 ) Else ( 
     If "%1" == "msvc" (
         mkdir msvc

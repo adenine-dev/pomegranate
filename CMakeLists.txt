@@ -59,5 +59,5 @@ add_subdirectory(sandbox)
 # ===================================================== IDE things =====================================================
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(SDL2main SDL2-static PROPERTIES FOLDER vendor)
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/SDL PROPERTY FOLDER vendor)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/SDL2 PROPERTY FOLDER vendor)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT sandbox)
