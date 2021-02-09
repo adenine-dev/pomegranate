@@ -21,7 +21,7 @@
  * or
  * $ run.bat <Release|Debug|RelWithDebInfo>
  * ```
- * from the /build/ninja/ directory. Which will either build, or build and run the sandbox.
+ * from the `/build/ninja/` directory. Which will either build, or build and run the sandbox.
  *
  * You can configure sycamore manually but it is somewhat complicated.
  *
@@ -51,7 +51,7 @@
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform Abstraction Layer
-/// Sycamore uses [SDL2](https://www.libsdl.org/) to handle most platform functionlaity, sycamore provides a relatively
+/// Sycamore uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, sycamore provides a relatively
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"

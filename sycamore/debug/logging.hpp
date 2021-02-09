@@ -17,8 +17,8 @@ namespace sm {
 
 /// @defgroup terminal_output Terminal Output
 /// Programs use the terminal rather extensively, and sycamore provides its own functions for interacting with it. The
-/// SM_LOG_* macros will output a consistently formatted stream of data to the console. There is no formatting here, you
-/// simply pass the arguments to the macro and it prints all of them consecutively. If you wish to color your output
+/// `SM_LOG_*` macros will output a consistently formatted stream of data to the console. There is no formatting here,
+/// you simply pass the arguments to the macro and it prints all of them consecutively. If you wish to color your output
 /// then there are the color functions below.
 /// @{
 // clang-format off

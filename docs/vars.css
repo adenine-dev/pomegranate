@@ -1,0 +1,46 @@
+/* This is a separate file because this entire thing is a horrible hack on top of doxygen. Iframes are dumb and 
+everything I've done to get this to work should get me exiled in at least 3 countries. */
+
+/* theming, this assumes a relatively modern browser but tbh i don't care to support people who are using 
+   out of date browsers at this point. */
+:root {
+  --bg-color: #fff;
+  --nav-bg: #eee;
+  --codeblock-bg: #eee;
+  --alt-color: #eee;
+  --text-color: #000;
+  --link-color: #58a6ff;
+
+  --keyword-color: #008000;
+  --keywordtype-color: #604020;
+  --keywordflow-color: #e08000;
+  --comment-color: #800000;
+  --preprocessor-color: #806020;
+  --stringliteral-color: #002080;
+  --charliteral-color: #008080;
+  --vhdldigit-color: #ff00ff;
+  --vhdlchar-color: #000000;
+  --vhdlkeyword-color: #700070;
+  --vhdllogic-color: #ff0000;
+}
+
+[data-theme="dark"] {
+  --bg-color: #202124;
+  --nav-bg: #18191b;
+  --codeblock-bg: #333;
+  --alt-color: #1d1e20;
+  --text-color: #fff;
+  --link-color: #58a6ff;
+
+  --keyword-color: #008000;
+  --keywordtype-color: #604020;
+  --keywordflow-color: #e08000;
+  --comment-color: #800000;
+  --preprocessor-color: #806020;
+  --stringliteral-color: #002080;
+  --charliteral-color: #008080;
+  --vhdldigit-color: #ff00ff;
+  --vhdlchar-color: #000000;
+  --vhdlkeyword-color: #700070;
+  --vhdllogic-color: #ff0000;
+}

@@ -1,0 +1,313 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("vars.css");
+
+/* General things */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font: 400 14px/22px "Open Sans", Roboto, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding-top: 56px;
+}
+
+a,
+a:visited,
+a:active,
+a:focus {
+  color: var(--link-color);
+}
+
+/* Sidebar */
+.arrow {
+  display: inline-block;
+}
+
+#side-nav {
+  position: fixed;
+  height: calc(100vh - 56px);
+  width: 300px;
+  top: 56px;
+  padding: 20px 0 0 0;
+  background-color: var(--nav-bg);
+  overflow: auto;
+}
+
+#nav-tree {
+  background-color: transparent;
+  background-image: none;
+  width: 100%;
+  height: 100%;
+}
+
+#nav-tree-contents {
+  margin: 0;
+}
+
+#nav-tree a {
+  color: inherit;
+}
+
+#nav-tree .selected {
+  background-color: var(--alt-color);
+  text-shadow: none;
+  background-image: none;
+  font-weight: bold;
+}
+
+#nav-tree .label {
+  color: var(--text-color);
+  font: inherit;
+}
+
+#nav-tree .selected a {
+  color: inherit !important;
+}
+
+#nav-sync {
+  display: none !important;
+}
+
+.ui-resizable-handle.ui-resizable-e {
+  display: none !important;
+}
+
+/* Header */
+#titlearea {
+  position: fixed;
+  z-index: 10002;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 56px;
+  background-color: var(--nav-bg);
+  box-shadow: 8px 0 12px -6px rgba(0, 0, 0, 0.2);
+}
+
+#titlearea table {
+  width: 100%;
+}
+
+#titlearea table td {
+  position: relative;
+}
+
+/* Theme toggle */
+.themeToggle {
+  float: right;
+  margin-right: 20px;
+}
+
+/* Searchbar */
+#titlearea table td:last-child {
+  max-width: 40%;
+  width: 300px;
+}
+
+#MSearchBox {
+  width: calc(100% - 20px);
+  right: 20px;
+  float: right;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  background-color: var(--alt-color);
+  color: var(--text-color);
+  z-index: 10001;
+  position: relative;
+}
+
+.MSearchBoxActive {
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.MSearchBoxActive::after {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 32px;
+  bottom: 0;
+  left: -32px;
+  background-color: transparent;
+  border-bottom-right-radius: 16px;
+  box-shadow: 16px 0px 0 0 var(--alt-color);
+  z-index: -1;
+}
+
+#MSearchBox input {
+  width: 100%;
+  background: none;
+  padding: 8px;
+  position: relative;
+  height: auto;
+  color: var(--text-color) !important;
+}
+
+#MSearchBox > .left,
+#MSearchBox > .right {
+  background: none;
+  user-select: none;
+  height: auto;
+}
+
+#MSearchBox > .left {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: auto;
+  margin-right: 20px;
+  padding: 0 8px;
+}
+
+#MSearchResultsWindow {
+  right: 20px !important;
+  left: initial !important;
+  position: fixed;
+  margin-top: 9px; /* FIXME: i'm fairly sure this will fail for certain scaling... */
+  /* top: initial !important; */
+  /* box-shadow: 8px 0 24px -8px rgba(0, 0, 0, 0.2); */
+  border-radius: 16px 0 16px 16px;
+  border: none;
+  color: var(--text-color) !important;
+  background-color: var(--alt-color);
+  z-index: 10004;
+}
+
+#MSearchBox > .left > img,
+#MSearchBox > .right > img {
+  top: auto;
+  left: auto;
+  height: 100%;
+}
+
+#MSearchClose {
+  display: none !important;
+}
+
+/* Main content */
+#doc-content {
+  padding-top: 20px;
+}
+
+.contents,
+.header {
+  width: 90%;
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.title {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.title > .ingroups {
+  display: inline-block;
+  padding-left: 10px;
+  font-size: 1rem;
+}
+
+.memItemLeft,
+.memItemRight,
+.memtemplate,
+.memname {
+  font-family: "Fira Code", monospace;
+}
+
+.memname > .permalink {
+  width: 1em;
+}
+.memitem {
+  margin-left: 1em;
+}
+
+.memItemRight *:not(:first-child) {
+  text-decoration: underline;
+}
+
+/* .memItemRight > b {
+  text-decoration: none !important;
+} */
+
+tr:not(:last-child) .memSeparator {
+  line-height: 2px;
+  background-color: var(--alt-color);
+}
+
+tr:last-child .memSeparator {
+  line-height: 0px;
+}
+
+.ttc {
+  display: none;
+}
+
+/* Code blocks */
+.fragment {
+  text-align: left;
+  direction: ltr;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+pre.fragment,
+div.fragment {
+  background-color: var(--codeblock-bg);
+  padding: 4px 6px;
+  margin: 4px 8px 4px 2px;
+  overflow: auto;
+  white-space: nowrap;
+  font-family: "Fira Code", monospace;
+  border-radius: 4px;
+}
+
+div.line {
+  white-space: pre;
+}
+
+span.keyword {
+  color: var(--keyword-color);
+}
+
+span.keywordtype {
+  color: var(--keywordtype-color);
+}
+
+span.keywordflow {
+  color: var(--keywordflow-color);
+}
+
+span.comment {
+  color: var(--comment-color);
+}
+
+span.preprocessor {
+  color: var(--preprocessor-color);
+}
+
+span.stringliteral {
+  color: var(--stringliteral-color);
+}
+
+span.charliteral {
+  color: var(--charliteral-color);
+}
+
+span.vhdldigit {
+  color: var(--vhdldigit-color);
+}
+
+span.vhdlchar {
+  color: var(--vhdlchar-color);
+}
+
+span.vhdlkeyword {
+  color: var(--vhdlkeyword-color);
+}
+
+span.vhdllogic {
+  color: var(--vhdllogic-color);
+}

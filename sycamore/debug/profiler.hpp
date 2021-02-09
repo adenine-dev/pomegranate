@@ -64,7 +64,7 @@ namespace sm {
 ///     // do stuff
 /// }
 /// ```
-#define SM_PROFILE_SCOPE(name) ::sm::Profiler _SYCAMORE_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
+#define SM_PROFILE_SCOPE(name) const ::sm::Profiler _SYCAMORE_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
 
 /*! \def SM_PROFILE_FUNCTION() */
 /// When put in a scope, will profile the rest of the scope (recommended to place at beginning unless you have a very
@@ -78,4 +78,5 @@ namespace sm {
 /// }
 /// ```
 #define SM_PROFILE_FUNCTION() SM_PROFILE_SCOPE(SM_CURRENT_FUNCSIG)
+
 /// @}
