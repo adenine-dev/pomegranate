@@ -32,7 +32,7 @@ endif()
 SET(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
 
 set(SDL_SHARED OFF) # static libs so it can ship as a single executable
-add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/SDL2)
 
 SET(CMAKE_MESSAGE_LOG_LEVEL "STATUS")
 
