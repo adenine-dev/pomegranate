@@ -82,10 +82,10 @@
       <enums title=""/>
       <services title=""/>
       <interfaces title=""/>
+      <variables title=""/>
       <constructors title=""/>
       <functions title=""/>
       <related title=""/>
-      <variables title=""/>
       <properties title=""/>
       <events title=""/>
     </memberdef>
@@ -174,13 +174,13 @@
       <namespaces visible="yes" title=""/>
       <classes visible="yes"/>
       <defines title=""/>
-      <typedefs title=""/>
       <sequences title=""/>
       <dictionaries title=""/>
       <enums title=""/>
       <enumvalues title=""/>
       <functions title=""/>
       <variables title=""/>
+      <typedefs title=""/>
       <signals title=""/>
       <publicslots title=""/>
       <protectedslots title=""/>
@@ -194,13 +194,13 @@
       <pagedocs/>
       <inlineclasses title=""/>
       <defines title=""/>
-      <typedefs title=""/>
       <sequences title=""/>
       <dictionaries title=""/>
       <enums title=""/>
       <enumvalues title=""/>
       <functions title=""/>
       <variables title=""/>
+      <typedefs title=""/>
       <signals title=""/>
       <publicslots title=""/>
       <protectedslots title=""/>

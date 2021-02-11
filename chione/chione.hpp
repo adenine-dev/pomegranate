@@ -55,3 +55,9 @@
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"
+
+/// @ingroup maths
+/// fuck
+inline void template <typename T> func(t T)
+{
+}

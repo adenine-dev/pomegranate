@@ -6,11 +6,12 @@ everything I've done to get this to work should get me exiled in at least 3 coun
 :root {
   --bg-color: #fff;
   --nav-bg: #eee;
-  --codeblock-bg: #eee;
   --alt-color: #eee;
   --text-color: #000;
   --link-color: #58a6ff;
+  --accent-color: #84ffff;
 
+  --codeblock-bg: #eee;
   --keyword-color: #008000;
   --keywordtype-color: #604020;
   --keywordflow-color: #e08000;
@@ -18,6 +19,7 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --preprocessor-color: #806020;
   --stringliteral-color: #002080;
   --charliteral-color: #008080;
+
   --vhdldigit-color: #ff00ff;
   --vhdlchar-color: #000000;
   --vhdlkeyword-color: #700070;
@@ -27,18 +29,20 @@ everything I've done to get this to work should get me exiled in at least 3 coun
 [data-theme="dark"] {
   --bg-color: #202124;
   --nav-bg: #18191b;
-  --codeblock-bg: #333;
   --alt-color: #1d1e20;
   --text-color: #fff;
   --link-color: #58a6ff;
+  --accent-color: #84ffff;
 
-  --keyword-color: #008000;
-  --keywordtype-color: #604020;
-  --keywordflow-color: #e08000;
-  --comment-color: #800000;
-  --preprocessor-color: #806020;
-  --stringliteral-color: #002080;
-  --charliteral-color: #008080;
+  --codeblock-bg: #1b1c22;
+  --keyword-color: #7e7edd;
+  --keywordtype-color: #a571f4;
+  --keywordflow-color: #b1b2f2;
+  --comment-color: #555c77;
+  --preprocessor-color: #93defb;
+  --stringliteral-color: #9aefea;
+  --charliteral-color: #9aefea;
+
   --vhdldigit-color: #ff00ff;
   --vhdlchar-color: #000000;
   --vhdlkeyword-color: #700070;

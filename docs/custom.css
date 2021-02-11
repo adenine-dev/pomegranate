@@ -10,8 +10,7 @@ body {
   font: 400 14px/22px "Open Sans", Roboto, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  margin: 0;
-  padding-top: 56px;
+  margin: 56px 0 0 0;
 }
 
 a,
@@ -31,7 +30,7 @@ a:focus {
   height: calc(100vh - 56px);
   width: 300px;
   top: 56px;
-  padding: 20px 0 0 0;
+  padding: 0;
   background-color: var(--nav-bg);
   overflow: auto;
 }
@@ -45,6 +44,7 @@ a:focus {
 
 #nav-tree-contents {
   margin: 0;
+  padding: 10px 0 30px;
 }
 
 #nav-tree a {
@@ -189,7 +189,12 @@ a:focus {
 
 /* Main content */
 #doc-content {
-  padding-top: 20px;
+  overflow: initial;
+  padding: 20px 0 40px;
+}
+
+#doc-content p {
+  line-height: 1.6em;
 }
 
 .contents,
@@ -199,38 +204,123 @@ a:focus {
   max-width: 960px;
 }
 
+.summary {
+  display: none;
+}
+
+.contents > .memitem + a {
+  top: -56px;
+  position: relative;
+}
+
 .title {
-  font-size: 2em;
+  font-size: 3em;
   font-weight: bold;
 }
 
 .title > .ingroups {
-  display: inline-block;
-  padding-left: 10px;
   font-size: 1rem;
+  padding-top: 20px;
 }
 
 .memItemLeft,
+.memTemplItemLeft {
+  white-space: nowrap;
+}
+
 .memItemRight,
-.memtemplate,
-.memname {
-  font-family: "Fira Code", monospace;
+.memTemplItemRight {
+  width: 100%;
 }
 
-.memname > .permalink {
-  width: 1em;
-}
-.memitem {
-  margin-left: 1em;
-}
-
-.memItemRight *:not(:first-child) {
-  text-decoration: underline;
-}
-
-/* .memItemRight > b {
-  text-decoration: none !important;
+/* table,
+tr,
+td,
+tbody {
+  border: 1px solid #fff !important;
 } */
+
+.memItemLeft,
+.memItemRight,
+.memTemplParams,
+.memTemplItemLeft,
+.memTemplItemRight,
+.memtemplate,
+.memname,
+.memdoc .textblock h3 {
+  font-family: "Fira Code", monospace;
+  font-weight: 400;
+  font-size: 1em;
+}
+
+/* NOTE: this is incredibly hacky, and i'm only 50% sure it works. */
+.memproto + .memdoc .textblock h3 {
+  margin: 0;
+  position: absolute;
+  top: 0;
+  background-color: var(--bg-color);
+
+  /* color: red; */
+}
+
+.memdoc .textblock h3 + p {
+  margin-top: 2em;
+}
+
+.memproto .memname {
+  cursor: text; /* pointer-events: none disables cursors for some reason so we hack it back in :| */
+}
+
+.memproto .memname > a {
+  pointer-events: none;
+  color: inherit;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.memitem {
+  position: relative;
+}
+
+.memitem .memitem {
+  margin-left: 30px;
+}
+
+.memitem:not(.memitem .memitem) {
+  padding-left: 17px;
+  margin-left: 11px;
+  border-left: 2px solid var(--accent-color);
+}
+
+.memtitle {
+  opacity: 0.8;
+}
+
+.groupheader {
+  margin-top: 1.4em;
+}
+
+.memtitle .permalink a {
+  color: transparent;
+  position: relative;
+  display: inline-block;
+  width: 30px;
+}
+
+.memtitle .permalink a::after {
+  content: "🔗";
+  text-align: center;
+  color: var(--text-color);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* display: block; */
+}
+
+.memtitle .overload {
+  float: right;
+}
 
 tr:not(:last-child) .memSeparator {
   line-height: 2px;
@@ -245,6 +335,12 @@ tr:last-child .memSeparator {
   display: none;
 }
 
+.contents hr {
+  border: none;
+  border-top: 1px solid var(--text-color);
+  opacity: 0.4;
+}
+
 /* Code blocks */
 .fragment {
   text-align: left;
@@ -256,7 +352,8 @@ tr:last-child .memSeparator {
 pre.fragment,
 div.fragment {
   background-color: var(--codeblock-bg);
-  padding: 4px 6px;
+  /* box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2); */
+  padding: 8px 16px;
   margin: 4px 8px 4px 2px;
   overflow: auto;
   white-space: nowrap;
@@ -266,6 +363,11 @@ div.fragment {
 
 div.line {
   white-space: pre;
+}
+
+a.code {
+  color: inherit;
+  text-decoration: underline;
 }
 
 span.keyword {

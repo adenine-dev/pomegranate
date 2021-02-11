@@ -19,18 +19,17 @@
     }
 
 namespace ce { namespace maths {
-    /// @addtogroup vectors Vectors
-    /// @ingroup maths
-    /// Vector specializations (typedefs of Vector), are mostly for convenience, and use glsl notation, ie the first
-    /// element can be accessed through `x`, `r`, or `s`. Does not do swizzling.
+    /// @addtogroup maths
     /// @{
 
     /// Generic Vector Type. Specialized by `vec2`, `vec3`, and `vec4`, but can be used independently for larger
     /// vectors.
+    /// Vector specializations (typedefs of Vector), are mostly for convenience, and use glsl notation, ie the first
+    /// element can be accessed through `x`, `r`, or `s`. Does not do swizzling.
     template <typename T, size_t N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
-        /// Raw data of the vector, recommended to access through operator[].
+        /// Raw data of the vector, recommended to access through `operator[]()`.
         T data[N];
 
         IMPL_COMMON_VECTOR_FUNCS(N)
@@ -96,9 +95,12 @@ namespace ce { namespace maths {
         IMPL_COMMON_VECTOR_FUNCS(4)
     };
 
-    typedef Vector<float, 2> vec2;
-    typedef Vector<float, 3> vec3;
-    typedef Vector<float, 4> vec4;
+    /// Specialization of Vector, standard 2 component floating point vector.
+    using vec2 = Vector<float, 2>;
+    /// Specialization of Vector, standard 3 component floating point vector.
+    using vec3 = Vector<float, 3>;
+    /// Specialization of Vector, standard 4 component floating point vector.
+    using vec4 = Vector<float, 4>;
     /// @}
 
     template <typename T, size_t N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)

@@ -13,10 +13,10 @@ namespace ce {
     /// with this [schema](https://www.speedscope.app/file-format-schema.json)
     class Profiler {
     public:
-        /// Constructor begins the timer.
+        /// Constructor, begins the timer.
         Profiler(const char* functionName, const char* filename, const uint64_t linenumber);
 
-        /// Destructor ends the timer and logs the output.
+        /// Destructor, ends the timer and logs the output. This behavior subject to change.
         ~Profiler();
 
     private:

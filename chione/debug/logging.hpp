@@ -22,10 +22,15 @@ namespace ce {
 /// then there are the color functions below.
 /// @{
 // clang-format off
+/// Logs a trace message, currently the log levels are purely ornamental.
 #define CE_LOG_TRACE(...) ::ce::_log(::std::cout, ::ce::terminal::grey,   "[TRACE] ", ::ce::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+/// Logs an info message, currently the log levels are purely ornamental.
 #define CE_LOG_INFO(...)  ::ce::_log(::std::cout, ::ce::terminal::blue,   "[INFO] ",  ::ce::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+/// Logs a debug message, currently the log levels are purely ornamental.
 #define CE_LOG_DEBUG(...) ::ce::_log(::std::cout, ::ce::terminal::green,  "[DEBUG] ", ::ce::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+/// Logs a warning, currently the log levels are purely ornamental.
 #define CE_LOG_WARN(...)  ::ce::_log(::std::cout, ::ce::terminal::yellow, "[WARN] ",  ::ce::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+/// Logs an error, currently the log levels are purely ornamental.
 #define CE_LOG_ERROR(...) ::ce::_log(::std::cout, ::ce::terminal::red,    "[ERROR] ", ::ce::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 // clang-format on
 /// @}
