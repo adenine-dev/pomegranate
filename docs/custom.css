@@ -35,6 +35,16 @@ a:focus {
   overflow: auto;
 }
 
+#side-nav::after {
+  content: "";
+  position: absolute;
+  height: 90%;
+  width: 1px;
+  background-color: var(--alt-color);
+  top: 5%;
+  right: 0;
+}
+
 #nav-tree {
   background-color: transparent;
   background-image: none;
@@ -52,19 +62,19 @@ a:focus {
 }
 
 #nav-tree .selected {
-  background-color: var(--alt-color);
+  background-color: var(--nav-bg);
   text-shadow: none;
   background-image: none;
   font-weight: bold;
 }
 
+#nav-tree .selected a {
+  color: var(--text-color);
+}
+
 #nav-tree .label {
   color: var(--text-color);
   font: inherit;
-}
-
-#nav-tree .selected a {
-  color: inherit !important;
 }
 
 #nav-sync {
@@ -99,6 +109,37 @@ a:focus {
 .themeToggle {
   float: right;
   margin-right: 20px;
+  position: relative;
+  height: 1px;
+  width: 1px;
+}
+
+.themeToggle:focus {
+  outline: none;
+}
+
+.themeToggle::after {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  height: 24px;
+  width: 24px;
+  opacity: 1 !important;
+  line-height: 24px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.themeToggle:focus::after {
+  outline: black auto 1px;
+}
+
+.themeToggle:checked::after {
+  content: "🌙" / "change theme";
+}
+
+.themeToggle:not(:checked)::after {
+  content: "☀️" / "change theme";
 }
 
 /* Searchbar */
@@ -118,6 +159,7 @@ a:focus {
   color: var(--text-color);
   z-index: 10001;
   position: relative;
+  overflow: hidden;
 }
 
 .MSearchBoxActive {
@@ -167,13 +209,15 @@ a:focus {
   left: initial !important;
   position: fixed;
   margin-top: 9px; /* FIXME: i'm fairly sure this will fail for certain scaling... */
-  /* top: initial !important; */
-  /* box-shadow: 8px 0 24px -8px rgba(0, 0, 0, 0.2); */
-  border-radius: 16px 0 16px 16px;
   border: none;
   color: var(--text-color) !important;
   background-color: var(--alt-color);
   z-index: 10004;
+  border-radius: 16px 0 16px 16px;
+}
+
+#MSearchResultsWindow iframe {
+  border-radius: 16px 0 16px 16px;
 }
 
 #MSearchBox > .left > img,
@@ -208,19 +252,23 @@ a:focus {
   display: none;
 }
 
-.contents > .memitem + a {
-  top: -56px;
+.contents > .memitem + a,
+.contents > .groupheader + a,
+.memdoc > .memitem + a,
+.memdoc > .groupheader + a {
+  top: -76px;
   position: relative;
 }
 
 .title {
   font-size: 3em;
+  line-height: 1.2em;
   font-weight: bold;
 }
 
 .title > .ingroups {
   font-size: 1rem;
-  padding-top: 20px;
+  /* padding-top: 20px; */
 }
 
 .memItemLeft,
@@ -233,13 +281,6 @@ a:focus {
   width: 100%;
 }
 
-/* table,
-tr,
-td,
-tbody {
-  border: 1px solid #fff !important;
-} */
-
 .memItemLeft,
 .memItemRight,
 .memTemplParams,
@@ -247,7 +288,7 @@ tbody {
 .memTemplItemRight,
 .memtemplate,
 .memname,
-.memdoc .textblock h3 {
+.textblock h3 {
   font-family: "Fira Code", monospace;
   font-weight: 400;
   font-size: 1em;
@@ -281,6 +322,9 @@ tbody {
 .memitem {
   position: relative;
 }
+.memitem:not(:last-child) {
+  margin-bottom: 30px;
+}
 
 .memitem .memitem {
   margin-left: 30px;
@@ -292,9 +336,14 @@ tbody {
   border-left: 2px solid var(--accent-color);
 }
 
-.memtitle {
-  opacity: 0.8;
+.memtitle .permalink {
+  border-radius: 50%;
+  transition: 0.3s ease-in-out background-color;
 }
+
+/* .glow .permalink {
+  background-color: var(--accent-color);
+} */
 
 .groupheader {
   margin-top: 1.4em;

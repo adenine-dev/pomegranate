@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function(ev) {
     const themeToggle = document.createElement("input")
     themeToggle.setAttribute("type", "checkbox")
     themeToggle.className = "themeToggle"
+    themeToggle.alt = "change theme"
     themeToggle.addEventListener("change", function(e) {
         if (e.target.checked) {
             document.documentElement.setAttribute('data-theme', 'dark')

@@ -15,7 +15,6 @@ if (DOXYGEN_FOUND)
 
     file(GLOB_RECURSE CHIONE_SOURCES
         ${CMAKE_SOURCE_DIR}/chione/**.hpp
-        ${CMAKE_SOURCE_DIR}/chione/**.cpp
     )
 
     add_custom_target(docs

@@ -4,21 +4,21 @@ everything I've done to get this to work should get me exiled in at least 3 coun
 /* theming, this assumes a relatively modern browser but tbh i don't care to support people who are using 
    out of date browsers at this point. */
 :root {
-  --bg-color: #fff;
-  --nav-bg: #eee;
-  --alt-color: #eee;
+  --bg-color: #fcfeff;
+  --nav-bg: #fcfeff;
+  --alt-color: #e0eef1;
   --text-color: #000;
   --link-color: #58a6ff;
-  --accent-color: #84ffff;
+  --accent-color: #b2ebf2;
 
-  --codeblock-bg: #eee;
-  --keyword-color: #008000;
-  --keywordtype-color: #604020;
-  --keywordflow-color: #e08000;
-  --comment-color: #800000;
-  --preprocessor-color: #806020;
-  --stringliteral-color: #002080;
-  --charliteral-color: #008080;
+  --codeblock-bg: #eaf4f5;
+  --keyword-color: #6a12ed;
+  --keywordtype-color: #ba45ed;
+  --keywordflow-color: #337dcc;
+  --comment-color: #b6bac9;
+  --preprocessor-color: #ba45ed;
+  --stringliteral-color: #1dafa8;
+  --charliteral-color: #1dafa8;
 
   --vhdldigit-color: #ff00ff;
   --vhdlchar-color: #000000;
