@@ -10,6 +10,8 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --text-color: #000;
   --link-color: #58a6ff;
   --accent-color: #b2ebf2;
+  --warning-color: #f03a47;
+  --warning-bg: rgba(240, 58, 71, 0.4);
 
   --codeblock-bg: #eaf4f5;
   --keyword-color: #6a12ed;
@@ -33,6 +35,8 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --text-color: #fff;
   --link-color: #58a6ff;
   --accent-color: #84ffff;
+  --warning-color: #f03a47;
+  --warning-bg: rgba(240, 58, 71, 0.4);
 
   --codeblock-bg: #1b1c22;
   --keyword-color: #7e7edd;

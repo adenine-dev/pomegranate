@@ -2,8 +2,6 @@
 
 #include "platform.hpp"
 
-#include "SDL.h"
-
 namespace ce { namespace platform {
     void openErrorWindow(const char* title, const char* body)
     {

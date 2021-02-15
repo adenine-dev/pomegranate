@@ -260,10 +260,20 @@ a:focus {
   position: relative;
 }
 
+a.anchor {
+  top: calc(-76px - 3em);
+  position: relative;
+}
+
 .title {
   font-size: 3em;
   line-height: 1.2em;
   font-weight: bold;
+}
+
+a#details + .groupheader {
+  display: none;
+  /* color: red; */
 }
 
 .title > .ingroups {
@@ -274,6 +284,7 @@ a:focus {
 .memItemLeft,
 .memTemplItemLeft {
   white-space: nowrap;
+  width: 1%;
 }
 
 .memItemRight,
@@ -336,17 +347,12 @@ a:focus {
   border-left: 2px solid var(--accent-color);
 }
 
-.memtitle .permalink {
-  border-radius: 50%;
-  transition: 0.3s ease-in-out background-color;
+.groupheader {
+  margin: 1.4em 0 0.5em;
 }
 
-/* .glow .permalink {
-  background-color: var(--accent-color);
-} */
-
-.groupheader {
-  margin-top: 1.4em;
+.ititle p {
+  margin-top: 0;
 }
 
 .memtitle .permalink a {
@@ -354,6 +360,10 @@ a:focus {
   position: relative;
   display: inline-block;
   width: 30px;
+}
+
+.memtitle .permalink a::selection {
+  color: transparent;
 }
 
 .memtitle .permalink a::after {
@@ -388,6 +398,20 @@ tr:last-child .memSeparator {
   border: none;
   border-top: 1px solid var(--text-color);
   opacity: 0.4;
+}
+
+.section.warning {
+  background-color: var(--warning-bg);
+  border-left: 6px solid var(--warning-color);
+  padding: 8px 16px;
+}
+
+.section.warning dt {
+  font-weight: bold;
+}
+
+.section.warning dd {
+  margin-left: 0;
 }
 
 /* Code blocks */

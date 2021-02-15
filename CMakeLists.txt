@@ -14,6 +14,7 @@ include("assign_source_group")
 include("define_filename_macro")
 
 set(CE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${GENERATOR_NAME}-$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+set(CE_VENDOR_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor)
 
 # ======================================================== SDL2 ========================================================
 # Produce a console in debug mode

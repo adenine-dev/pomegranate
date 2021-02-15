@@ -48,6 +48,8 @@
 /// @defgroup maths Maths
 /// Chione implements its own maths functions, currently it is on a "first-needed first-served" basis. So *a lot* of
 /// functionality is missing. This will be changed both as time goes on and when the 1.0 release happens.
+///
+/// `#include <chione/maths/maths.hpp>`
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform Abstraction Layer

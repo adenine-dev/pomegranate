@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef CE_PLATFORM_WINDOWS
-#    define CE_DEBUGBREAK() __debugbreak()
-#endif
-
 namespace ce { namespace platform {
 
     /// @addtogroup platform

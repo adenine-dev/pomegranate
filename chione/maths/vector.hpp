@@ -4,14 +4,14 @@
 
 #define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \
     /** Returns a reference to the nth member of a vector. \n                                                          \
-        No bounds checking is preformed so using this improperly can crash.                                            \
+        @warning No bounds checking is preformed so using this improperly can crash.                                   \
      */                                                                                                                \
     inline T& operator[](size_t n)                                                                                     \
     {                                                                                                                  \
         return data[n];                                                                                                \
     }                                                                                                                  \
     /** Returns a const reference to the nth member of a vector. \n                                                    \
-        No bounds checking is preformed so using this improperly can crash.                                            \
+       @warning No bounds checking is preformed so using this improperly can crash.                                    \
      */                                                                                                                \
     inline const T& operator[](size_t n) const                                                                         \
     {                                                                                                                  \
@@ -22,10 +22,8 @@ namespace ce { namespace maths {
     /// @addtogroup maths
     /// @{
 
-    /// Generic Vector Type. Specialized by `vec2`, `vec3`, and `vec4`, but can be used independently for larger
-    /// vectors.
-    /// Vector specializations (typedefs of Vector), are mostly for convenience, and use glsl notation, ie the first
-    /// element can be accessed through `x`, `r`, or `s`. Does not do swizzling.
+    /// Generic Vector Type. You probably want to use the @ref vector_specializations "Vector Specializations", but this
+    /// can be used independently for larger vectors.
     template <typename T, size_t N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
@@ -95,12 +93,31 @@ namespace ce { namespace maths {
         IMPL_COMMON_VECTOR_FUNCS(4)
     };
 
-    /// Specialization of Vector, standard 2 component floating point vector.
+    /// @anchoredname{Vector specializations, vector_specializations}
+    /// Vector specialization, used mostly for convenience. Has `xyzw`, `rgba`, and `stpq` members
+    /// Equivelent to the same name in glsl. These do not do swizzeling.
+    /// @{
+
     using vec2 = Vector<float, 2>;
-    /// Specialization of Vector, standard 3 component floating point vector.
     using vec3 = Vector<float, 3>;
-    /// Specialization of Vector, standard 4 component floating point vector.
     using vec4 = Vector<float, 4>;
+
+    using dvec2 = Vector<double, 2>;
+    using dvec3 = Vector<double, 3>;
+    using dvec4 = Vector<double, 4>;
+
+    using uvec2 = Vector<uint32_t, 2>;
+    using uvec3 = Vector<uint32_t, 3>;
+    using uvec4 = Vector<uint32_t, 4>;
+
+    using ivec2 = Vector<int32_t, 2>;
+    using ivec3 = Vector<int32_t, 3>;
+    using ivec4 = Vector<int32_t, 4>;
+
+    using bvec2 = Vector<bool, 2>;
+    using bvec3 = Vector<bool, 3>;
+    using bvec4 = Vector<bool, 4>;
+    /// @}
     /// @}
 
     template <typename T, size_t N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
