@@ -12,7 +12,7 @@ namespace ce {
     /// @brief Represents either a window (on desktop platforms) or surface (on mobile platforms)
     class Window {
     public:
-        /// Event handler function pointer, provided for convenience.
+        /// Event handler function pointer, typedefed for convenience.
         using EventHandler = void (*)(const InputEvent&);
 
     public:
@@ -32,7 +32,7 @@ namespace ce {
             return closeRequested;
         }
 
-        /// Sets the function that will be called whenever this window receives an event. Will assert if invalid.
+        /// Sets the function that will be called whenever this window receives an InputEvent. Will assert if invalid.
         inline void setEventHandler(EventHandler fn)
         {
             CE_ASSERT(fn, "Attempting to pass an invalid function pointer to `Window::setEventHandler`");
@@ -40,7 +40,8 @@ namespace ce {
         }
 
     public:
-        /// Polls the platform for events that have happened in the past update, should be called every update.
+        /// Polls the platform for events that have happened in the past update, should be called once every update.
+        /// Events are handled through their source Window's event callback.
         static void pollEvents();
 
     private:

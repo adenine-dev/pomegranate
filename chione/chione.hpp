@@ -40,12 +40,16 @@
 #include "pch.hpp"
 
 /// @defgroup debug Debug Utilities
+/// @brief Various debugging tools built into Chione.
+///
 /// Chione provides several debug functionalities, because Chione is meant to be crossplatform, profiling and debug
 /// capabilities are built in, and not reliant on any platform depdendent external tools.
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
 
 /// @defgroup maths Maths
+/// @brief All mathematical functionality.
+///
 /// Chione implements its own maths functions, currently it is on a "first-needed first-served" basis. So *a lot* of
 /// functionality is missing. This will be changed both as time goes on and when the 1.0 release happens.
 ///
@@ -53,6 +57,8 @@
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform
+/// @brief Platform abstracitons and unification's.
+///
 /// Chione uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, Chione provides a relatively
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
 #include "platform/platform.hpp"

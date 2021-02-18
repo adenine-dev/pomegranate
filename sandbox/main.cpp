@@ -7,12 +7,12 @@ int main(int argc, char* argv[])
     ce::Window window("Chione Test Window");
 
     window.setEventHandler([](const ce::InputEvent& fn) {
-        if (fn.type == ce::InputEventType::WINDOW_MOVE) {
-            CE_LOG_INFO(fn.getPosition());
-        } else if (fn.type == ce::InputEventType::WINDOW_RESIZE) {
-            CE_LOG_INFO(fn.getPosition()); // should assert.
-        } else
-            fn.debugPrint();
+        // if (fn.type == ce::InputEventType::WINDOW_MOVE) {
+        //     CE_LOG_INFO(fn.getPosition());
+        // } else if (fn.type == ce::InputEventType::WINDOW_RESIZE) {
+        //     CE_LOG_INFO(fn.getPosition()); // should assert.
+        // } else
+        fn.debugPrint();
     });
 
     while (!window.shouldClose()) {

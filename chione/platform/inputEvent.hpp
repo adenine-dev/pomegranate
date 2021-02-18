@@ -9,7 +9,7 @@ namespace ce {
     /// @{
 
     /// @addtogroup input_events Input Events
-    ///
+    /// @brief The event system used by windows to transmit user interaction.
     /// @{
 
     /// The type of a given InputEvent, each of these is an event that can be emitted by a window.
@@ -18,8 +18,7 @@ namespace ce {
 
         // TODO: differentiate between close and close requested?
         WINDOW_CLOSE, ///< Fires when a window is closed.
-        WINDOW_MOVE, ///< Fires when a window is moved, only makes sense on platforms that can do that. Only fires once
-                     ///< the window is done being moved.
+        WINDOW_MOVE, ///< Fires when a window is moved, only makes sense on platforms that can do that.
         WINDOW_RESIZE, ///< Fires when a window is resized, only makes sense on platforms that can do that.
         WINDOW_FOCUS, ///< Fires when a window is focused, that is clicked onto.
         WINDOW_BLUR ///< Fires when a window loses focus, that is clicked away from.

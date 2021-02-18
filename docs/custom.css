@@ -348,6 +348,11 @@ a#details + .groupheader {
   width: 100%;
 }
 
+.memItemRight b,
+.memTemplItemRight b {
+  font-weight: normal;
+}
+
 .memItemLeft,
 .memItemRight,
 .memTemplParams,

@@ -20,6 +20,7 @@ namespace ce {
 } // namespace ce
 
 /// @addtogroup terminal_output Terminal Output
+/// @brief Tools for interacting with the output console.
 /// @{
 
 /// @anchoredname{Debug Output, debug_output}
