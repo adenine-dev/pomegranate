@@ -35,12 +35,16 @@ namespace ce { namespace maths {
 
     /// @private
     template <typename T> struct Vector<T, 2> {
+        /// @private
         union {
             T data[2];
+            /// @private
             struct {
+                /// @private
                 union {
                     T x, r, s;
                 };
+                /// @private
                 union {
                     T y, g, t;
                 };
@@ -52,15 +56,20 @@ namespace ce { namespace maths {
 
     /// @private
     template <typename T> struct Vector<T, 3> {
+        /// @private
         union {
             T data[3];
+            /// @private
             struct {
+                /// @private
                 union {
                     T x, r, s;
                 };
+                /// @private
                 union {
                     T y, g, t;
                 };
+                /// @private
                 union {
                     T z, b, p;
                 };
@@ -72,18 +81,24 @@ namespace ce { namespace maths {
 
     /// @private
     template <typename T> struct Vector<T, 4> {
+        /// @private
         union {
             T data[4];
+            /// @private
             struct {
+                /// @private
                 union {
                     T x, r, s;
                 };
+                /// @private
                 union {
                     T y, g, t;
                 };
+                /// @private
                 union {
                     T z, b, p;
                 };
+                /// @private
                 union {
                     T w, a, q;
                 };

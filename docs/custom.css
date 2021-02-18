@@ -323,16 +323,17 @@ a#details + .groupheader {
   cursor: text; /* pointer-events: none disables cursors for some reason so we hack it back in :| */
 }
 
-.memproto .memname > a {
+/* .memproto .memname > a {
   pointer-events: none;
   color: inherit;
   display: inline-block;
   text-decoration: none;
-}
+} */
 
 .memitem {
   position: relative;
 }
+
 .memitem:not(:last-child) {
   margin-bottom: 30px;
 }
@@ -388,6 +389,36 @@ tr:not(:last-child) .memSeparator {
 
 tr:last-child .memSeparator {
   line-height: 0px;
+}
+
+.fieldtable > tbody > tr > th {
+  text-align: left;
+}
+
+.fieldtable {
+  border-collapse: collapse;
+}
+
+.fieldtable > tbody > tr:not(:last-child) {
+  border-bottom: 3px solid var(--alt-color);
+}
+
+.fieldtable .fieldtype::after {
+  content: " ";
+  white-space: pre;
+}
+
+.fieldtable .fieldname::after {
+  content: "  ";
+  white-space: pre;
+}
+
+.fieldtable .fieldname,
+.fieldtable .fieldtype {
+  font-family: "Fira Code", monospace;
+}
+.fieldtable .fielddoc p {
+  margin: 0.5em 0;
 }
 
 .ttc {

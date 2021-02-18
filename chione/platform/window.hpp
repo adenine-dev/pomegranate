@@ -6,7 +6,6 @@
 #include "inputEvent.hpp"
 #include "maths/maths.hpp"
 
-
 namespace ce {
 
     /// @ingroup platform
@@ -33,6 +32,7 @@ namespace ce {
             return closeRequested;
         }
 
+        /// Sets the function that will be called whenever this window receives an event. Will assert if invalid.
         inline void setEventHandler(EventHandler fn)
         {
             CE_ASSERT(fn, "Attempting to pass an invalid function pointer to `Window::setEventHandler`");
@@ -42,9 +42,6 @@ namespace ce {
     public:
         /// Polls the platform for events that have happened in the past update, should be called every update.
         static void pollEvents();
-
-    private:
-        void publishEvent();
 
     private:
         SDL_Window* windowHandle = nullptr;
