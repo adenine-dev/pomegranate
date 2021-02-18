@@ -3,36 +3,21 @@
 int main(int argc, char* argv[])
 {
     CE_LOG_INFO(argc, argv);
-    // CE_LOG_INFO("hello world");
 
-    ce::maths::vec2 v2 = { 2.0f, 3.0f };
-    CE_LOG_TRACE(v2[1]);
-    CE_LOG_INFO(v2);
-    CE_LOG_DEBUG(v2);
-    CE_LOG_WARN(v2.x);
-    CE_LOG_ERROR(v2[0]);
+    ce::Window window("Chione Test Window");
 
-    {
-        CE_PROFILE_SCOPE("Printing colors");
+    window.setEventHandler([](const ce::InputEvent& fn) {
+        if (fn.type == ce::InputEventType::WINDOW_MOVE) {
+            CE_LOG_INFO(fn.getPosition());
+        } else if (fn.type == ce::InputEventType::WINDOW_RESIZE) {
+            CE_LOG_INFO(fn.getPosition()); // should assert.
+        } else
+            fn.debugPrint();
+    });
 
-#define COLOR(c, oc) std::cout << c << #c << reset << " " << oc << #oc << reset << std::endl;
-        using namespace ce::terminal;
-        COLOR(black, onBlack)
-        COLOR(red, onRed)
-        COLOR(green, onGreen)
-        COLOR(yellow, onYellow)
-        COLOR(blue, onBlue)
-        COLOR(magenta, onMagenta)
-        COLOR(cyan, onCyan)
-        COLOR(grey, onGrey)
-        COLOR(white, onWhite)
+    while (!window.shouldClose()) {
+        ce::Window::pollEvents();
     }
-
-    ce::platform::openErrorWindow("title", "body");
-
-    CE_ASSERT(true, "noprint");
-    CE_ASSERT(false, "hi");
-    CE_ASSERT(false, "more hi");
 
     // {
     //     CE_PROFILE_FUNCTION();

@@ -52,8 +52,9 @@
 /// `#include <chione/maths/maths.hpp>`
 #include "maths/maths.hpp"
 
-/// @defgroup platform Platform Abstraction Layer
+/// @defgroup platform Platform
 /// Chione uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, Chione provides a relatively
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"
+#include "platform/window.hpp"
