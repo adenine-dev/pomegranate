@@ -9,7 +9,7 @@
 namespace ce {
 
     /// @ingroup platform
-    /// Represents either a window (on desktop platforms) or surface (on mobile platforms)
+    /// @brief Represents either a window (on desktop platforms) or surface (on mobile platforms)
     class Window {
     public:
         /// Event handler function pointer, provided for convenience.

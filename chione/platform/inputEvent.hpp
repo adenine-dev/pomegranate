@@ -53,8 +53,8 @@ namespace ce {
     struct WindowBlurEvent {
     };
 
-    /// Contains all data for an input event. This includes the type of the event, and a pointer to the source window,
-    /// and the event data.
+    /// @brief Contains all data for an input event. This includes the type of the event, and a pointer to the source
+    /// window, and the event data.
     /// @warning This uses the tagged union based on `type`. Attempting to access the wrong event data is undefined
     /// behavior in c++. It is recommended to use the helper functions which do checking. However, if you do not want
     /// that checking, then the felids are public.

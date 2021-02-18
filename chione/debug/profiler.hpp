@@ -6,7 +6,6 @@
 namespace ce {
 
     /// @ingroup debug
-    ///
     /// A scope based Profiler, not meant to be used directly, instad use the CE_PROFILE_SCOPE() and
     /// CE_PROFILE_FUNCTION() macros. Very simple, records time when it is constructed, and when it is destructed,
     /// prints the difference. Eventually this will use speedscope, [speedscope](https://github.com/jlfwong/speedscope)

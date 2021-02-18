@@ -10,6 +10,7 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --text-color: #000;
   --link-color: #58a6ff;
   --accent-color: #b2ebf2;
+  --icon-color: rgba(0, 0, 0, 0.85);
   --warning-color: #f03a47;
   --warning-bg: rgba(240, 58, 71, 0.4);
 
@@ -35,6 +36,7 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --text-color: #fff;
   --link-color: #58a6ff;
   --accent-color: #84ffff;
+  --icon-color: rgba(0, 0, 0, 0.85);
   --warning-color: #f03a47;
   --warning-bg: rgba(240, 58, 71, 0.4);
 

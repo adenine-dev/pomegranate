@@ -22,7 +22,9 @@ namespace ce { namespace maths {
     /// @addtogroup maths
     /// @{
 
-    /// Generic Vector Type. You probably want to use the @ref vector_specializations "Vector Specializations", but this
+    /// @brief Generic vector type.
+    ///
+    /// You probably want to use the @ref vector_specializations "Vector Specializations", but this
     /// can be used independently for larger vectors.
     template <typename T, size_t N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
