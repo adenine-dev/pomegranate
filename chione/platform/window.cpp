@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "platform/inputEvent.hpp"
 #include "window.hpp"
 
 namespace ce {
@@ -109,6 +110,56 @@ namespace ce {
 
                 } break;
                 }
+            } break;
+            case SDL_MOUSEMOTION: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+
+                self->callbackFn({ .type = InputEventType::MOUSE_MOVE,
+                                   .sourceWindow = self,
+                                   .mouseMoveData = { e.motion.x, e.motion.y } });
+            } break;
+            case SDL_MOUSEBUTTONDOWN: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+
+                self->callbackFn({ .type = InputEventType::MOUSE_DOWN,
+                                   .sourceWindow = self,
+                                   .mouseDownData = { static_cast<MouseButton>(e.button.button), e.button.clicks } });
+            } break;
+            case SDL_MOUSEBUTTONUP: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+
+                self->callbackFn({ .type = InputEventType::MOUSE_UP,
+                                   .sourceWindow = self,
+                                   .mouseUpData = { static_cast<MouseButton>(e.button.button), e.button.clicks } });
+            } break;
+            case SDL_MOUSEWHEEL: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+
+                self->callbackFn({ .type = InputEventType::MOUSE_SCROLL,
+                                   .sourceWindow = self,
+                                   .mouseScrollData = { e.wheel.x, e.wheel.y } });
+            } break;
+            case SDL_KEYDOWN: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+                self->callbackFn({ .type = InputEventType::KEY_DOWN,
+                                   .sourceWindow = self,
+                                   .keyDownData = { static_cast<KeyHid>(e.key.keysym.scancode),
+                                                    static_cast<Keycode>(e.key.keysym.sym),
+                                                    e.key.repeat > 0 } });
+            } break;
+            case SDL_KEYUP: {
+                Window* self = static_cast<Window*>(
+                    SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), CHIONE_SDL_WINDOW_PTR));
+                self->callbackFn({ .type = InputEventType::KEY_UP,
+                                   .sourceWindow = self,
+                                   .keyUpData = { static_cast<KeyHid>(e.key.keysym.scancode),
+                                                  static_cast<Keycode>(e.key.keysym.sym),
+                                                  e.key.repeat > 0 } });
             } break;
             };
         }

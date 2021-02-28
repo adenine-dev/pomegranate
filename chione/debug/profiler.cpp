@@ -5,7 +5,7 @@
 #include "logging.hpp"
 
 namespace ce {
-    Profiler::Profiler(const char* funcName, const char* file, const uint64_t linenum) :
+    Profiler::Profiler(const char* funcName, const char* file, const u64 linenum) :
         functionName(funcName), filename(file), linenumber(linenum),
         startTime(std::chrono::high_resolution_clock::now())
     {
@@ -29,6 +29,6 @@ namespace ce {
              functionName,
              "] : ",
              std::chrono::duration_cast<std::chrono::microseconds>(duration).count(),
-             "us");
+             "µs");
     }
 } // namespace ce

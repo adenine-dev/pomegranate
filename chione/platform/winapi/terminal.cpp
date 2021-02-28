@@ -4,7 +4,7 @@
 // NOTE: its possible that modern windows will accept ansi escape codes, therefore this may be able to be modified.
 
 namespace ce { namespace terminal {
-    static void setTerminalAttributes(std::ostream& os, int16_t fg, int16_t bg)
+    static void setTerminalAttributes(std::ostream& os, i16 fg, i16 bg)
     {
         static WORD defaultAttribs = 0;
 

@@ -1,4 +1,7 @@
+#include "SDL_keycode.h"
 #include "chione/chione.hpp"
+#include "debug/logging.hpp"
+#include "platform/input.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -6,17 +9,21 @@ int main(int argc, char* argv[])
 
     ce::Window window("Chione Test Window");
 
-    window.setEventHandler([](const ce::InputEvent& fn) {
-        // if (fn.type == ce::InputEventType::WINDOW_MOVE) {
-        //     CE_LOG_INFO(fn.getPosition());
-        // } else if (fn.type == ce::InputEventType::WINDOW_RESIZE) {
-        //     CE_LOG_INFO(fn.getPosition()); // should assert.
-        // } else
-        fn.debugPrint();
+    window.setEventHandler([](const ce::InputEvent&) {
+        // CE_LOG_INFO(ev.type);
+        // ev.debugPrint();
     });
+
+    CE_LOG_INFO(sizeof(SDL_KeyCode));
+    CE_LOG_INFO(std::is_unsigned<SDL_KeyCode>());
 
     while (!window.shouldClose()) {
         ce::Window::pollEvents();
+        // CE_LOG_TRACE(ce::getMousePostition());
+        if (ce::mouseButtonDown(ce::MouseButton::BUTTON_1))
+            CE_LOG_TRACE("mb1");
+        if (ce::keyDown(ce::KeyHid::KEY_A))
+            CE_LOG_TRACE("keya");
     }
 
     // {

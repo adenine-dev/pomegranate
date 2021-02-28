@@ -52,15 +52,18 @@
 ///
 /// Chione implements its own maths functions, currently it is on a "first-needed first-served" basis. So *a lot* of
 /// functionality is missing. This will be changed both as time goes on and when the 1.0 release happens.
+/// All basic types are of the format `t##` where `t` is the type abbreviation (`u` for unsigned int, `f` for floating
+/// point, etc) and `##` is the size in bits.
 ///
 /// `#include <chione/maths/maths.hpp>`
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform
-/// @brief Platform abstracitons and unification's.
+/// @brief Platform abstracitons and unifications.
 ///
 /// Chione uses [SDL2](https://www.libsdl.org/) to handle most platform interaction, Chione provides a relatively
 /// thin wrapper on top of this, as well as much functionality that SDL2 does not implement.
+#include "platform/input.hpp"
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"
 #include "platform/window.hpp"

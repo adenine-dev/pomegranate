@@ -3,6 +3,8 @@
 #include <chrono>
 #include <string>
 
+#include "base.hpp"
+
 namespace ce {
 
     /// @ingroup debug
@@ -13,7 +15,7 @@ namespace ce {
     class Profiler {
     public:
         /// Constructor, begins the timer.
-        Profiler(const char* functionName, const char* filename, const uint64_t linenumber);
+        Profiler(const char* functionName, const char* filename, const u64 linenumber);
 
         /// Destructor, ends the timer and logs the output. This behavior subject to change.
         ~Profiler();
@@ -21,7 +23,7 @@ namespace ce {
     private:
         const char* functionName;
         const char* filename;
-        uint64_t linenumber;
+        u64 linenumber;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
     };

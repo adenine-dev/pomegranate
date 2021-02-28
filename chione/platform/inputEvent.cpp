@@ -25,6 +25,24 @@ namespace ce {
         case InputEventType::WINDOW_BLUR: {
             os << "InputEventType::WINDOW_BLUR";
         } break;
+        case InputEventType::MOUSE_MOVE: {
+            os << "InputEventType::MOUSE_MOVE";
+        } break;
+        case InputEventType::MOUSE_DOWN: {
+            os << "InputEventType::MOUSE_DOWN";
+        } break;
+        case InputEventType::MOUSE_UP: {
+            os << "InputEventType::MOUSE_UP";
+        } break;
+        case InputEventType::MOUSE_SCROLL: {
+            os << "InputEventType::MOUSE_SCROLL";
+        } break;
+        case InputEventType::KEY_DOWN: {
+            os << "InputEventType::KEY_DOWN";
+        } break;
+        case InputEventType::KEY_UP: {
+            os << "InputEventType::KEY_UP";
+        } break;
         default: {
             os << "Uknown InputEventType";
         }
@@ -70,6 +88,44 @@ namespace ce {
         } break;
         case InputEventType::WINDOW_BLUR: {
             CE_LOG_TRACE("Window Blur Event");
+        } break;
+        case InputEventType::MOUSE_MOVE: {
+            CE_LOG_TRACE("Mouse Move Event { position: ", mouseMoveData.position, " }");
+        } break;
+        case InputEventType::MOUSE_DOWN: {
+            CE_LOG_TRACE("Mouse Down Event { button: ",
+                         mouseDownData.button,
+                         ", repeatCount: ",
+                         +mouseDownData.repeatCount,
+                         " }");
+        } break;
+        case InputEventType::MOUSE_UP: {
+            CE_LOG_TRACE("Mouse Up Event { button: ",
+                         mouseUpData.button,
+                         ", repeatCount: ",
+                         +mouseUpData.repeatCount,
+                         " }");
+        } break;
+        case InputEventType::MOUSE_SCROLL: {
+            CE_LOG_TRACE("Mouse Scroll Event { delta: ", mouseScrollData.delta, " }");
+        } break;
+        case InputEventType::KEY_DOWN: {
+            CE_LOG_TRACE("Key Down Event { hid: ",
+                         keyDownData.hid,
+                         ", code: ",
+                         keyDownData.code,
+                         ", repeated: ",
+                         keyDownData.repeated,
+                         " }");
+        } break;
+        case InputEventType::KEY_UP: {
+            CE_LOG_TRACE("Key Up Event { hid: ",
+                         keyUpData.hid,
+                         ", code: ",
+                         keyUpData.code,
+                         ", repeated: ",
+                         keyUpData.repeated,
+                         " }");
         } break;
         }
     }

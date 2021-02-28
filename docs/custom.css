@@ -311,9 +311,15 @@ a:focus {
 .contents > .memitem + a,
 .contents > .groupheader + a,
 .memdoc > .memitem + a,
-.memdoc > .groupheader + a {
+.memdoc > .groupheader + a,
+.memberdecls .memItemLeft > a:empty {
   top: -76px;
   position: relative;
+}
+
+/* NOTE: this may fail in some cases, I haven't found one tho.  */
+.mdescRight > a:last-of-type {
+  display: none;
 }
 
 a.anchor {
@@ -498,11 +504,19 @@ tr:last-child .memSeparator {
   padding: 8px 16px;
 }
 
-.section.warning dt {
+.section.note {
+  background-color: var(--note-bg);
+  border-left: 6px solid var(--note-color);
+  padding: 8px 16px;
+}
+
+.section.warning dt,
+.section.note dt {
   font-weight: bold;
 }
 
-.section.warning dd {
+.section.warning dd,
+.section.note dd {
   margin-left: 0;
 }
 

@@ -37,7 +37,7 @@
 
   <!-- Layout definition for a class page -->
   <class>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <detaileddescription title=" "/>
     <includes visible="yes"/>
     <inheritancegraph visible="$CLASS_GRAPH"/>
@@ -73,7 +73,7 @@
       <privateattributes title=""/>
       <privatestaticattributes title=""/>
       <friends title=""/>
-      <related title="" subtitle=""/>
+      <related title="Related" subtitle=" "/>
       <membergroups visible="yes"/>
     </memberdecl>
     <memberdef>
@@ -85,7 +85,7 @@
       <variables title=""/>
       <constructors title=""/>
       <functions title=""/>
-      <related title=""/>
+      <related title="Related Documentation"/>
       <properties title=""/>
       <events title=""/>
     </memberdef>
@@ -96,7 +96,7 @@
 
   <!-- Layout definition for a namespace page -->
   <namespace>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <detaileddescription title=" "/>
     <memberdecl>
       <nestednamespaces visible="yes" title=""/>
@@ -127,7 +127,7 @@
 
   <!-- Layout definition for a file page -->
   <file>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <detaileddescription title=" "/>
     <includes visible="$SHOW_INCLUDE_FILES"/>
     <includegraph visible="$INCLUDE_GRAPH"/>
@@ -164,7 +164,7 @@
 
   <!-- Layout definition for a group page -->
   <group>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <groupgraph visible="$GROUP_GRAPHS"/>
     <detaileddescription title=" "/>
     <memberdecl>
@@ -214,7 +214,7 @@
 
   <!-- Layout definition for a directory page -->
   <directory>
-    <briefdescription visible="yes"/>
+    <briefdescription visible="no"/>
     <detaileddescription title=" "/>
     <directorygraph visible="yes"/>
     <memberdecl>
