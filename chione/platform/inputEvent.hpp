@@ -39,7 +39,7 @@ namespace ce {
     /// window, and the event data.
     /// @warning This uses the tagged union based on `type`. Attempting to access the wrong event data is undefined
     /// behavior in c++. It is recommended to use the helper functions which do checking. However, if you do not want
-    /// that checking, then the felids are public.
+    /// that checking, the felids are public.
     struct InputEvent {
 
         /// @private
@@ -80,7 +80,7 @@ namespace ce {
         struct MouseDown {
             /// mouse button pressed.
             MouseButton button;
-            /// Repeat count for the event, this occurs when a user holds the button down.
+            /// Repeat count for the event, this incraments as a user holds the button down.
             u8 repeatCount;
         };
 
@@ -88,7 +88,7 @@ namespace ce {
         struct MouseUp {
             /// mouse button pressed.
             MouseButton button;
-            /// Repeat count for the event, this occurs when a user holds the button down.
+            /// Repeat count for the event, this incraments as a user holds the button down.
             u8 repeatCount;
         };
 
@@ -146,13 +146,37 @@ namespace ce {
         /// Prints a trace message of an event, and its associated data.
         void debugPrint() const;
 
-        /// Returns position data, only works when the event type is `WINDOW_MOVE`. If the type is not valid
-        /// this will assert.
+        /// Returns position data, only works when the event type is `WINDOW_MOVE` or `MOUSE_MOVE`. If the type is not
+        /// valid this will assert.
         const maths::ivec2& getPosition() const;
 
-        /// Returns position data, only works when the event type is `WINDOW_RESIZE`. If the type is not valid
+        /// Returns position data, only works when the event type is `WINDOW_RESIZE`. If the type is invalid
         /// this will assert.
         const maths::ivec2& getSize() const;
+
+        /// Returns delta data, only works when the event type is `MOUSE_SCROLL`. If the type is invalid this will
+        /// assert.
+        const maths::ivec2& getDelta() const;
+
+        /// Returns the pressed mouse button, only works when the event type is `MOUSE_DOWN` or `MOUSE_UP`. If the type
+        /// is invalid this will assert.
+        const MouseButton& getMouseButton() const;
+
+        /// Returns the repeatCount of a mouse event. Note that this is not the same as `isRepeated`. Only works when
+        /// the event type is `MOUSE_DOWN` or `MOUSE_UP`. If the type is invalid this will assert.
+        const u8& getRepeatCount() const;
+
+        /// Returns the hardware ID of a key event, only works when the event type is `KEY_DOWN` or `KEY_UP`. If the
+        /// type is invalid this will assert.
+        const KeyHid& getHid() const;
+
+        /// Returns the Keycode of a key event, only works when the event type is `KEY_DOWN` or `KEY_UP`. If the
+        /// type is invalid this will assert.
+        const Keycode& getKeycode() const;
+
+        /// Returns true if the key pressed is repeated. Note that this is not the ame as `getRepeatCount`. Only works
+        /// when the event type is `KEY_DOWN` or `KEY_UP`. If the type is invalid this will assert.
+        const bool& isRepeated() const;
     };
     /// @}
     /// @}

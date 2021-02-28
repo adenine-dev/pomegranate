@@ -53,19 +53,121 @@ namespace ce {
 
     const maths::ivec2& InputEvent::getPosition() const
     {
-        if (type == InputEventType::WINDOW_MOVE) {
+        switch (type) {
+        case InputEventType::WINDOW_MOVE: {
             return windowMoveData.position;
-        } else {
+        } break;
+        case InputEventType::MOUSE_MOVE: {
+            return mouseMoveData.position;
+        } break;
+        default: {
             CE_ASSERT(false, "Attempting to get position for an event of type: ", type);
 
             // prevent warning, it is undefined behavior but it will never run so its only mostly dumb :p
             return windowMoveData.position;
+        }
         }
     }
     const maths::ivec2& InputEvent::getSize() const
     {
         CE_ASSERT(type == InputEventType::WINDOW_RESIZE, "Attempting to get size for an event of type: ", type);
         return windowResizeData.size;
+    }
+
+    const maths::ivec2& InputEvent::getDelta() const
+    {
+        CE_ASSERT(type == InputEventType::MOUSE_SCROLL, "Attempting to get deltas for an event of type: ", type);
+        return mouseScrollData.delta;
+    }
+
+    const MouseButton& InputEvent::getMouseButton() const
+    {
+        switch (type) {
+        case InputEventType::MOUSE_DOWN: {
+            return mouseDownData.button;
+        } break;
+        case InputEventType::MOUSE_UP: {
+            return mouseUpData.button;
+        } break;
+        default: {
+            CE_ASSERT(false, "Attempting to get mouse button for an event of type: ", type);
+
+            // see line 66.
+            return mouseDownData.button;
+        }
+        }
+    }
+
+    const u8& InputEvent::getRepeatCount() const
+    {
+        switch (type) {
+        case InputEventType::MOUSE_DOWN: {
+            return mouseDownData.repeatCount;
+        } break;
+        case InputEventType::MOUSE_UP: {
+            return mouseUpData.repeatCount;
+        } break;
+        default: {
+            CE_ASSERT(false, "Attempting to get mouse repeat count for an event of type: ", type);
+
+            // see line 66.
+            return mouseDownData.repeatCount;
+        }
+        }
+    }
+
+    const KeyHid& InputEvent::getHid() const
+    {
+        switch (type) {
+        case InputEventType::KEY_DOWN: {
+            return keyDownData.hid;
+        } break;
+        case InputEventType::KEY_UP: {
+            return keyUpData.hid;
+        } break;
+        default: {
+            CE_ASSERT(false, "Attempting to get keyboard hardware id for an event of type: ", type);
+
+            // see line 66.
+            return keyDownData.hid;
+        }
+        }
+    }
+
+    const Keycode& InputEvent::getKeycode() const
+    {
+        switch (type) {
+        case InputEventType::KEY_DOWN: {
+            return keyDownData.code;
+        } break;
+        case InputEventType::KEY_UP: {
+            return keyUpData.code;
+        } break;
+        default: {
+            CE_ASSERT(false, "Attempting to get keycode for an event of type: ", type);
+
+            // see line 66.
+            return keyDownData.code;
+        }
+        }
+    }
+
+    const bool& InputEvent::isRepeated() const
+    {
+        switch (type) {
+        case InputEventType::KEY_DOWN: {
+            return keyDownData.repeated;
+        } break;
+        case InputEventType::KEY_UP: {
+            return keyUpData.repeated;
+        } break;
+        default: {
+            CE_ASSERT(false, "Attempting to check repeated key press state for an event of type: ", type);
+
+            // see line 66.
+            return keyDownData.repeated;
+        }
+        }
     }
 
     void InputEvent::debugPrint() const

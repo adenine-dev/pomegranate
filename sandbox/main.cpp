@@ -9,9 +9,9 @@ int main(int argc, char* argv[])
 
     ce::Window window("Chione Test Window");
 
-    window.setEventHandler([](const ce::InputEvent&) {
+    window.setEventHandler([](const ce::InputEvent& ev) {
         // CE_LOG_INFO(ev.type);
-        // ev.debugPrint();
+        ev.debugPrint();
     });
 
     CE_LOG_INFO(sizeof(SDL_KeyCode));
@@ -20,10 +20,10 @@ int main(int argc, char* argv[])
     while (!window.shouldClose()) {
         ce::Window::pollEvents();
         // CE_LOG_TRACE(ce::getMousePostition());
-        if (ce::mouseButtonDown(ce::MouseButton::BUTTON_1))
-            CE_LOG_TRACE("mb1");
-        if (ce::keyDown(ce::KeyHid::KEY_A))
-            CE_LOG_TRACE("keya");
+        // if (ce::mouseButtonDown(ce::MouseButton::BUTTON_1))
+        //     CE_LOG_TRACE("mb1");
+        // if (ce::keyDown(ce::KeyHid::KEY_A))
+        //     CE_LOG_TRACE("keya");
     }
 
     // {
