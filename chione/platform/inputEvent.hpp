@@ -128,7 +128,7 @@ namespace ce {
         /// The origin Window of this event.
         Window* sourceWindow;
 
-        // FIXME: Doxyfile:942 excludes this union, this is dumb and probably will break at some point.
+        // NOTE: Doxyfile:942 excludes this union, this is dumb and probably will break at some point.
         union {
             WindowClose windowCloseData;
             WindowMove windowMoveData;
