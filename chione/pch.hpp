@@ -11,13 +11,17 @@
 #    define WIN32_LEAN_AND_MEAN
 #    include "windows.h"
 
-// Used in input.hpp as a names.
+// Used in input.hpp as a names, prob won't break anything.
 #    undef KEY_EXECUTE
 #    undef OUT
 #    undef DELETE
 #endif
 
 #include "SDL.h"
+
+// TODO: if vulkan
+#include "SDL_vulkan.h"
+#include <vulkan/vulkan.hpp>
 
 // chione stuffs.
 #include "maths/types.hpp"

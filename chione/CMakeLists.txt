@@ -15,6 +15,9 @@ endif()
 
 target_include_directories(chione PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+target_include_directories(chione PUBLIC Vulkan_INCLUDE_DIR)
+target_link_libraries(chione PUBLIC Vulkan::Vulkan)
+
 target_precompile_headers(chione PUBLIC "pch.hpp")
 
 target_compile_definitions(chione PUBLIC "$<$<PLATFORM_ID:Windows>:CE_PLATFORM_WINDOWS>")

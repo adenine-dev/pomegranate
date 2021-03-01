@@ -32,7 +32,16 @@ namespace ce {
             return closeRequested;
         }
 
-        /// Sets the function that will be called whenever this window receives an InputEvent. Will assert if invalid.
+        /// Returns the SDL window pointer, should be used if more direct access to the window is needed.
+        /// @warning Messing with this without knowing what you are doing can an will cause crashes, for example calling
+        /// `SDL_SetWindowData` will likely break things.
+        inline SDL_Window* getSDLHandle()
+        {
+            return windowHandle;
+        }
+
+        /// Sets the function that will be called whenever this window receives an InputEvent. Will assert if
+        /// invalid.
         inline void setEventHandler(EventHandler fn)
         {
             CE_ASSERT(fn, "Attempting to pass an invalid function pointer to `Window::setEventHandler`");

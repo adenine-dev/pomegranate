@@ -37,6 +37,9 @@ add_subdirectory(vendor/SDL2)
 
 SET(CMAKE_MESSAGE_LOG_LEVEL "STATUS")
 
+# ======================================================= Vulkan =======================================================
+find_package(Vulkan REQUIRED)
+message(STATUS ${Vulkan_INCLUDE_DIR})
 # ================================================== Project things ====================================================
 # different definitions for __FILENAME__ means its technically invalid, it should still work however
 set(CMAKE_PCH_WARN_INVALID Off)
