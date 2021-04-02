@@ -40,6 +40,7 @@ SET(CMAKE_MESSAGE_LOG_LEVEL "STATUS")
 # ======================================================= Vulkan =======================================================
 find_package(Vulkan REQUIRED)
 message(STATUS ${Vulkan_INCLUDE_DIR})
+
 # ================================================== Project things ====================================================
 # different definitions for __FILENAME__ means its technically invalid, it should still work however
 set(CMAKE_PCH_WARN_INVALID Off)
@@ -48,7 +49,7 @@ set(CMAKE_PCH_WARN_INVALID Off)
 if (MSVC)
     add_compile_options(/W4 /WX /wd4201)
 else()
-    add_compile_options(-Wall -Wextra -Wno-missing-braces -Werror)
+    add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-missing-braces -Werror)
 endif()
 
 # =================================================== Documentation ====================================================

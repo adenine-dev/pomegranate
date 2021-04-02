@@ -33,6 +33,7 @@ namespace ce {
         }
 
         /// Returns the SDL window pointer, should be used if more direct access to the window is needed.
+        /// Primarily meant to be used internally.
         /// @warning Messing with this without knowing what you are doing can an will cause crashes, for example calling
         /// `SDL_SetWindowData` will likely break things.
         inline SDL_Window* getSDLHandle()
@@ -57,6 +58,8 @@ namespace ce {
         SDL_Window* windowHandle = nullptr;
         bool closeRequested = false;
 
+        // NOTE: this starts empty so if a client wants to do simulation stuff, they can without setting up an event
+        // handler.
         EventHandler callbackFn = [](const InputEvent&) {};
 
     private:

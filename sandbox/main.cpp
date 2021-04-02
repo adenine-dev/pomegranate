@@ -1,6 +1,8 @@
 #include "chione/chione.hpp"
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
+#include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                        VkDebugUtilsMessageTypeFlagsEXT,
@@ -17,7 +19,12 @@ VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     return VK_FALSE;
 }
 
-int main(int, char*[])
+u32 rateDevice(VkPhysicalDevice device)
+{
+    return 1;
+}
+
+int main(int argc, char* argv[])
 {
     // init
     ce::Window window("Chione Test Window");
@@ -25,6 +32,7 @@ int main(int, char*[])
 
     // TODO: conditionally enable validation layers.
 
+    // instance creation
     VkInstance instance = [&]() {
         const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 
@@ -36,7 +44,7 @@ int main(int, char*[])
 
         for (auto layer : validationLayers) {
             bool found = false;
-            for (u16 i = 0; i < layerCount; i++) {
+            for (u32 i = 0; i < layerCount; i++) {
                 if (strcmp(layer, availableLayers[i].layerName) == 0) {
                     found = true;
                     break;
@@ -98,14 +106,13 @@ int main(int, char*[])
         return instance;
     }();
 
+    // debug functionality
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT
         = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     CE_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
-
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT
         = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     CE_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
-
     VkDebugUtilsMessengerEXT debugMessenger = [&instance, &vkCreateDebugUtilsMessengerEXT]() {
         VkDebugUtilsMessengerCreateInfoEXT messangerCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -122,6 +129,16 @@ int main(int, char*[])
         VkDebugUtilsMessengerEXT debugMessenger;
         vkCreateDebugUtilsMessengerEXT(instance, &messangerCreateInfo, nullptr, &debugMessenger);
         return debugMessenger;
+    }();
+
+    // device
+    VkPhysicalDevice physicalDevice = [&]() -> VkPhysicalDevice {
+        u32 deviceCount = 0;
+        vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+        CE_ASSERT(deviceCount != 0, "No GPUs to choose from");
+
+        return VK_NULL_HANDLE;
     }();
 
     // update
