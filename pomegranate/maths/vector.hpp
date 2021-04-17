@@ -4,30 +4,31 @@
 
 #include "types.hpp"
 
-#ifndef CE_VECTOR_SIZE_TYPE
-/// The size type for vectors is the type used to index into vectors. Default is `u8` giving a maximum vector size of
-/// 255, it should be kept as small as possible. If you really need larger vectors, then you can change it.
+#ifndef POM_VECTOR_SIZE_TYPE
+/// The size type for vectors is the type used to index into vectors. Default is `u8` giving a
+/// maximum vector size of 255, it should be kept as small as possible. If you really need larger
+/// vectors, then you can change it.
 /// @ingroup maths
-#    define CE_VECTOR_SIZE_TYPE u8
+#    define POM_VECTOR_SIZE_TYPE u8
 #endif
 
-#define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \
-    /** Returns a reference to the nth member of a vector. \n                                                          \
-        @warning No bounds checking is preformed so using this improperly can crash.                                   \
-     */                                                                                                                \
-    inline T& operator[](CE_VECTOR_SIZE_TYPE n)                                                                        \
-    {                                                                                                                  \
-        return data[n];                                                                                                \
-    }                                                                                                                  \
-    /** Returns a const reference to the nth member of a vector. \n                                                    \
-       @warning No bounds checking is preformed so using this improperly can crash.                                    \
-     */                                                                                                                \
-    inline const T& operator[](CE_VECTOR_SIZE_TYPE n) const                                                            \
-    {                                                                                                                  \
-        return data[n];                                                                                                \
+#define IMPL_COMMON_VECTOR_FUNCS(N)                                                                \
+    /** Returns a reference to the nth member of a vector. \n                                      \
+        @warning No bounds checking is preformed so using this improperly can crash.               \
+     */                                                                                            \
+    inline T& operator[](POM_VECTOR_SIZE_TYPE n)                                                   \
+    {                                                                                              \
+        return data[n];                                                                            \
+    }                                                                                              \
+    /** Returns a const reference to the nth member of a vector. \n                                \
+       @warning No bounds checking is preformed so using this improperly can crash.                \
+     */                                                                                            \
+    inline const T& operator[](POM_VECTOR_SIZE_TYPE n) const                                       \
+    {                                                                                              \
+        return data[n];                                                                            \
     }
 
-namespace ce { namespace maths {
+namespace pom { namespace maths {
 
     /// @addtogroup maths
     /// @{
@@ -36,8 +37,8 @@ namespace ce { namespace maths {
     ///
     /// You probably want to use the @ref vector_specializations "Vector Specializations", but this
     /// can be used independently for larger vectors.
-    /// The maximum value for `N` is determined by @ref CE_VECTOR_SIZE_TYPE
-    template <typename T, CE_VECTOR_SIZE_TYPE N> struct Vector {
+    /// The maximum value for `N` is determined by @ref POM_VECTOR_SIZE_TYPE
+    template <typename T, POM_VECTOR_SIZE_TYPE N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
         /// Raw data of the vector, recommended to access through `operator[]()`.
@@ -154,16 +155,17 @@ namespace ce { namespace maths {
 
     /// @}
 
-    template <typename T, CE_VECTOR_SIZE_TYPE N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
+    template <typename T, POM_VECTOR_SIZE_TYPE N>
+    std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
     {
         os << "vec" << +N << " { ";
-        for (CE_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
             os << vec.data[i] << ", ";
         os << vec.data[N - 1] << " }";
 
         return os;
     }
 
-}} // namespace ce::maths
+}} // namespace pom::maths
 
 #undef IMPL_COMMON_VECTOR_FUNCS

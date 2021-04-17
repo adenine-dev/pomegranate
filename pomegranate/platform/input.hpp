@@ -5,15 +5,15 @@
 #include "maths/vector.hpp"
 #include "pch.hpp"
 
-namespace ce {
+namespace pom {
     /// @addtogroup platform
     /// @{
 
     /// @ingroup input_events
     /// @{
 
-    /// Buttons on a mouse or trackpad. Currently mapped to SDL2 values because that is what is used in the
-    /// implementation. Only supports up to 5 mouse buttons.
+    /// Buttons on a mouse or trackpad. Currently mapped to SDL2 values because that is what is used
+    /// in the implementation. Only supports up to 5 mouse buttons.
     enum class MouseButton : u8 {
         NONE = 0,
         BUTTON_1 = SDL_BUTTON_LEFT,
@@ -27,11 +27,12 @@ namespace ce {
         BUTTON_RIGHT = SDL_BUTTON_RIGHT,
     };
 
-    /// USB HID's for keyboards. If you are doing non-text input you should be using these unless you have a good
-    /// reason. If you use KeyCode instead, you will break alternate keyboard layouts such as DVORAK. All values are
-    /// currently mapped directly to SDL2 values because that is what is used in the implementation. If you need to know
-    /// the codes or more details there is [the USB hid
-    /// spec](https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf), under 0x07.
+    /// USB HID's for keyboards. If you are doing non-text input you should be using these unless
+    /// you have a good reason. If you use KeyCode instead, you will break alternate keyboard
+    /// layouts such as DVORAK. All values are currently mapped directly to SDL2 values because that
+    /// is what is used in the implementation. If you need to know the codes or more details there
+    /// is [the USB hid spec](https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf),
+    /// under 0x07.
     enum class KeyHid {
         KEY_UNKNOWN = SDL_SCANCODE_UNKNOWN,
         KEY_A = SDL_SCANCODE_A,
@@ -282,9 +283,10 @@ namespace ce {
         KEY_AUDIOFASTFORWARD = SDL_SCANCODE_AUDIOFASTFORWARD,
     };
 
-    /// Virtual key press for keyboard events, if you are doing text input you should be doing this, in almost all other
-    /// cases use KeyHID. These values will be affected by keyboard mapping and layouts so the key you see on the button
-    /// may not be the key that is transmitted. Currently uses SDL values because that's what is used under the hood.
+    /// Virtual key press for keyboard events, if you are doing text input you should be doing this,
+    /// in almost all other cases use KeyHID. These values will be affected by keyboard mapping and
+    /// layouts so the key you see on the button may not be the key that is transmitted. Currently
+    /// uses SDL values because that's what is used under the hood.
     enum class Keycode {
         UNKNOWN = SDLK_UNKNOWN,
         RETURN = SDLK_RETURN,
@@ -533,12 +535,13 @@ namespace ce {
     bool keyDown(const KeyHid& hid);
 
     /// Returns true if the passed mouse button is currently pressed.
-    /// This will only return true if a window is focused, and the mouse is pressing within the focused window.
+    /// This will only return true if a window is focused, and the mouse is pressing within the
+    /// focused window.
     bool mouseButtonDown(const MouseButton& button);
 
     /// Returns the position of the mouse relative to the top left corner of the focused window.
-    /// @warning If you are working with multiple windows, you need to ensure the window you're working with is the
-    /// focused window.
+    /// @warning If you are working with multiple windows, you need to ensure the window you're
+    /// working with is the focused window.
     maths::ivec2 getMousePostition();
 
     /// @}
@@ -548,4 +551,4 @@ namespace ce {
     std::ostream& operator<<(std::ostream& os, const KeyHid& hid);
     std::ostream& operator<<(std::ostream& os, const Keycode& code);
 
-} // namespace ce
+} // namespace pom

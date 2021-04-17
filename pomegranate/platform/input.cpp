@@ -1,9 +1,8 @@
-#include "SDL_keyboard.h"
 #include "pch.hpp"
 
 #include "input.hpp"
 
-namespace ce {
+namespace pom {
     bool keyDown(const KeyHid& hid)
     {
         const u8* state = SDL_GetKeyboardState(nullptr);
@@ -49,7 +48,8 @@ namespace ce {
         return os;
     }
 
-    // NOTE: these are very reliant on SDL, if we ever diversify the platform these will need to change...
+    // NOTE: these are very reliant on SDL, if we ever diversify the platform these will need to
+    // change...
     std::ostream& operator<<(std::ostream& os, const KeyHid& hid)
     {
         os << SDL_GetScancodeName(static_cast<SDL_Scancode>(hid));
@@ -64,4 +64,4 @@ namespace ce {
         return os;
     }
 
-} // namespace ce
+} // namespace pom

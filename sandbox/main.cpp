@@ -1,8 +1,7 @@
-#include "chione/chione.hpp"
-#include "debug/logging.hpp"
-#include "debug/profiler.hpp"
+#include "pomegranate/pomegranate.hpp"
+
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                        VkDebugUtilsMessageTypeFlagsEXT,
@@ -10,11 +9,26 @@ VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                        void*)
 {
     if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
-        ce::_log(std::cout, ce::terminal::grey, "[VK_TRACE]", ce::terminal::reset, ": ", pCallbackData->pMessage);
+        pom::_log(std::cout,
+                  pom::terminal::grey,
+                  "[VK_TRACE]",
+                  pom::terminal::reset,
+                  ": ",
+                  pCallbackData->pMessage);
     else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        ce::_log(std::cout, ce::terminal::yellow, "[VK_WARN]", ce::terminal::reset, ": ", pCallbackData->pMessage);
+        pom::_log(std::cout,
+                  pom::terminal::yellow,
+                  "[VK_WARN]",
+                  pom::terminal::reset,
+                  ": ",
+                  pCallbackData->pMessage);
     else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        ce::_log(std::cout, ce::terminal::red, "[VK_ERROR]", ce::terminal::reset, ": ", pCallbackData->pMessage);
+        pom::_log(std::cout,
+                  pom::terminal::red,
+                  "[VK_ERROR]",
+                  pom::terminal::reset,
+                  ": ",
+                  pCallbackData->pMessage);
 
     return VK_FALSE;
 }
@@ -27,8 +41,9 @@ u32 rateDevice(VkPhysicalDevice device)
 int main(int argc, char* argv[])
 {
     // init
-    ce::Window window("Chione Test Window");
-    // window.setEventHandler([](const ce::InputEvent& ev) { ev.debugPrint(); });
+    pom::Window window("Pomegranate Test Window");
+    // window.setEventHandler([](const pom::InputEvent& ev) { ev.debugPrint();
+    // });
 
     // TODO: conditionally enable validation layers.
 
@@ -50,7 +65,7 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-            CE_ASSERT(found, "was unable to find requested layer: ", layer);
+            POM_ASSERT(found, "was unable to find requested layer: ", layer);
         }
 
         VkApplicationInfo appInfo = {
@@ -58,30 +73,35 @@ int main(int argc, char* argv[])
             .pNext = nullptr,
             .pApplicationName = "test",
             .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
-            .pEngineName = "chione",
+            .pEngineName = "pomegranate",
             .engineVersion = VK_MAKE_VERSION(0, 1, 0),
             .apiVersion = VK_API_VERSION_1_2,
         };
 
         unsigned int extensionCount = 0;
 
-        CE_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, nullptr),
-                  "Failed to get SDL required vulkan extensions.");
+        POM_ASSERT(
+            SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, nullptr),
+            "Failed to get SDL required vulkan extensions.");
 
         const char** extensions = new const char*[extensionCount + 1];
         extensions[0] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
-        CE_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, &(extensions[1])),
-                  "Failed to get SDL required vulkan extensions.");
+        POM_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(),
+                                                    &extensionCount,
+                                                    &(extensions[1])),
+                   "Failed to get SDL required vulkan extensions.");
 
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = nullptr,
             .flags = 0,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = debugCallback,
             .pUserData = nullptr,
         };
@@ -97,7 +117,8 @@ int main(int argc, char* argv[])
             .ppEnabledExtensionNames = extensions,
         };
 
-        CE_ASSERT(vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS, "Failed to initialize vulkan.");
+        POM_ASSERT(vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS,
+                   "Failed to initialize vulkan.");
 
         // cleanup..
         delete[] extensions;
@@ -108,20 +129,24 @@ int main(int argc, char* argv[])
 
     // debug functionality
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT
-        = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    CE_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
+        = (PFN_vkCreateDebugUtilsMessengerEXT)
+            vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    POM_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT
-        = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-    CE_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
+        = (PFN_vkDestroyDebugUtilsMessengerEXT)
+            vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    POM_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
     VkDebugUtilsMessengerEXT debugMessenger = [&instance, &vkCreateDebugUtilsMessengerEXT]() {
         VkDebugUtilsMessengerCreateInfoEXT messangerCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = nullptr,
             .flags = 0,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-                | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = debugCallback,
             .pUserData = nullptr,
         };
@@ -136,14 +161,14 @@ int main(int argc, char* argv[])
         u32 deviceCount = 0;
         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
-        CE_ASSERT(deviceCount != 0, "No GPUs to choose from");
+        POM_ASSERT(deviceCount != 0, "No GPUs to choose from");
 
         return VK_NULL_HANDLE;
     }();
 
     // update
     while (!window.shouldClose()) {
-        ce::Window::pollEvents();
+        pom::Window::pollEvents();
     }
 
     // cleanup

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-#ifdef CE_PLATFORM_WINDOWS
+#ifdef POM_PLATFORM_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
 #    include "windows.h"
 
@@ -17,13 +17,14 @@
 #    undef DELETE
 #endif
 
+// libs
 #include "SDL.h"
 
 // TODO: if vulkan
 #include "SDL_vulkan.h"
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
-// chione stuffs.
+// pomegranate
 #include "maths/types.hpp"
 
 #include "debug/logging.hpp"

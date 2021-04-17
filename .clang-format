@@ -2,7 +2,7 @@
 BasedOnStyle: WebKit
 IndentWidth: 4
 UseTab: Never
-ColumnLimit: 120
+ColumnLimit: 100
 ---
 Language: Cpp
 
@@ -21,4 +21,7 @@ BinPackParameters: false
 AlignAfterOpenBracket: Align
 
 IndentPPDirectives: AfterHash
+
+AlignOperands: true
+BreakBeforeBinaryOperators: true
 ---

@@ -6,11 +6,12 @@
 /// @{
 
 /// @addtogroup types
-/// @brief Chione has various types that make using the maths slightly less verbose.
+/// @brief Pomegranate has various types that make using the maths slightly less verbose.
 /// @{
 
 /// @anchoredname{Fundamental types, fundamental_types}
-/// These types are used throughout the codebase when a basic type is needed. Probably follow this convention too.
+/// These types are used throughout the codebase when a basic type is needed. Probably follow this
+/// convention too.
 /// @{
 
 /// 8bit unsigned integer.
