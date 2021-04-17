@@ -70,3 +70,7 @@
 #include "platform/platform.hpp"
 #include "platform/terminal.hpp"
 #include "platform/window.hpp"
+
+/// @defgroup core Core
+/// @brief Core functionality.
+#include "core/application.hpp"
