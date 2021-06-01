@@ -5,9 +5,8 @@
 #include "logging.hpp"
 
 namespace pom {
-    Profiler::Profiler(const char* funcName, const char* file, const u64 linenum) :
-        functionName(funcName), filename(file), linenumber(linenum),
-        startTime(std::chrono::high_resolution_clock::now())
+    Profiler::Profiler(const char* function, const char* file, u64 line) :
+        functionName(function), fileName(file), lineNumber(line), startTime(std::chrono::high_resolution_clock::now())
     {
     }
 
@@ -17,14 +16,14 @@ namespace pom {
         auto duration = endTime - startTime;
 
         // follow the same format as the other logging functions for now.
-        // eventually replace this with file stuffs.
+        // TODO: replace this with file stuffs and speedscope
         _log(std::cout,
              terminal::magenta,
              "[PROFILER] ",
              terminal::reset,
-             filename,
+             fileName,
              ":",
-             linenumber,
+             lineNumber,
              "[",
              functionName,
              "] : ",

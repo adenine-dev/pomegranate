@@ -135,7 +135,7 @@ namespace pom {
         /// The origin Window of this event.
         Window* sourceWindow;
 
-        // NOTE: Doxyfile:942 excludes this union, this is dumb and probably will break at some
+        // NOTE: docs/Doxyfile:942 excludes this union, this is dumb and probably will break at some
         // point.
         union {
             WindowClose windowCloseData;
@@ -156,37 +156,37 @@ namespace pom {
 
         /// Returns position data, only works when the event type is `WINDOW_MOVE` or `MOUSE_MOVE`.
         /// If the type is not valid this will assert.
-        const maths::ivec2& getPosition() const;
+        [[nodiscard]] const maths::ivec2& getPosition() const;
 
         /// Returns position data, only works when the event type is `WINDOW_RESIZE`. If the type is
         /// invalid this will assert.
-        const maths::ivec2& getSize() const;
+        [[nodiscard]] const maths::ivec2& getSize() const;
 
         /// Returns delta data, only works when the event type is `MOUSE_SCROLL`. If the type is
         /// invalid this will assert.
-        const maths::ivec2& getDelta() const;
+        [[nodiscard]] const maths::ivec2& getDelta() const;
 
         /// Returns the pressed mouse button, only works when the event type is `MOUSE_DOWN` or
         /// `MOUSE_UP`. If the type is invalid this will assert.
-        const MouseButton& getMouseButton() const;
+        [[nodiscard]] const MouseButton& getMouseButton() const;
 
         /// Returns the repeatCount of a mouse event. Note that this is not the same as
         /// `isRepeated`. Only works when the event type is `MOUSE_DOWN` or `MOUSE_UP`. If the type
         /// is invalid this will assert.
-        const u8& getRepeatCount() const;
+        [[nodiscard]] const u8& getRepeatCount() const;
 
         /// Returns the hardware ID of a key event, only works when the event type is `KEY_DOWN` or
         /// `KEY_UP`. If the type is invalid this will assert.
-        const KeyHid& getHid() const;
+        [[nodiscard]] const KeyHid& getHid() const;
 
         /// Returns the Keycode of a key event, only works when the event type is `KEY_DOWN` or
         /// `KEY_UP`. If the type is invalid this will assert.
-        const Keycode& getKeycode() const;
+        [[nodiscard]] const Keycode& getKeycode() const;
 
         /// Returns true if the key pressed is repeated. Note that this is not the ame as
         /// `getRepeatCount`. Only works when the event type is `KEY_DOWN` or `KEY_UP`. If the type
         /// is invalid this will assert.
-        const bool& isRepeated() const;
+        [[nodiscard]] const bool& isRepeated() const;
     };
     /// @}
     /// @}

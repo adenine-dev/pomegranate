@@ -72,17 +72,13 @@ namespace pom {
     }
     const maths::ivec2& InputEvent::getSize() const
     {
-        POM_ASSERT(type == InputEventType::WINDOW_RESIZE,
-                   "Attempting to get size for an event of type: ",
-                   type);
+        POM_ASSERT(type == InputEventType::WINDOW_RESIZE, "Attempting to get size for an event of type: ", type);
         return windowResizeData.size;
     }
 
     const maths::ivec2& InputEvent::getDelta() const
     {
-        POM_ASSERT(type == InputEventType::MOUSE_SCROLL,
-                   "Attempting to get deltas for an event of type: ",
-                   type);
+        POM_ASSERT(type == InputEventType::MOUSE_SCROLL, "Attempting to get deltas for an event of type: ", type);
         return mouseScrollData.delta;
     }
 
@@ -132,9 +128,7 @@ namespace pom {
             return keyUpData.hid;
         } break;
         default: {
-            POM_ASSERT(false,
-                       "Attempting to get keyboard hardware id for an event of type: ",
-                       type);
+            POM_ASSERT(false, "Attempting to get keyboard hardware id for an event of type: ", type);
 
             // see line 66.
             return keyDownData.hid;
@@ -170,9 +164,7 @@ namespace pom {
             return keyUpData.repeated;
         } break;
         default: {
-            POM_ASSERT(false,
-                       "Attempting to check repeated key press state for an event of type: ",
-                       type);
+            POM_ASSERT(false, "Attempting to check repeated key press state for an event of type: ", type);
 
             // see line 66.
             return keyDownData.repeated;

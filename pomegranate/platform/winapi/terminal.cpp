@@ -5,12 +5,12 @@
 // NOTE: its possible that modern windows will accept ansi escape codes, therefore this may be able
 // to be modified.
 
-namespace pom { namespace terminal {
+namespace pom::terminal {
     static void setTerminalAttributes(std::ostream& os, i16 fg, i16 bg)
     {
         static WORD defaultAttribs = 0;
 
-        HANDLE handle;
+        HANDLE handle = nullptr;
         if (&os == &std::cout)
             handle = GetStdHandle(STD_OUTPUT_HANDLE);
         else if (&os == &std::cerr)
@@ -98,12 +98,11 @@ namespace pom { namespace terminal {
             SetConsoleTextAttribute(handle, defaultAttribs);
         } else {
             if (bg != -1) {
-                consoleInfo.wAttributes &= ~(consoleInfo.wAttributes & 0xf0);
+                consoleInfo.wAttributes &= ~(consoleInfo.wAttributes & 0xf0U);
                 consoleInfo.wAttributes |= (WORD)bg;
             }
-
             if (fg != -1) {
-                consoleInfo.wAttributes &= ~(consoleInfo.wAttributes & 0x0f);
+                consoleInfo.wAttributes &= ~(consoleInfo.wAttributes & 0x0fU);
                 consoleInfo.wAttributes |= (WORD)fg;
             }
 
@@ -224,4 +223,4 @@ namespace pom { namespace terminal {
         return os;
     }
 
-}} // namespace pom::terminal
+} // namespace pom::terminal

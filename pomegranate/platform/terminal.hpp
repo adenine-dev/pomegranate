@@ -2,28 +2,28 @@
 
 #include <iosfwd>
 
-#define POM_ANSI_ESC_RESET "\033[00m"
-#define POM_ANSI_ESC_BLACK "\033[30m"
-#define POM_ANSI_ESC_RED "\033[31m"
-#define POM_ANSI_ESC_GREEN "\033[32m"
-#define POM_ANSI_ESC_YELLOW "\033[33m"
-#define POM_ANSI_ESC_BLUE "\033[34m"
-#define POM_ANSI_ESC_MAGENTA "\033[35m"
-#define POM_ANSI_ESC_CYAN "\033[36m"
-#define POM_ANSI_ESC_WHITE "\033[37m"
-#define POM_ANSI_ESC_GREY "\033[38;5;246m"
+constexpr auto POM_ANSI_ESC_RESET = "\033[00m";
+constexpr auto POM_ANSI_ESC_BLACK = "\033[30m";
+constexpr auto POM_ANSI_ESC_RED = "\033[31m";
+constexpr auto POM_ANSI_ESC_GREEN = "\033[32m";
+constexpr auto POM_ANSI_ESC_YELLOW = "\033[33m";
+constexpr auto POM_ANSI_ESC_BLUE = "\033[34m";
+constexpr auto POM_ANSI_ESC_MAGENTA = "\033[35m";
+constexpr auto POM_ANSI_ESC_CYAN = "\033[36m";
+constexpr auto POM_ANSI_ESC_WHITE = "\033[37m";
+constexpr auto POM_ANSI_ESC_GREY = "\033[38;5;246m";
 
-#define POM_ANSI_ESC_ON_BLACK "\033[40m"
-#define POM_ANSI_ESC_ON_RED "\033[41m"
-#define POM_ANSI_ESC_ON_GREEN "\033[42m"
-#define POM_ANSI_ESC_ON_YELLOW "\033[43m"
-#define POM_ANSI_ESC_ON_BLUE "\033[44m"
-#define POM_ANSI_ESC_ON_MAGENTA "\033[45m"
-#define POM_ANSI_ESC_ON_CYAN "\033[46m"
-#define POM_ANSI_ESC_ON_WHITE "\033[47m"
-#define POM_ANSI_ESC_ON_GREY "\033[48;5;246m"
+constexpr auto POM_ANSI_ESC_ON_BLACK = "\033[40m";
+constexpr auto POM_ANSI_ESC_ON_RED = "\033[41m";
+constexpr auto POM_ANSI_ESC_ON_GREEN = "\033[42m";
+constexpr auto POM_ANSI_ESC_ON_YELLOW = "\033[43m";
+constexpr auto POM_ANSI_ESC_ON_BLUE = "\033[44m";
+constexpr auto POM_ANSI_ESC_ON_MAGENTA = "\033[45m";
+constexpr auto POM_ANSI_ESC_ON_CYAN = "\033[46m";
+constexpr auto POM_ANSI_ESC_ON_WHITE = "\033[47m";
+constexpr auto POM_ANSI_ESC_ON_GREY = "\033[48;5;246m";
 
-namespace pom { namespace terminal {
+namespace pom::terminal {
 
     /// @addtogroup terminal_output
     /// @{
@@ -58,4 +58,4 @@ namespace pom { namespace terminal {
     /// @}
     /// @}
 
-}} // namespace pom::terminal
+} // namespace pom::terminal

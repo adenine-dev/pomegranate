@@ -5,10 +5,10 @@
  * personal project that I am using in order to learn a bunch of things that I am interested in.
  *
  * @section setupandbuilding Setup & Building
- * To build it, you must have CMake and a C++ compiler installed. I recommend using ninja and g++ or
- * MSVC, as those are the tools that will be used during development, clang should work but carries
- * no guarantees. Currently only works on windows, Linux & Web to come. To build the docs
- * [Doxygen](https://www.doxygen.nl/index.html) is required.
+ * To build it, you must have [CMake](https://cmake.org/), the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), and a
+ * C++ compiler installed. I recommend using ninja and g++ or MSVC, as those are the tools that will be used during
+ * development, clang should work but carries no guarantees. Currently only works on windows, Linux & Web to come. To
+ * build the docs [Doxygen](https://www.doxygen.nl/index.html) is required.
  *
  * First clone [The reposotry](https://github.com/alexa-griffin/pomegranate/) recursively.
  * Then run the setup.bat file to generate the build files.
@@ -27,15 +27,17 @@
  * You can configure Pomegranate manually but it is somewhat complicated.
  *
  * @section Documentation
- * Pomegranate consists of a bunch of modules (not c++20 modules) that are largely independent, if
+ * Pomegranate consists of a bunch of pieces that are largely independent, if
  * you want to do something with rendering it will be in the rendering module, etc. Thus it is
  * recommended to learn by looking through the <a href="modules.html">modules</a>.
  *
  * In addition to this there is an alphabetical list of all classes <a href="classes.html">here</a>
- * if you want a broad overview of what is possible.
+ * if you want a broad overview of what is currently possible.
  *
- * @section Credits
+ * @section Dependencies
+ * - [CMake](https://cmake.org/)
  * - [SDL2](https://www.libsdl.org/) ([licence](https://www.libsdl.org/license.php))
+ * - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
  */
 
 #include "pch.hpp"
@@ -64,7 +66,7 @@
 /// @brief Platform abstracitons and unifications.
 ///
 /// Pomegranate uses [SDL2](https://www.libsdl.org/) to handle most platform interaction,
-/// Pomegranate provides a relatively thin wrapper on top of this, as well as much functionality
+/// Pomegranate provides a relatively thin wrapper on top of this, as well as some functionality
 /// that SDL2 does not implement.
 #include "platform/input.hpp"
 #include "platform/platform.hpp"

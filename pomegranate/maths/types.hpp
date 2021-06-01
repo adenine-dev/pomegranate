@@ -32,7 +32,7 @@ using i32 = int32_t;
 /// 64bit signed integer.
 using i64 = int64_t;
 
-// FIXME: ensure IEEE-754
+// BUG: ensure IEEE-754
 
 /// 32bit floating point number, IEEE-754 compliant.
 using f32 = float;

@@ -12,23 +12,23 @@
 #    define POM_VECTOR_SIZE_TYPE u8
 #endif
 
-#define IMPL_COMMON_VECTOR_FUNCS(N)                                                                \
-    /** Returns a reference to the nth member of a vector. \n                                      \
-        @warning No bounds checking is preformed so using this improperly can crash.               \
-     */                                                                                            \
-    inline T& operator[](POM_VECTOR_SIZE_TYPE n)                                                   \
-    {                                                                                              \
-        return data[n];                                                                            \
-    }                                                                                              \
-    /** Returns a const reference to the nth member of a vector. \n                                \
-       @warning No bounds checking is preformed so using this improperly can crash.                \
-     */                                                                                            \
-    inline const T& operator[](POM_VECTOR_SIZE_TYPE n) const                                       \
-    {                                                                                              \
-        return data[n];                                                                            \
+#define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \
+    /** Returns a reference to the nth member of a vector. \n                                                          \
+        @warning No bounds checking is preformed so using this improperly can crash.                                   \
+     */                                                                                                                \
+    inline T& operator[](const POM_VECTOR_SIZE_TYPE n)                                                                 \
+    {                                                                                                                  \
+        return data[n];                                                                                                \
+    }                                                                                                                  \
+    /** Returns a const reference to the nth member of a vector. \n                                                    \
+       @warning No bounds checking is preformed so using this improperly can crash.                                    \
+     */                                                                                                                \
+    inline const T& operator[](const POM_VECTOR_SIZE_TYPE n) const                                                     \
+    {                                                                                                                  \
+        return data[n];                                                                                                \
     }
 
-namespace pom { namespace maths {
+namespace pom::maths {
 
     /// @addtogroup maths
     /// @{
@@ -127,7 +127,7 @@ namespace pom { namespace maths {
 
     /// @anchoredname{Vector specializations, vector_specializations}
     /// Vector specialization, used mostly for convenience. Has `xyzw`, `rgba`, and `stpq` members
-    /// Equivelent to the same name in glsl. These do not do swizzeling.
+    /// Equivelent to the same name in glsl. These do not do swizzling.
     /// @{
 
     using vec2 = Vector<f32, 2>; ///< 2 component floating point vector.
@@ -155,17 +155,17 @@ namespace pom { namespace maths {
 
     /// @}
 
-    template <typename T, POM_VECTOR_SIZE_TYPE N>
-    std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
+    template <typename T, POM_VECTOR_SIZE_TYPE N> std::ostream& operator<<(std::ostream& os, const Vector<T, N>& vec)
     {
         os << "vec" << +N << " { ";
-        for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++) {
             os << vec.data[i] << ", ";
+        }
         os << vec.data[N - 1] << " }";
 
         return os;
     }
 
-}} // namespace pom::maths
+} // namespace pom::maths
 
 #undef IMPL_COMMON_VECTOR_FUNCS

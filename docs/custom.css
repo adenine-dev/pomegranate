@@ -390,6 +390,17 @@ a#details + .groupheader {
   cursor: text; /* pointer-events: none disables cursors for some reason so we hack it back in :| */
 }
 
+.memproto .mlabels {
+  width: 100%;
+}
+
+.memproto .mlabels .mlabels-right, .mlabel {
+  padding: 2px 4px;
+  background-color: var(--alt-color);
+  display: inline-block;
+  border-radius: 3px;
+}
+
 /* .memproto .memname > a {
   pointer-events: none;
   color: inherit;

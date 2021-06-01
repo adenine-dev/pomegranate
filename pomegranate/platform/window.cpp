@@ -24,25 +24,22 @@ namespace pom {
             // FIXME: this code provides continuous events to both window resize and move, which
             // SDL2 does not do by default. Make sure this is safe.
             SDL_AddEventWatch(
-                [](void*, SDL_Event* e) -> int {
+                [](void* /*userdata*/, SDL_Event* e) -> int {
                     if (e->type == SDL_WINDOWEVENT) {
-                        Window* self = static_cast<Window*>(
-                            SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID),
-                                              POM_SDL_WINDOW_PTR));
+                        auto* self = static_cast<Window*>(
+                            SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID), POM_SDL_WINDOW_PTR));
 
                         switch (e->window.event) {
                         case SDL_WINDOWEVENT_MOVED: {
-                            self->callbackFn(
-                                { .type = InputEventType::WINDOW_MOVE,
-                                  .sourceWindow = self,
-                                  .windowMoveData = { e->window.data1, e->window.data2 } });
+                            self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
+                                               .sourceWindow = self,
+                                               .windowMoveData = { e->window.data1, e->window.data2 } });
 
                         } break;
                         case SDL_WINDOWEVENT_RESIZED: {
-                            self->callbackFn(
-                                { .type = InputEventType::WINDOW_RESIZE,
-                                  .sourceWindow = self,
-                                  .windowResizeData = { e->window.data1, e->window.data2 } });
+                            self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
+                                               .sourceWindow = self,
+                                               .windowResizeData = { e->window.data1, e->window.data2 } });
 
                         } break;
                         }
@@ -56,8 +53,8 @@ namespace pom {
         // TODO: load previous size/position values from file.
 
         if (windowHandle = SDL_CreateWindow(title,
-                                            position.x < 0 ? SDL_WINDOWPOS_UNDEFINED : position.x,
-                                            position.y < 0 ? SDL_WINDOWPOS_UNDEFINED : position.y,
+                                            position.x < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.x,
+                                            position.y < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.y,
                                             size.x < 0 ? DEFAULT_WIDTH : size.x,
                                             size.y < 0 ? DEFAULT_HEIGHT : size.y,
                                             SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
@@ -70,8 +67,9 @@ namespace pom {
 
     Window::~Window()
     {
-        if (windowHandle)
+        if (windowHandle) {
             SDL_DestroyWindow(windowHandle);
+        }
     }
 
     void Window::pollEvents()
@@ -80,14 +78,13 @@ namespace pom {
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
             case SDL_WINDOWEVENT: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
                 switch (e.window.event) {
                 case SDL_WINDOWEVENT_CLOSE: {
                     self->closeRequested = true;
-                    self->callbackFn({ .type = InputEventType::WINDOW_CLOSE,
-                                       .sourceWindow = self,
-                                       .windowCloseData = {} });
+                    self->callbackFn(
+                        { .type = InputEventType::WINDOW_CLOSE, .sourceWindow = self, .windowCloseData = {} });
                 } break;
 
                     // See above, this preserves default behavior
@@ -106,20 +103,18 @@ namespace pom {
                     } break; */
 
                 case SDL_WINDOWEVENT_FOCUS_GAINED: {
-                    self->callbackFn({ .type = InputEventType::WINDOW_FOCUS,
-                                       .sourceWindow = self,
-                                       .windowFocusData = {} });
+                    self->callbackFn(
+                        { .type = InputEventType::WINDOW_FOCUS, .sourceWindow = self, .windowFocusData = {} });
                 } break;
                 case SDL_WINDOWEVENT_FOCUS_LOST: {
-                    self->callbackFn({ .type = InputEventType::WINDOW_BLUR,
-                                       .sourceWindow = self,
-                                       .windowBlurData = {} });
+                    self->callbackFn(
+                        { .type = InputEventType::WINDOW_BLUR, .sourceWindow = self, .windowBlurData = {} });
 
                 } break;
                 }
             } break;
             case SDL_MOUSEMOTION: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
 
                 self->callbackFn({ .type = InputEventType::MOUSE_MOVE,
@@ -127,25 +122,23 @@ namespace pom {
                                    .mouseMoveData = { e.motion.x, e.motion.y } });
             } break;
             case SDL_MOUSEBUTTONDOWN: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
 
                 self->callbackFn({ .type = InputEventType::MOUSE_DOWN,
                                    .sourceWindow = self,
-                                   .mouseDownData = { static_cast<MouseButton>(e.button.button),
-                                                      e.button.clicks } });
+                                   .mouseDownData = { static_cast<MouseButton>(e.button.button), e.button.clicks } });
             } break;
             case SDL_MOUSEBUTTONUP: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
 
                 self->callbackFn({ .type = InputEventType::MOUSE_UP,
                                    .sourceWindow = self,
-                                   .mouseUpData = { static_cast<MouseButton>(e.button.button),
-                                                    e.button.clicks } });
+                                   .mouseUpData = { static_cast<MouseButton>(e.button.button), e.button.clicks } });
             } break;
             case SDL_MOUSEWHEEL: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
 
                 self->callbackFn({ .type = InputEventType::MOUSE_SCROLL,
@@ -153,7 +146,7 @@ namespace pom {
                                    .mouseScrollData = { e.wheel.x, e.wheel.y } });
             } break;
             case SDL_KEYDOWN: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
                 self->callbackFn({ .type = InputEventType::KEY_DOWN,
                                    .sourceWindow = self,
@@ -162,7 +155,7 @@ namespace pom {
                                                     e.key.repeat > 0 } });
             } break;
             case SDL_KEYUP: {
-                Window* self = static_cast<Window*>(
+                auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
                 self->callbackFn({ .type = InputEventType::KEY_UP,
                                    .sourceWindow = self,

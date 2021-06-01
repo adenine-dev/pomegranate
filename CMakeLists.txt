@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include("assign_source_group")
 include("define_filename_macro")
 
-set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${GENERATOR_NAME}-$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
 set(POM_VENDOR_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor)
 
 # ============================================== SDL2 ==============================================
@@ -47,7 +47,7 @@ set(CMAKE_PCH_WARN_INVALID Off)
 
 # set warnings
 if (MSVC)
-    add_compile_options(/W4 /WX /wd4201)
+    add_compile_options(/W4 /wd4201)
 else()
     add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-missing-braces -Werror)
 endif()

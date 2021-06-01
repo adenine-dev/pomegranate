@@ -5,12 +5,11 @@
 namespace pom {
     Application* Application::instance = nullptr;
 
-    Application::Application()
+    Application::Application() : frame(0)
     {
         instance = this;
     }
 
-    Application::~Application()
-    {
-    }
+    Application::~Application() = default;
+
 } // namespace pom

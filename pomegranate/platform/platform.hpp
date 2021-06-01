@@ -1,6 +1,6 @@
 #pragma once
 
-namespace pom { namespace platform {
+namespace pom::platform {
 
     /// @addtogroup platform
     /// @{
@@ -11,4 +11,4 @@ namespace pom { namespace platform {
 
     /// @}
 
-}} // namespace pom::platform
+} // namespace pom::platform

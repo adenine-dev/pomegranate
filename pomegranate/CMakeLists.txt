@@ -8,9 +8,9 @@ set_target_properties(pomegranate PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(pomegranate PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 
 target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/SDL2/include)
-target_link_libraries(pomegranate PUBLIC SDL2main SDL2-static)
+target_link_libraries(pomegranate INTERFACE SDL2main SDL2-static)
 if(MINGW OR CYGWIN)
-    target_link_options(pomegranate PUBLIC -lmingw32)
+    target_link_options(pomegranate INTERFACE -lmingw32)
 endif()
 
 target_include_directories(pomegranate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -20,7 +20,7 @@
 // libs
 #include "SDL.h"
 
-// TODO: if vulkan
+// TODO: only if vulkan
 #include "SDL_vulkan.h"
 #include <vulkan/vulkan.h>
 

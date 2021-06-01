@@ -1,39 +1,27 @@
+#include "debug/logging.hpp"
 #include "pomegranate/pomegranate.hpp"
 
-#include <stdexcept>
+#include <memory>
+
 #include <vulkan/vulkan.h>
 
 VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                       VkDebugUtilsMessageTypeFlagsEXT,
+                       VkDebugUtilsMessageTypeFlagsEXT /*types*/,
                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                       void*)
+                       void* /*userdata*/)
 {
-    if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
-        pom::_log(std::cout,
-                  pom::terminal::grey,
-                  "[VK_TRACE]",
-                  pom::terminal::reset,
-                  ": ",
-                  pCallbackData->pMessage);
-    else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        pom::_log(std::cout,
-                  pom::terminal::yellow,
-                  "[VK_WARN]",
-                  pom::terminal::reset,
-                  ": ",
-                  pCallbackData->pMessage);
-    else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        pom::_log(std::cout,
-                  pom::terminal::red,
-                  "[VK_ERROR]",
-                  pom::terminal::reset,
-                  ": ",
-                  pCallbackData->pMessage);
+    if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+        POM_LOG_TRACE("vulkan: ", pCallbackData->pMessage);
+    } else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        POM_LOG_WARN("vulkan: ", pCallbackData->pMessage);
+    } else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        POM_LOG_ERROR("vulkan: ", pCallbackData->pMessage);
+    }
 
     return VK_FALSE;
 }
 
-u32 rateDevice(VkPhysicalDevice device)
+u32 rateDevice(VkPhysicalDevice /*device*/)
 {
     return 1;
 }
@@ -44,13 +32,13 @@ public:
         window("Pomegranate Test Window"), instance([&]() {
             const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 
-            u32 layerCount;
+            u32 layerCount = 0;
             vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-            VkLayerProperties* availableLayers = new VkLayerProperties[layerCount];
+            auto* availableLayers = new VkLayerProperties[layerCount];
             vkEnumerateInstanceLayerProperties(&layerCount, availableLayers);
 
-            for (auto layer : validationLayers) {
+            for (const auto* layer : validationLayers) {
                 bool found = false;
                 for (u32 i = 0; i < layerCount; i++) {
                     if (strcmp(layer, availableLayers[i].layerName) == 0) {
@@ -73,16 +61,13 @@ public:
 
             unsigned int extensionCount = 0;
 
-            POM_ASSERT(
-                SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, nullptr),
-                "Failed to get SDL required vulkan extensions.");
+            POM_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, nullptr),
+                       "Failed to get SDL required vulkan extensions.");
 
             const char** extensions = new const char*[extensionCount + 1];
             extensions[0] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
-            POM_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(),
-                                                        &extensionCount,
-                                                        &(extensions[1])),
+            POM_ASSERT(SDL_Vulkan_GetInstanceExtensions(window.getSDLHandle(), &extensionCount, &(extensions[1])),
                        "Failed to get SDL required vulkan extensions.");
 
             VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
@@ -110,8 +95,7 @@ public:
                 .ppEnabledExtensionNames = extensions,
             };
 
-            POM_ASSERT(vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS,
-                       "Failed to initialize vulkan.");
+            POM_ASSERT(vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS, "Failed to initialize vulkan.");
 
             // cleanup..
             delete[] extensions;
@@ -120,11 +104,9 @@ public:
             return instance;
         }()),
         debugMessenger([&]() {
-            PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT
-                = (PFN_vkCreateDebugUtilsMessengerEXT)
-                    vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-            POM_ASSERT(vkCreateDebugUtilsMessengerEXT,
-                       "Unable to find vkCreateDebugUtilsMessengerEXT");
+            auto vkCreateDebugUtilsMessengerEXT
+                = PFN_vkCreateDebugUtilsMessengerEXT(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+            POM_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
             VkDebugUtilsMessengerCreateInfoEXT messangerCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
                 .pNext = nullptr,
@@ -139,11 +121,8 @@ public:
                 .pUserData = nullptr,
             };
 
-            VkDebugUtilsMessengerEXT debugMessenger;
-            vkCreateDebugUtilsMessengerEXT(instance,
-                                           &messangerCreateInfo,
-                                           nullptr,
-                                           &debugMessenger);
+            VkDebugUtilsMessengerEXT debugMessenger = nullptr;
+            vkCreateDebugUtilsMessengerEXT(instance, &messangerCreateInfo, nullptr, &debugMessenger);
             return debugMessenger;
         }())
     {
@@ -151,8 +130,6 @@ public:
         // });
 
         // TODO: conditionally enable validation layers.
-
-        // VkDebugUtilsMessengerEXT debugMessenger = ;
 
         // device
         VkPhysicalDevice physicalDevice = [&]() -> VkPhysicalDevice {
@@ -165,7 +142,7 @@ public:
         }();
     }
 
-    virtual void update(float dt)
+    void update(float dt) final
     {
     }
 
@@ -177,14 +154,12 @@ public:
         }
     }
 
-    ~Sandbox()
+    ~Sandbox() override
     {
         // cleanup
-        PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT
-            = (PFN_vkDestroyDebugUtilsMessengerEXT)
-                vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        POM_ASSERT(vkDestroyDebugUtilsMessengerEXT,
-                   "Unable to find vkDestroyDebugUtilsMessengerEXT");
+        auto vkDestroyDebugUtilsMessengerEXT
+            = PFN_vkDestroyDebugUtilsMessengerEXT(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+        POM_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
         vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
         vkDestroyInstance(instance, nullptr);
@@ -197,14 +172,12 @@ private:
     VkDebugUtilsMessengerEXT debugMessenger;
 };
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char** /*argv*/)
 {
 
-    Sandbox* sandbox = new Sandbox();
+    std::unique_ptr<Sandbox> sandbox = std::make_unique<Sandbox>();
 
     sandbox->run();
-
-    delete sandbox;
 
     return 0;
 }

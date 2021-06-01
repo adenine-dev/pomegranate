@@ -55,22 +55,22 @@ namespace pom {
 
 /// Asserts if the first argument evaluates to not true. If the assert fails then it will print the
 /// rest of the arguments in the same fashion described in @ref terminal_output "Terminal Output"
-#define POM_ASSERT(condition, ...)                                                                 \
-    {                                                                                              \
-        if (!(condition)) {                                                                        \
-            ::pom::_log(::std::cerr,                                                               \
-                        ::pom::terminal::black,                                                    \
-                        ::pom::terminal::onRed,                                                    \
-                        "[ASSERT]",                                                                \
-                        ::pom::terminal::reset,                                                    \
-                        " ",                                                                       \
-                        __FILENAME__,                                                              \
-                        ":",                                                                       \
-                        __LINE__,                                                                  \
-                        " : ",                                                                     \
-                        __VA_ARGS__);                                                              \
-            POM_DEBUGBREAK();                                                                      \
-        }                                                                                          \
+#define POM_ASSERT(condition, ...)                                                                                     \
+    {                                                                                                                  \
+        if (!(condition)) {                                                                                            \
+            ::pom::_log(::std::cerr,                                                                                   \
+                        ::pom::terminal::black,                                                                        \
+                        ::pom::terminal::onRed,                                                                        \
+                        "[ASSERT]",                                                                                    \
+                        ::pom::terminal::reset,                                                                        \
+                        " ",                                                                                           \
+                        __FILENAME__,                                                                                  \
+                        ":",                                                                                           \
+                        __LINE__,                                                                                      \
+                        " : ",                                                                                         \
+                        __VA_ARGS__);                                                                                  \
+            POM_DEBUGBREAK();                                                                                          \
+        }                                                                                                              \
     }
 
 /// @}
