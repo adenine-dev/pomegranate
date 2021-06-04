@@ -3,7 +3,6 @@
 // stl
 #include <chrono>
 #include <cstdint>
-#include <iosfwd>
 #include <iostream>
 #include <string>
 
@@ -11,10 +10,12 @@
 #    define WIN32_LEAN_AND_MEAN
 #    include "windows.h"
 
-// Used in input.hpp as a names, prob won't break anything.
+// Used in input.hpp as key names, prob won't break anything.
 #    undef KEY_EXECUTE
 #    undef OUT
 #    undef DELETE
+// used in logging.hpp as a loglevel, prob won't break anything.
+#    undef ERROR
 #endif
 
 // libs

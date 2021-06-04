@@ -393,8 +393,10 @@ a#details + .groupheader {
 .memproto .mlabels {
   width: 100%;
 }
-
-.memproto .mlabels .mlabels-right, .mlabel {
+.memproto .mlabels .mlabels-right {
+  text-align: right;
+}
+.memproto .mlabels .mlabels-right .mlabel {
   padding: 2px 4px;
   background-color: var(--alt-color);
   display: inline-block;

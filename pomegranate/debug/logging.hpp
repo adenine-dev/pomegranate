@@ -8,16 +8,37 @@
 
 #include "platform/terminal.hpp"
 
-/// @addtogroup debug
-/// @{
 namespace pom {
+    /// @addtogroup debug
+    /// @{
+
+    /// Log levels are the specified filter for terminal output, if the current log level is lower than the specified
+    /// message, then it should not be printed. For debug builds it defaults to DEBUG and for release builds it defaults
+    /// to ERROR.
+    enum class LogLevel { ALL = 0, TRACE = 0, DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4, FATAL = 5 };
+
+    /// Sets the current log level. This should primarily be done by the build system.
+    /// @warning this code is unsafe and running it from multiple threads may cause issues.
+    void setLogLevel(LogLevel level);
+
+    /// Returns true if the specified level is active based on the current log level.
+    /// @param level the level to check against, this is done by a comparison of the integer values.
+    bool isLogLevelActive(LogLevel level);
+
     /// Logs a set of arguments to an output string, not intended to be used manually.
     /// @private
-    template <typename... Args> void _log(std::ostream& os, Args&&... args)
+    template <typename... Args> void _log(std::ostream& os, LogLevel level, Args&&... args)
     {
-        ((os << args), ...) << std::endl;
+        if (isLogLevelActive(level)) {
+            ((os << args), ...) << std::endl;
+        }
     }
+
+    /// @]
 } // namespace pom
+
+/// @addtogroup debug
+/// @{
 
 /// @addtogroup terminal_output Terminal Output
 /// @brief Tools for interacting with the output console.
@@ -38,27 +59,28 @@ namespace pom {
 // clang-format off
 
 /// Logs a trace message, currently the log levels are purely ornamental.
-#define POM_LOG_TRACE(...) ::pom::_log(::std::cout, ::pom::terminal::grey,   "[TRACE] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_LOG_TRACE(...) ::pom::_log(::std::cout, ::pom::LogLevel::TRACE, ::pom::terminal::grey,   "[TRACE] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs an info message, currently the log levels are purely ornamental.
-#define POM_LOG_INFO(...)  ::pom::_log(::std::cout, ::pom::terminal::blue,   "[INFO] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_LOG_INFO(...)  ::pom::_log(::std::cout, ::pom::LogLevel::INFO,  ::pom::terminal::blue,   "[INFO] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs a debug message, currently the log levels are purely ornamental.
-#define POM_LOG_DEBUG(...) ::pom::_log(::std::cout, ::pom::terminal::green,  "[DEBUG] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_LOG_DEBUG(...) ::pom::_log(::std::cout, ::pom::LogLevel::DEBUG, ::pom::terminal::green,  "[DEBUG] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs a warning, currently the log levels are purely ornamental.
-#define POM_LOG_WARN(...)  ::pom::_log(::std::cout, ::pom::terminal::yellow, "[WARN] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_LOG_WARN(...)  ::pom::_log(::std::cout, ::pom::LogLevel::WARN,  ::pom::terminal::yellow, "[WARN] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs an error, currently the log levels are purely ornamental.
-#define POM_LOG_ERROR(...) ::pom::_log(::std::cout, ::pom::terminal::red,    "[ERROR] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_LOG_ERROR(...) ::pom::_log(::std::cout, ::pom::LogLevel::ERROR, ::pom::terminal::red,    "[ERROR] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 
 // clang-format on
 
 /// @}
 /// @}
 
-/// Asserts if the first argument evaluates to not true. If the assert fails then it will print the
+/// Asserts if the first argument evaluates to false. If the assert fails then it will print the
 /// rest of the arguments in the same fashion described in @ref terminal_output "Terminal Output"
 #define POM_ASSERT(condition, ...)                                                                                     \
     {                                                                                                                  \
         if (!(condition)) {                                                                                            \
             ::pom::_log(::std::cerr,                                                                                   \
+                        ::pom::LogLevel::FATAL,                                                                        \
                         ::pom::terminal::black,                                                                        \
                         ::pom::terminal::onRed,                                                                        \
                         "[ASSERT]",                                                                                    \
@@ -72,5 +94,4 @@ namespace pom {
             POM_DEBUGBREAK();                                                                                          \
         }                                                                                                              \
     }
-
 /// @}

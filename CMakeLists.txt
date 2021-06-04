@@ -20,7 +20,7 @@ set(POM_VENDOR_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor)
 # Produce a console in debug mode
 if (WIN32)
     if(MINGW OR CYGWIN)
-        list(APPEND EXTRA_LDFLAGS "$<$<CONFIG:Debug>:-mconsole>")
+        list(APPEND EXTRA_LDFLAGS "$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-mconsole>")
     endif()
 endif()
 
