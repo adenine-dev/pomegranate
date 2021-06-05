@@ -1,11 +1,8 @@
 file(GLOB_RECURSE SOURCES
-    ./*.cpp
+    ./sandbox.cpp
 )
 
-add_executable(sandbox ${SOURCES})
-
-set_target_properties(sandbox PROPERTIES WIN32_EXECUTABLE TRUE)
-set_target_properties(sandbox PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
+add_library(sandbox SHARED ${SOURCES})
 
 target_link_libraries(sandbox pomegranate)
 

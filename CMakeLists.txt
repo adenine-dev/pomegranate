@@ -14,6 +14,8 @@ include("assign_source_group")
 include("define_filename_macro")
 
 set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 set(POM_VENDOR_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor)
 
 # ============================================== SDL2 ==============================================
@@ -58,6 +60,7 @@ add_subdirectory(docs)
 
 # ====================================== Pomegranate Projects ======================================
 add_subdirectory(pomegranate)
+add_subdirectory(runtime)
 add_subdirectory(sandbox)
 
 

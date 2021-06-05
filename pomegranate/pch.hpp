@@ -26,7 +26,7 @@
 #include <vulkan/vulkan.h>
 
 // pomegranate
-#include "maths/types.hpp"
+#include "base.hpp"
 
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
