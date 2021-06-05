@@ -5,27 +5,27 @@
  * personal project that I am using in order to learn a bunch of things that I am interested in.
  *
  * @section setupandbuilding Setup & Building
- * To build it, you must have [CMake](https://cmake.org/), the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), and a
- * C++ compiler installed. I recommend using ninja and g++ or MSVC, as those are the tools that will be used during
- * development, clang should work but carries no guarantees. Currently only works on windows, Linux & Web to come. To
- * build the docs [Doxygen](https://www.doxygen.nl/index.html) is required.
+ * To build this project, you must have [CMake](https://cmake.org/), the [Vulkan
+ * SDK](https://www.lunarg.com/vulkan-sdk/), and a C++ compiler installed. Clang gcc and msvc are all tested regularly
+ * however carry no grantees for any given commit. Currently only works on windows, Linux & Web to come.
  *
- * First clone [The reposotry](https://github.com/alexa-griffin/pomegranate/) recursively.
- * Then run the setup.bat file to generate the build files.
+ * First clone [The reposotry](https://github.com/alexa-griffin/pomegranate/) recursively:
+ * ```sh
+ * git clone https://github.com/alexa-griffin/pomegranate.git --recurse-submodules
  * ```
- * $ setup.bat <ninja|msvc>
+ * Then setup CMake however you want, it should look something like:
+ * ```sh
+ * mkdir build
+ * cd build
+ * cmake .. -DCMAKE_BUILD_TYPE=Debug -G "generator"
  * ```
- *
- * If you build with ninja, a multi-config ninja build will be generated. you can then run:
+ * finally build, which should look something like:
  * ```
- * $ build.bat <Release|Debug|RelWithDebInfo>
- * or
- * $ run.bat <Release|Debug|RelWithDebInfo>
+ * cmake --build . --config Debug --target pom_runtime -j 10
  * ```
- * from the `/build/ninja/` directory. Which will either build, or build and run the sandbox.
- *
- * You can configure Pomegranate manually but it is somewhat complicated.
- *
+ * The final executable will be in `/bin/Debug/`.
+ * If you are lazy (like me) the vscode [CMake tools
+ * extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) is useful.
  * @section Documentation
  * Pomegranate consists of a bunch of pieces that are largely independent, if
  * you want to do something with rendering it will be in the rendering module, etc. Thus it is
@@ -34,8 +34,12 @@
  * In addition to this there is an alphabetical list of all classes <a href="classes.html">here</a>
  * if you want a broad overview of what is currently possible.
  *
+ * To build the docs, install [Doxygen](https://www.doxygen.nl/index.html), then run the cmake docs target after
+ * configuring.
+ *
  * @section Dependencies
  * - [CMake](https://cmake.org/)
+ * - [Doxygen](https://www.doxygen.nl/index.html)
  * - [SDL2](https://www.libsdl.org/) ([licence](https://www.libsdl.org/license.php))
  * - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
  */
