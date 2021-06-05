@@ -34,7 +34,7 @@
  * In addition to this there is an alphabetical list of all classes <a href="classes.html">here</a>
  * if you want a broad overview of what is currently possible.
  *
- * To build the docs, install [Doxygen](https://www.doxygen.nl/index.html), then run the cmake docs target after
+ * To build the docs, install [Doxygen](https://www.doxygen.nl/index.html), then run the CMsake docs target after
  * configuring.
  *
  * @section Dependencies
