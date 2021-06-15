@@ -11,7 +11,3 @@
 #define POM_NOCOPY(classname)                                                                                          \
     classname(const classname&) = delete;                                                                              \
     classname& operator=(const classname&) = delete;
-
-#define POM_NOMOVE(classname)                                                                                          \
-    classname(classname&&) = delete;                                                                                   \
-    classname& operator=(classname&&) = delete;

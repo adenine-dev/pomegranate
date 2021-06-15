@@ -79,7 +79,7 @@ namespace pom::platform {
         void reload();
 
     private:
-        POM_NOCOPY(SharedObject)
+        POM_NOCOPY(SharedObject);
 
         std::string filename;
         std::string loadedFilename;
