@@ -16,7 +16,7 @@ namespace pom {
             if (SDL_Init(SDL_INIT_VIDEO) != 0)
                 POM_ASSERT(false, "Unable to initialize SDL. error: ", SDL_GetError());
 
-            // maybe make this an option?
+            // NOTE: maybe make this an option?
             SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
             initializedSDL = true;

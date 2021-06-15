@@ -7,12 +7,6 @@ namespace pom {
     public:
         virtual ~Application();
 
-        // This is a singleton, so copying is not good.
-        Application(const Application&) = delete;
-        Application& operator=(const Application&) = delete;
-        Application(Application&&) = delete;
-        Application& operator=(Application&&) = delete;
-
         virtual void update(float dt) = 0;
 
         [[nodiscard]] inline u64 getFrame() const
@@ -22,6 +16,9 @@ namespace pom {
 
     protected:
         Application();
+
+        POM_NOCOPY(Application)
+        POM_NOMOVE(Application)
 
         u64 frame;
 

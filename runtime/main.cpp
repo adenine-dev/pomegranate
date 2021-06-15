@@ -4,29 +4,15 @@ int main(int /*argc*/, char** /*argv*/)
 {
     using PrintHelloFunc = void (*)();
 
-    // void* clientObj = nullptr;
-    PrintHelloFunc* printHello = nullptr;
-    // {
     pom::platform::SharedObject client(CLIENT_SO_FILE);
-    printHello = (PrintHelloFunc*)((client.getFunction("printHello").get()));
-    // }
-    // printHello();
-    do {
-        client.reload();
-        (*printHello)();
-        POM_LOG_INFO(*printHello);
-        std::cin.get();
-    } while (true);
+    auto printHello = client.getFunction<PrintHelloFunc>("printHello");
 
-    // do {
-    //     // clientObj = SDL_LoadObject(CLIENT_SO_FILE);
-    //     // POM_ASSERT(clientObj, SDL_GetError());
-    //     // printHello = (PrintHelloFunc)SDL_LoadFunction(clientObj, "printHello");
-    //     // POM_ASSERT(printHello, SDL_GetError());
-    //     // printHello();
-    //     // SDL_UnloadObject(clientObj);
-    //     // std::cin.get();
-    // } while (true);
+    do {
+        printHello();
+        std::cin.get();
+        client.reload();
+    } while (printHello.valid());
+    POM_LOG_DEBUG("printHello stopped being valid");
 
     return 0;
 }

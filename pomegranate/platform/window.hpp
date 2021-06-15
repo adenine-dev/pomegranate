@@ -56,6 +56,8 @@ namespace pom {
         static void pollEvents();
 
     private:
+        POM_NOCOPY(Window)
+
         SDL_Window* windowHandle = nullptr;
         bool closeRequested = false;
 

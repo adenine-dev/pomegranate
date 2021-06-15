@@ -1,8 +1,4 @@
-#include "debug/logging.hpp"
 #include "pomegranate/pomegranate.hpp"
-
-#include <memory>
-
 #include <vulkan/vulkan.h>
 
 VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

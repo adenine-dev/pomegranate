@@ -5,11 +5,10 @@
  * personal project that I am using in order to learn a bunch of things that I am interested in.
  *
  * @section setupandbuilding Setup & Building
- * To build this project, you must have [CMake](https://cmake.org/), the [Vulkan
- * SDK](https://www.lunarg.com/vulkan-sdk/), and a C++ compiler installed. Clang gcc and msvc are all tested regularly
- * however carry no grantees for any given commit. Currently only works on windows, Linux & Web to come.
- *
- * First clone [The reposotry](https://github.com/alexa-griffin/pomegranate/) recursively:
+ * To build this project, you must have [CMake](https://cmake.org/), the
+ * [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), and a C++ compiler installed. Clang gcc and msvc are all tested
+ * regularly however carry no grantees for any given commit. Currently only works on windows, Linux & Web to come.
+ * First clone [The reposotry](https://Pgithub.com/alexa-griffin/pomegranate/) recursively:
  * ```sh
  * git clone https://github.com/alexa-griffin/pomegranate.git --recurse-submodules
  * ```
@@ -24,8 +23,8 @@
  * cmake --build . --config Debug --target pom_runtime -j 10
  * ```
  * The final executable will be in `/bin/Debug/`.
- * If you are lazy (like me) the vscode [CMake tools
- * extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) is useful.
+ * If you are lazy (like me) the vscode
+ * [CMake tools extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) is useful.
  * @section Documentation
  * Pomegranate consists of a bunch of pieces that are largely independent, if
  * you want to do something with rendering it will be in the rendering module, etc. Thus it is
@@ -67,7 +66,7 @@
 #include "maths/maths.hpp"
 
 /// @defgroup platform Platform
-/// @brief Platform abstracitons and unifications.
+/// @brief Platform abstracitons.
 ///
 /// Pomegranate uses [SDL2](https://www.libsdl.org/) to handle most platform interaction,
 /// Pomegranate provides a relatively thin wrapper on top of this, as well as some functionality

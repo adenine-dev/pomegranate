@@ -6,13 +6,13 @@ namespace pom {
     bool keyDown(const KeyHid& hid)
     {
         const u8* state = SDL_GetKeyboardState(nullptr);
-        return state[static_cast<SDL_Scancode>(hid)] != 0;
+        return state[static_cast<SDL_Scancode>(hid)];
     }
 
     bool mouseButtonDown(const MouseButton& button)
     {
         u32 state = SDL_GetMouseState(nullptr, nullptr);
-        return (state & SDL_BUTTON(static_cast<u8>(button))) != 0;
+        return (state & SDL_BUTTON(static_cast<u8>(button)));
     }
 
     maths::ivec2 getMousePostition()
