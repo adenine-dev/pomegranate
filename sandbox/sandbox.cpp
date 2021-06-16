@@ -1,27 +1,42 @@
 #include <pomegranate/pomegranate.hpp>
 
-POM_EXPORT void clientBegin()
+struct GameState {
+    i32 i = 4;
+};
+
+POM_EXPORT GameState* clientCreateState()
 {
-    POM_LOG_INFO("begin");
+    return new GameState();
 }
 
-POM_EXPORT void clientMount()
+POM_EXPORT void clientBegin(GameState* gameState)
 {
-    POM_LOG_INFO("mount");
+    POM_LOG_INFO("begin, ", gameState->i);
+    gameState->i = 2;
 }
 
-POM_EXPORT void clientUpdate(f32 dt)
+POM_EXPORT void clientMount(GameState* gameState)
 {
-    static i32 i = 0;
-    POM_LOG_INFO("hi ", i++);
+    POM_LOG_INFO("mount, ", gameState->i);
+    gameState->i = 5;
 }
 
-POM_EXPORT void clientUnmount()
+POM_EXPORT void clientUpdate(GameState* gameState, f32 dt)
 {
+    gameState->i++;
+    if (gameState->i % 100 == 0) {
+        POM_LOG_INFO("hi ", gameState->i++);
+    }
+}
+
+POM_EXPORT void clientUnmount(GameState* gameState)
+{
+    gameState->i = 1;
     POM_LOG_INFO("unmount");
 }
 
-POM_EXPORT void clientEnd()
+POM_EXPORT void clientEnd(GameState* gameState)
 {
+    delete gameState;
     POM_LOG_INFO("end");
 }

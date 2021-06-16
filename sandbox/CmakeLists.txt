@@ -5,6 +5,7 @@ file(GLOB_RECURSE SOURCES
 add_library(sandbox SHARED ${SOURCES})
 
 target_link_libraries(sandbox pomegranate)
+target_compile_definitions(sandbox PRIVATE POM_CLIENT)
 
 target_include_directories(sandbox PUBLIC ../)
 
