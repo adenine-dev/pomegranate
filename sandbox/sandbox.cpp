@@ -4,6 +4,11 @@ struct GameState {
     i32 i = 4;
 };
 
+POM_EXPORT pom::AppCreateInfo clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
+{
+    return { .name = "Pomegranate Sandbox Application" };
+}
+
 POM_EXPORT GameState* clientCreateState()
 {
     return new GameState();
@@ -25,7 +30,8 @@ POM_EXPORT void clientUpdate(GameState* gameState, f32 dt)
 {
     gameState->i++;
     if (gameState->i % 100 == 0) {
-        POM_LOG_INFO("hi ", gameState->i++);
+
+        POM_LOG_INFO("hi! ", gameState->i++);
     }
 }
 

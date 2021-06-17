@@ -1,6 +1,7 @@
 file(GLOB_RECURSE SOURCES
-    ./*.cpp
-    ./*.hpp
+    # ./*.cpp
+    # ./*.hpp
+    ./main.cpp
 )
 
 add_executable(pom_runtime ${SOURCES})

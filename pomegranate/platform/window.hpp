@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include <SDL.h>
 
 #include "debug/logging.hpp"
@@ -13,7 +15,7 @@ namespace pom {
     class Window {
     public:
         /// Event handler function pointer, typedefed for convenience. Passed to setEventHandler
-        using EventHandler = void (*)(const InputEvent&);
+        using EventHandler = std::function<void(const InputEvent&)>;
 
         /// @param title: Initial title (the text that goes in the titlebar, if present) of the
         /// window.
@@ -48,7 +50,7 @@ namespace pom {
         inline void setEventHandler(EventHandler fn)
         {
             POM_ASSERT(fn, "Attempting to pass an invalid function pointer to `Window::setEventHandler`");
-            callbackFn = fn;
+            callbackFn = std::move(fn);
         }
 
         /// Polls the platform for events that have happened in the past update, should be called
