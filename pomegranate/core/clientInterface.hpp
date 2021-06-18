@@ -1,5 +1,7 @@
 #pragma once
 
+#include "timing.hpp"
+
 namespace pom {
     using GameState = void;
 
@@ -56,7 +58,7 @@ namespace pom {
     using ClientMountFunction = void (*)(GameState* gamestate);
 
     /// The type of the `clientUpdate` function which **must** be defined in the client code. It is called each update.
-    using ClientUpdateFunction = void (*)(GameState* gamestate, f32 deltatime);
+    using ClientUpdateFunction = void (*)(GameState* gamestate, DeltaTime deltatime);
 
     /// The type of the `clientUnmount` function which **may** be defined in the client code. It is called each time
     /// before the client is unloaded.

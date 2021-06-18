@@ -26,13 +26,10 @@ POM_EXPORT void clientMount(GameState* gameState)
     gameState->i = 5;
 }
 
-POM_EXPORT void clientUpdate(GameState* gameState, f32 dt)
+POM_EXPORT void clientUpdate(GameState* gameState, pom::DeltaTime dt)
 {
     gameState->i++;
-    if (gameState->i % 100 == 0) {
-
-        POM_LOG_INFO("hi! ", gameState->i++);
-    }
+    POM_LOG_INFO("dt:", dt, "ms");
 }
 
 POM_EXPORT void clientUnmount(GameState* gameState)

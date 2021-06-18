@@ -46,14 +46,19 @@ int main(int argc, char** argv)
         clientMount(gameState);
     }
 
+    pom::Timer timer;
+
     while (!mainWindow.shouldClose()) {
+        const pom::DeltaTime dt = timer.elapsed();
+        timer.reset();
         pom::Window::pollEvents();
-        clientUpdate(gameState, 0);
+        clientUpdate(gameState, dt);
     }
 
     if (clientUnmount.valid()) {
         clientUnmount(gameState);
     }
+
     clientEnd(gameState);
 
     return 0;
