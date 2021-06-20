@@ -19,6 +19,8 @@ int main(int argc, char** argv)
 
     pom::AppCreateInfo appInfo = clientGetAppCreateInfo(argc, argv);
 
+    pom::platform::init();
+
     pom::Window mainWindow(appInfo.name);
 
     mainWindow.setEventHandler([&](const pom::InputEvent& ev) {
@@ -53,6 +55,16 @@ int main(int argc, char** argv)
         timer.reset();
         pom::Window::pollEvents();
         clientUpdate(gameState, dt);
+
+        if (appInfo.limitUpdateRate) {
+            // NOTE: maybe do some analytics here?
+            pom::DeltaTime spentTime = timer.elapsed();
+            const f32 targetUpdateTime = 1000.F / (float)appInfo.targetUPS;
+            while (spentTime < targetUpdateTime) {
+                pom::platform::sleep(std::max(floor(targetUpdateTime - spentTime - 1), 0.F));
+                spentTime = timer.elapsed();
+            }
+        }
     }
 
     if (clientUnmount.valid()) {

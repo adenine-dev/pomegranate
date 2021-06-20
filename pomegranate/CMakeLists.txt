@@ -11,7 +11,7 @@ target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/SDL2/inclu
 target_include_directories(pomegranate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(pomegranate PUBLIC Vulkan_INCLUDE_DIR)
-target_link_libraries(pomegranate PUBLIC Vulkan::Vulkan)
+target_link_libraries(pomegranate PUBLIC Vulkan::Vulkan SDL2-static)
 
 target_precompile_headers(pomegranate PUBLIC "pch.hpp")
 

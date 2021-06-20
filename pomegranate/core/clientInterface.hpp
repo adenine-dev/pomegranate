@@ -36,6 +36,14 @@ namespace pom {
     struct AppCreateInfo {
         /// The name of the application. Used in several places.
         const char* name;
+        /// `true` if the application should limit the number of updates per second (UPS). It is a good idea to set this
+        /// to true because it will improve system wide performance. This *roughly* corresponds with FPS (frames per
+        /// second). Common UPS include 24, 30, 60, 120, and 240.
+        bool limitUpdateRate;
+        /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
+        /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
+        /// set to `true`.
+        u16 targetUPS;
         // TODO: version? engine config? application type? icon?
     };
 

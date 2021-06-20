@@ -3,9 +3,24 @@
 #include "platform.hpp"
 
 namespace pom::platform {
+    bool init()
+    {
+        if (SDL_Init(SDL_INIT_VIDEO)) {
+            POM_LOG_ERROR("Unable to initialize SDL. error: ", SDL_GetError());
+            return false;
+        }
+
+        return true;
+    }
+
     void openErrorWindow(const char* title, const char* body)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, body, nullptr);
+    }
+
+    void sleep(u32 ms)
+    {
+        SDL_Delay(ms);
     }
 
     SharedObject::SharedObject(std::string soFilename) :

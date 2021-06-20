@@ -4,51 +4,41 @@
 #include "window.hpp"
 
 namespace pom {
-
-    bool Window::initializedSDL = false;
-
     Window::Window(const char* title, const maths::ivec2& position, const maths::ivec2& size)
     {
         constexpr int DEFAULT_WIDTH = 720;
         constexpr int DEFAULT_HEIGHT = 480;
 
-        if (!initializedSDL) {
-            if (SDL_Init(SDL_INIT_VIDEO) != 0)
-                POM_ASSERT(false, "Unable to initialize SDL. error: ", SDL_GetError());
+        // NOTE: maybe make this an option?
+        SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
-            // NOTE: maybe make this an option?
-            SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+        // FIXME: this code provides continuous events to both window resize and move, which
+        // SDL2 does not do by default. Make sure this is safe.
+        SDL_AddEventWatch(
+            [](void* /*userdata*/, SDL_Event* e) -> int {
+                if (e->type == SDL_WINDOWEVENT) {
+                    auto* self = static_cast<Window*>(
+                        SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID), POM_SDL_WINDOW_PTR));
 
-            initializedSDL = true;
+                    switch (e->window.event) {
+                    case SDL_WINDOWEVENT_MOVED: {
+                        self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
+                                           .sourceWindow = self,
+                                           .windowMoveData = { e->window.data1, e->window.data2 } });
 
-            // FIXME: this code provides continuous events to both window resize and move, which
-            // SDL2 does not do by default. Make sure this is safe.
-            SDL_AddEventWatch(
-                [](void* /*userdata*/, SDL_Event* e) -> int {
-                    if (e->type == SDL_WINDOWEVENT) {
-                        auto* self = static_cast<Window*>(
-                            SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID), POM_SDL_WINDOW_PTR));
+                    } break;
+                    case SDL_WINDOWEVENT_RESIZED: {
+                        self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
+                                           .sourceWindow = self,
+                                           .windowResizeData = { e->window.data1, e->window.data2 } });
 
-                        switch (e->window.event) {
-                        case SDL_WINDOWEVENT_MOVED: {
-                            self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
-                                               .sourceWindow = self,
-                                               .windowMoveData = { e->window.data1, e->window.data2 } });
-
-                        } break;
-                        case SDL_WINDOWEVENT_RESIZED: {
-                            self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
-                                               .sourceWindow = self,
-                                               .windowResizeData = { e->window.data1, e->window.data2 } });
-
-                        } break;
-                        }
+                    } break;
                     }
+                }
 
-                    return 0;
-                },
-                nullptr);
-        }
+                return 0;
+            },
+            nullptr);
 
         // TODO: load previous size/position values from file.
 

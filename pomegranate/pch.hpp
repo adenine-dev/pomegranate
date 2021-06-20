@@ -10,9 +10,9 @@
 #include <string>
 #include <utility>
 
-
 #ifdef POM_PLATFORM_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
+#    define NOMINMAX
 #    include "windows.h"
 
 // Used in input.hpp as key names, prob won't break anything.

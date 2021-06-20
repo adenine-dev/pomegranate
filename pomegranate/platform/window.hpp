@@ -68,6 +68,5 @@ namespace pom {
         EventHandler callbackFn = [](const InputEvent& /*event*/) {};
 
         static constexpr const char* POM_SDL_WINDOW_PTR = "POM_WIN";
-        static bool initializedSDL;
     };
 } // namespace pom

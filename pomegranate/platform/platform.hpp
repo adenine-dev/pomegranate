@@ -11,9 +11,14 @@ namespace pom::platform {
     /// @addtogroup platform
     /// @{
 
+    bool init();
+
     /// Opens a platform based error window, separate from all other state. Useful for throwing
     /// fatal errors in production, when that is needed.
     void openErrorWindow(const char* title, const char* body);
+
+    /// Waits at least the specified number of milliseconds, may wait longer due to OS scheduling.
+    void sleep(u32 ms);
 
     /// Reference to a shared object file (.dll or .so depending on platform) that holds all functions loaded by it.
     /// This code is *extremely* not threadsafe.
