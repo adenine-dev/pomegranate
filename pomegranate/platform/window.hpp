@@ -12,7 +12,7 @@ namespace pom {
 
     /// @ingroup platform
     /// @brief Represents either a window (on desktop platforms) or surface (on mobile platforms)
-    class Window {
+    class POM_API Window {
     public:
         /// Event handler function pointer, typedefed for convenience. Passed to setEventHandler
         using EventHandler = std::function<void(const InputEvent&)>;

@@ -33,27 +33,27 @@ namespace pom::terminal {
     /// color, and each onColor function sets the background color, `reset` resets both.
     /// @{
 
-    std::ostream& reset(std::ostream& os);
+    POM_API std::ostream& reset(std::ostream& os);
 
-    std::ostream& black(std::ostream& os);
-    std::ostream& red(std::ostream& os);
-    std::ostream& green(std::ostream& os);
-    std::ostream& blue(std::ostream& os);
-    std::ostream& yellow(std::ostream& os);
-    std::ostream& cyan(std::ostream& os);
-    std::ostream& magenta(std::ostream& os);
-    std::ostream& white(std::ostream& os);
-    std::ostream& grey(std::ostream& os);
+    POM_API std::ostream& black(std::ostream& os);
+    POM_API std::ostream& red(std::ostream& os);
+    POM_API std::ostream& green(std::ostream& os);
+    POM_API std::ostream& blue(std::ostream& os);
+    POM_API std::ostream& yellow(std::ostream& os);
+    POM_API std::ostream& cyan(std::ostream& os);
+    POM_API std::ostream& magenta(std::ostream& os);
+    POM_API std::ostream& white(std::ostream& os);
+    POM_API std::ostream& grey(std::ostream& os);
 
-    std::ostream& onBlack(std::ostream& os);
-    std::ostream& onRed(std::ostream& os);
-    std::ostream& onGreen(std::ostream& os);
-    std::ostream& onBlue(std::ostream& os);
-    std::ostream& onYellow(std::ostream& os);
-    std::ostream& onCyan(std::ostream& os);
-    std::ostream& onMagenta(std::ostream& os);
-    std::ostream& onWhite(std::ostream& os);
-    std::ostream& onGrey(std::ostream& os);
+    POM_API std::ostream& onBlack(std::ostream& os);
+    POM_API std::ostream& onRed(std::ostream& os);
+    POM_API std::ostream& onGreen(std::ostream& os);
+    POM_API std::ostream& onBlue(std::ostream& os);
+    POM_API std::ostream& onYellow(std::ostream& os);
+    POM_API std::ostream& onCyan(std::ostream& os);
+    POM_API std::ostream& onMagenta(std::ostream& os);
+    POM_API std::ostream& onWhite(std::ostream& os);
+    POM_API std::ostream& onGrey(std::ostream& os);
 
     /// @}
     /// @}

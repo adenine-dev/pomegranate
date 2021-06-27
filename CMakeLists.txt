@@ -13,28 +13,20 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include("assign_source_group")
 include("define_filename_macro")
 
-set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>)
+set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>$<$<CONFIG:RelWithDebInfo>:MinSizeRel>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 set(POM_VENDOR_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor)
 
 # ============================================== SDL2 ==============================================
-# Produce a console in debug mode
-if (WIN32)
-    if(MINGW OR CYGWIN)
-        list(APPEND EXTRA_LDFLAGS "$<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-mconsole>")
-    endif()
-endif()
-
-if (MSVC)
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG /SUBSYSTEM:CONSOLE)
-endif()
-
 # Hack to disable the config logging for SDL because its annoying :p
 # Can be circumvented by specifying --log-level=STATUS when running cmake.
 SET(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
 
-set(SDL_SHARED OFF) # static libs so it can ship as a single executable
+set(SDL_SHARED OFF)
+if (MSVC) # if you're on msvc then some linking errors happen if you don't do this. idk why, should be fine lol.
+    SET(OPT_DEF_LIBC ON)
+endif()
 add_subdirectory(vendor/SDL2)
 
 SET(CMAKE_MESSAGE_LOG_LEVEL "STATUS")

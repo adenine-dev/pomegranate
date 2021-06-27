@@ -11,19 +11,19 @@ namespace pom::platform {
     /// @addtogroup platform
     /// @{
 
-    bool init();
+    POM_API bool init();
 
     /// Opens a platform based error window, separate from all other state. Useful for throwing
     /// fatal errors in production, when that is needed.
-    void openErrorWindow(const char* title, const char* body);
+    POM_API void openErrorWindow(const char* title, const char* body);
 
     /// Waits at least the specified number of milliseconds, may wait longer due to OS scheduling.
-    void sleep(u32 ms);
+    POM_API void sleep(u32 ms);
 
     /// Reference to a shared object file (.dll or .so depending on platform) that holds all functions loaded by it.
     /// This code is *extremely* not threadsafe.
     /// @warning Do not attempt to load the same shared object file more than once, it will not work.
-    class SharedObject {
+    class POM_API SharedObject {
     public:
         /// Utility class to help in reloading and make syntax easier. This overloads the `operator()` function so that
         /// it can be called in the same way as any other function pointer while still being ref-counted.

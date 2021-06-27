@@ -61,6 +61,13 @@ namespace pom::platform {
     {
         SDL_UnloadObject(handle);
 
+// mingw currently has a bug that prevents `std::filesystem::copy_options` from working
+#ifdef __MINGW32__
+        if (std::filesystem::exists(loadedFilename)) {
+            std::filesystem::remove(loadedFilename);
+        }
+#endif
+
         // TODO: in release mode this should be disabled in some way because release code shouldn't be hot reloaded,
         // thus there is no need to duplicate it for writing.
         std::filesystem::copy_file(filename, loadedFilename, std::filesystem::copy_options::overwrite_existing);

@@ -13,7 +13,7 @@ namespace pom {
     /// when it is destructed, prints the difference. Eventually this will use
     /// [speedscope](https://github.com/jlfwong/speedscope) with this
     /// [schema](https://www.speedscope.app/file-format-schema.json)
-    class Profiler {
+    class POM_API Profiler {
     public:
         /// Constructor, begins the timer.
         Profiler(const char* function, const char* file, u64 line);

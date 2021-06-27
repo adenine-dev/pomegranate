@@ -61,7 +61,7 @@ int main(int argc, char** argv)
             pom::DeltaTime spentTime = timer.elapsed();
             const f32 targetUpdateTime = 1000.F / (float)appInfo.targetUPS;
             while (spentTime < targetUpdateTime) {
-                pom::platform::sleep(std::max(floor(targetUpdateTime - spentTime - 1), 0.F));
+                pom::platform::sleep((u32)std::max(std::floor(targetUpdateTime - spentTime - 1), 0.F));
                 spentTime = timer.elapsed();
             }
         }

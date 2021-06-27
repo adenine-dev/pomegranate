@@ -38,7 +38,7 @@ namespace pom::maths {
     /// You probably want to use the @ref vector_specializations "Vector Specializations", but this
     /// can be used independently for larger vectors.
     /// The maximum value for `N` is determined by @ref POM_VECTOR_SIZE_TYPE
-    template <typename T, POM_VECTOR_SIZE_TYPE N> struct Vector {
+    template <typename T, POM_VECTOR_SIZE_TYPE N> struct POM_API Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
         /// Raw data of the vector, recommended to access through `operator[]()`.

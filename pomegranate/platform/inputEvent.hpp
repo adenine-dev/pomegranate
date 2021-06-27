@@ -45,7 +45,7 @@ namespace pom {
     /// @warning This uses the tagged union based on `type`. Attempting to access the wrong event
     /// data is undefined behavior in c++. It is recommended to use the helper functions which do
     /// checking. However, if you do not want that checking, the felids are public.
-    struct InputEvent {
+    struct POM_API InputEvent {
 
         /// @private
         struct None {
@@ -191,6 +191,6 @@ namespace pom {
     /// @}
     /// @}
 
-    std::ostream& operator<<(std::ostream& os, const InputEventType& type);
+    POM_API std::ostream& operator<<(std::ostream& os, const InputEventType& type);
 
 } // namespace pom

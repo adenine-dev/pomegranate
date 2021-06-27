@@ -19,11 +19,11 @@ namespace pom {
 
     /// Sets the current log level. This should primarily be done by the build system.
     /// @warning this code is unsafe and running it from multiple threads may cause issues.
-    void setLogLevel(LogLevel level);
+    POM_API void setLogLevel(LogLevel level);
 
     /// Returns true if the specified level is active based on the current log level.
     /// @param level the level to check against, this is done by a comparison of the integer values.
-    bool isLogLevelActive(LogLevel level);
+    POM_API bool isLogLevelActive(LogLevel level);
 
     /// Logs a set of arguments to an output string, not intended to be used manually.
     /// @private

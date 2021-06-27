@@ -9,7 +9,7 @@ namespace pom {
     /// @{
 
     /// Used for small timesteps from `Timer`. Implicitly converts to `f32` as miliseconds.
-    struct DeltaTime {
+    struct POM_API DeltaTime {
         /// converts to seconds.
         [[nodiscard]] f32 sec() const;
 
@@ -35,7 +35,7 @@ namespace pom {
     /// Timer used for measuring rapid changes in times. On construction it measures the current time, then each call to
     /// `elapsed` returns a `DeltaTime` containing the amount of time elapsed since its last measured time. This is most
     /// notably used to measure the update times.
-    class Timer {
+    class POM_API Timer {
     public:
         /// Resets the last measured time to the current time.
         void reset();

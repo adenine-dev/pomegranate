@@ -2,6 +2,7 @@
 
 // stl
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <exception>
 #include <filesystem>
@@ -9,6 +10,7 @@
 #include <ratio>
 #include <string>
 #include <utility>
+
 
 #ifdef POM_PLATFORM_WINDOWS
 #    define WIN32_LEAN_AND_MEAN
