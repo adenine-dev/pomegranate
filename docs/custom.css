@@ -73,6 +73,11 @@ a:focus {
   color: var(--text-color);
 }
 
+#nav-tree .item{    
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #nav-tree .label {
   color: var(--text-color);
   font: inherit;
