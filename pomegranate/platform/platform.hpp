@@ -41,6 +41,11 @@ namespace pom::platform {
                 return funcptrptr && *funcptrptr;
             }
 
+            operator bool()
+            {
+                return valid();
+            }
+
         private:
             friend class SharedObject;
             SOFunction(std::shared_ptr<void*> func) : funcptrptr(std::move(func))

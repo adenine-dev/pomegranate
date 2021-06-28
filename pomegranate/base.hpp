@@ -3,9 +3,9 @@
 #include "maths/types.hpp"
 
 #ifdef POM_PLATFORM_WINDOWS
-#    define POM_EXPORT extern "C" __declspec(dllexport)
+#    define POM_CLIENT_EXPORT extern "C" __declspec(dllexport)
 #else
-#    define POM_EXPORT extern "C"
+#    define POM_CLIENT_EXPORT extern "C"
 #endif
 
 #ifdef POM_PLATFORM_WINDOWS

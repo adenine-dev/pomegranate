@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platform/inputEvent.hpp"
+#include "platform/platform.hpp"
 #include "timing.hpp"
 
 namespace pom {
@@ -34,23 +36,23 @@ namespace pom {
     /// Contains client specific information about an application, returned from `ClientGetCreateInfoFunction`. Used in
     /// the initialization of the application.
     struct AppCreateInfo {
-        /// The name of the application. Used in several places.
+        /// The name of the application. Used in several places including the title of the main window.
         const char* name;
         /// `true` if the application should limit the number of updates per second (UPS). It is a good idea to set this
         /// to true because it will improve system wide performance. This *roughly* corresponds with FPS (frames per
         /// second). Common UPS include 24, 30, 60, 120, and 240.
-        bool limitUpdateRate;
+        bool limitUpdateRate = true;
         /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
         /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
         /// set to `true`.
-        u16 targetUPS;
+        u16 targetUPS = 60;
         // TODO: version? engine config? application type? icon?
     };
 
     /// The type of the `clientGetAppCreateInfo` function which **must** be defined in the client code. It is called
-    /// once during the setup of the application before anything else in the engine is initialized. It should return an
-    /// `ApplicationCreateInfo` structure. `argc` and `argv` are passed directly from those passed to the executable.
-    using ClientGetCreateInfoFunction = AppCreateInfo (*)(int argc, char** argv);
+    /// once during the setup of the application before most anything else. It should return an `ApplicationCreateInfo`
+    /// structure. `argc` and `argv` are passed directly from those passed to the executable.
+    using ClientGetCreateInfoFunction = const AppCreateInfo* (*)(int argc, char** argv);
 
     /// The type of the `clientCreateState` function which **must** be defined in the client code. It is called once
     /// during the setup of the application before `clientBegin`, and should return a pointer to a datastructure
@@ -68,6 +70,10 @@ namespace pom {
     /// The type of the `clientUpdate` function which **must** be defined in the client code. It is called each update.
     using ClientUpdateFunction = void (*)(GameState* gamestate, DeltaTime deltatime);
 
+    /// The type of the `clientOnInputEvent` function which **must** be defined in the client code. It is called each
+    /// time an input event from the main window is received.
+    using ClientOnInputEventFunction = void (*)(GameState* gamestate, const InputEvent* ev);
+
     /// The type of the `clientUnmount` function which **may** be defined in the client code. It is called each time
     /// before the client is unloaded.
     using ClientUnmountFunction = void (*)(GameState* gamestate);
@@ -76,6 +82,44 @@ namespace pom {
     /// the destruction of the application, before any other assets are freed. It should free the data returned in the
     /// initial `clientCreateState`.
     using ClientEndFunction = void (*)(GameState* gamestate);
+
+    /// Wrapper around the client for use in the Application, there is no reason for the client to use this.
+    /// @private
+    class POM_API Client {
+    public:
+        Client(std::string clientFilename);
+        ~Client();
+
+        void begin();
+        void update(DeltaTime dt);
+        void onEvent(const pom::InputEvent* ev);
+        void reload();
+
+    private:
+        platform::SharedObject clientSO;
+
+        GameState* gamestate = nullptr;
+
+        POM_NOCOPY(Client);
+
+        friend class Application;
+        platform::SharedObject::SOFunction<ClientGetCreateInfoFunction> clientGetAppCreateInfo
+            = clientSO.getFunction<ClientGetCreateInfoFunction>("clientGetAppCreateInfo");
+        platform::SharedObject::SOFunction<ClientCreateStateFunction> clientCreateState
+            = clientSO.getFunction<ClientCreateStateFunction>("clientCreateState");
+        platform::SharedObject::SOFunction<ClientBeginFunction> clientBegin
+            = clientSO.getFunction<ClientBeginFunction>("clientBegin");
+        platform::SharedObject::SOFunction<ClientEndFunction> clientEnd
+            = clientSO.getFunction<ClientEndFunction>("clientEnd");
+        platform::SharedObject::SOFunction<ClientUpdateFunction> clientUpdate
+            = clientSO.getFunction<ClientUpdateFunction>("clientUpdate");
+        platform::SharedObject::SOFunction<ClientOnInputEventFunction> clientOnInputEvent
+            = clientSO.getFunction<ClientOnInputEventFunction>("clientOnInputEvent");
+        platform::SharedObject::SOFunction<ClientMountFunction> clientMount
+            = clientSO.getFunction<ClientMountFunction>("clientMount");
+        platform::SharedObject::SOFunction<ClientUnmountFunction> clientUnmount
+            = clientSO.getFunction<ClientUnmountFunction>("clientUnmount");
+    };
 
     /// @}
     /// @}

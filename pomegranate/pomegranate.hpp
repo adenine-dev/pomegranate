@@ -78,5 +78,6 @@
 
 /// @defgroup core Core
 /// @brief Core functionality.
+#include "core/application.hpp"
 #include "core/clientInterface.hpp"
 #include "core/timing.hpp"

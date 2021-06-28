@@ -1,41 +1,58 @@
 #include <pomegranate/pomegranate.hpp>
 
 struct GameState {
-    i32 i = 4;
+    bool printed = false;
 };
 
-POM_EXPORT pom::AppCreateInfo clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
+POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
 {
-    return { .name = "Pomegranate Sandbox Application", .limitUpdateRate = true, .targetUPS = 60 };
+    static const pom::AppCreateInfo aci = { .name = "Pomegranate Sandbox Application" };
+    POM_LOG_INFO("clientGetAppCreateInfo");
+
+    return &aci;
 }
 
-POM_EXPORT GameState* clientCreateState()
+POM_CLIENT_EXPORT GameState* clientCreateState()
 {
-    return new GameState();
+    auto* gc = new GameState;
+    POM_LOG_INFO("clientCreateState");
+    return gc;
 }
 
-POM_EXPORT void clientBegin(GameState* gameState)
+POM_CLIENT_EXPORT void clientBegin(GameState* gameState)
 {
-    POM_LOG_INFO("begin, ", gameState->i);
+    POM_LOG_INFO("clientBegin");
 }
 
-POM_EXPORT void clientMount(GameState* gameState)
+POM_CLIENT_EXPORT void clientMount(GameState* gameState)
 {
-    POM_LOG_INFO("mount, ", gameState->i);
+    POM_LOG_INFO("clientMount");
+    gameState->printed = false;
 }
 
-POM_EXPORT void clientUpdate(GameState* gameState, pom::DeltaTime dt)
+POM_CLIENT_EXPORT void clientUpdate(GameState* gameState, pom::DeltaTime dt)
 {
-    POM_LOG_INFO("dt:", dt, "ms");
+    if (!gameState->printed) {
+        gameState->printed = true;
+        POM_LOG_INFO("clientUpdate...", pom::Application::get()->getFrame());
+    }
 }
 
-POM_EXPORT void clientUnmount(GameState* gameState)
+POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gameState, pom::InputEvent* ev)
 {
-    POM_LOG_INFO("unmount");
+    if (ev->type == pom::InputEventType::KEY_DOWN) {
+        POM_LOG_INFO("clientOnInputEvent, ", ev->getKeycode());
+    }
 }
 
-POM_EXPORT void clientEnd(GameState* gameState)
+POM_CLIENT_EXPORT void clientUnmount(GameState* gameState)
 {
+    POM_LOG_INFO("clientUnmount");
+}
+
+POM_CLIENT_EXPORT void clientEnd(GameState* gameState)
+{
+    POM_LOG_INFO("clientEnd");
+
     delete gameState;
-    POM_LOG_INFO("end");
 }
