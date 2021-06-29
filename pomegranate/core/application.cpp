@@ -8,7 +8,7 @@ namespace pom {
 
     Application::Application(int argc, char** argv, std::string clientSOFile) :
         client(std::move(clientSOFile)), createInfo(client.clientGetAppCreateInfo(argc, argv)),
-        mainWindow(createInfo->name)
+        mainWindow(createInfo->name, createInfo->graphicsAPI)
     {
         POM_ASSERT(!instance, "Attempting to create multiple Application");
 

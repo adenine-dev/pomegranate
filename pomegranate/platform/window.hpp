@@ -5,6 +5,7 @@
 #include <SDL.h>
 
 #include "debug/logging.hpp"
+#include "graphics/api/api.hpp"
 #include "inputEvent.hpp"
 #include "maths/maths.hpp"
 
@@ -24,6 +25,7 @@ namespace pom {
         /// @param size: Initial size of the window, if it is negative then it will default to
         /// 720x480, this behavior is subject to change.
         explicit Window(const char* title,
+                        gfx::GraphicsAPI api,
                         const maths::ivec2& position = { -1, -1 },
                         const maths::ivec2& size = { -1, -1 });
         ~Window();
@@ -36,14 +38,28 @@ namespace pom {
             return closeRequested;
         }
 
-        /// Returns the SDL window pointer, should be used if more direct access to the window is
-        /// needed. Primarily meant to be used internally.
-        /// @warning Messing with this without knowing what you are doing can an will cause crashes,
-        /// for example calling `SDL_SetWindowData` will likely break things.
-        [[nodiscard]] inline SDL_Window* getSDLHandle()
-        {
-            return windowHandle;
-        }
+        // tbh there shouldn't be a reason to include this.
+        // /// Returns the SDL window pointer, should be used if more direct access to the window is
+        // /// needed. Primarily meant to be used internally.
+        // /// @warning Messing with this without knowing what you are doing can an will cause crashes,
+        // /// for example calling `SDL_SetWindowData` will likely break things.
+        // [[nodiscard]] inline SDL_Window* getSDLHandle()
+        // {
+        //     return windowHandle;
+        // }
+
+        /// Returns a list of the required vulkan extension from SDL. Only applicable when vulkan is enabled and is the
+        /// chosen GraphicsAPI for this window.
+        [[nodiscard]] std::vector<const char*> getRequiredVulkanExtensions();
+
+        /// Returns the vulkan surface from SDL. Only applicable when vulkan is enabled and is the
+        /// chosen GraphicsAPI for this window. Should be freed with `vkDestroySurfaceKHR`.
+        [[nodiscard]] VkSurfaceKHR getVulkanSurface(VkInstance instance);
+
+        /// Returns the vulkan drawable extent for swapchains, where the x component of the vector is the width and the
+        /// y component the height. Only applicable when vulkan is enabled and is the chosen GraphicsAPI for this
+        /// window.
+        [[nodiscard]] maths::ivec2 getVulkanDrawableExtent();
 
         /// Sets the function that will be called whenever this window receives an InputEvent. Will
         /// assert if invalid.
@@ -58,9 +74,10 @@ namespace pom {
         static void pollEvents();
 
     private:
-        POM_NOCOPY(Window)
+        POM_NOCOPY(Window);
 
         SDL_Window* windowHandle = nullptr;
+        gfx::GraphicsAPI graphicsAPI;
         bool closeRequested = false;
 
         // NOTE: this starts empty so if a client wants to do simulation stuff, they can without

@@ -58,16 +58,33 @@ namespace pom {
 
 // clang-format off
 
-/// Logs a trace message, currently the log levels are purely ornamental.
+/// Logs a trace message.
 #define POM_LOG_TRACE(...) ::pom::_log(::std::cout, ::pom::LogLevel::TRACE, ::pom::terminal::grey,   "[TRACE] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
-/// Logs an info message, currently the log levels are purely ornamental.
+/// Logs an info message.
 #define POM_LOG_INFO(...)  ::pom::_log(::std::cout, ::pom::LogLevel::INFO,  ::pom::terminal::blue,   "[INFO] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
-/// Logs a debug message, currently the log levels are purely ornamental.
+/// Logs a debug message.
 #define POM_LOG_DEBUG(...) ::pom::_log(::std::cout, ::pom::LogLevel::DEBUG, ::pom::terminal::green,  "[DEBUG] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
-/// Logs a warning, currently the log levels are purely ornamental.
+/// Logs a warning.
 #define POM_LOG_WARN(...)  ::pom::_log(::std::cout, ::pom::LogLevel::WARN,  ::pom::terminal::yellow, "[WARN] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
-/// Logs an error, currently the log levels are purely ornamental.
+/// Logs an error.
 #define POM_LOG_ERROR(...) ::pom::_log(::std::cout, ::pom::LogLevel::ERROR, ::pom::terminal::red,    "[ERROR] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+/// Logs a fatal error and panics.
+#define POM_LOG_FATAL(...)                                                                                             \
+    {                                                                                                                  \
+        ::pom::_log(::std::cerr,                                                                                       \
+                    ::pom::LogLevel::FATAL,                                                                            \
+                    ::pom::terminal::black,                                                                            \
+                    ::pom::terminal::onRed,                                                                            \
+                    "[FATAL]",                                                                                         \
+                    ::pom::terminal::reset,                                                                            \
+                    " ",                                                                                               \
+                    __FILENAME__,                                                                                      \
+                    ":",                                                                                               \
+                    __LINE__,                                                                                          \
+                    " : ",                                                                                             \
+                    __VA_ARGS__);                                                                                      \
+        POM_DEBUGBREAK();                                                                                              \
+    }
 
 // clang-format on
 

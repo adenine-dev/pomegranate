@@ -4,7 +4,8 @@
 #include "window.hpp"
 
 namespace pom {
-    Window::Window(const char* title, const maths::ivec2& position, const maths::ivec2& size)
+    Window::Window(const char* title, gfx::GraphicsAPI api, const maths::ivec2& position, const maths::ivec2& size) :
+        graphicsAPI(api)
     {
         constexpr int DEFAULT_WIDTH = 720;
         constexpr int DEFAULT_HEIGHT = 480;
@@ -42,14 +43,19 @@ namespace pom {
 
         // TODO: load previous size/position values from file.
 
+        u32 flags = SDL_WINDOW_RESIZABLE;
+        if (graphicsAPI == gfx::GraphicsAPI::VULKAN) {
+            flags |= SDL_WINDOW_VULKAN;
+        }
+
         if (windowHandle = SDL_CreateWindow(title,
                                             position.x < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.x,
                                             position.y < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.y,
                                             size.x < 0 ? DEFAULT_WIDTH : size.x,
                                             size.y < 0 ? DEFAULT_HEIGHT : size.y,
-                                            SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
+                                            flags);
             !windowHandle) {
-            POM_ASSERT(false, "Unable to initialize Window. error: ", SDL_GetError());
+            POM_LOG_FATAL("Unable to initialize Window. error: ", SDL_GetError());
         }
 
         SDL_SetWindowData(windowHandle, POM_SDL_WINDOW_PTR, (void*)this);
@@ -156,4 +162,53 @@ namespace pom {
             };
         }
     }
+
+    std::vector<const char*> Window::getRequiredVulkanExtensions()
+    {
+        if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
+            POM_LOG_ERROR("Attempting to get vulkan instance extensions from a non-vulkan window.");
+        }
+
+        unsigned int extensionCount = 0;
+
+        if (!SDL_Vulkan_GetInstanceExtensions(windowHandle, &extensionCount, nullptr)) {
+            POM_LOG_FATAL("Failed to get SDL required vulkan extensions, ", SDL_GetError());
+        }
+
+        std::vector<const char*> extensions(extensionCount);
+
+        if (!SDL_Vulkan_GetInstanceExtensions(windowHandle, &extensionCount, extensions.data())) {
+            POM_LOG_FATAL("Failed to get SDL required vulkan extensions, ", SDL_GetError());
+        }
+
+        return extensions;
+    }
+
+    VkSurfaceKHR Window::getVulkanSurface(VkInstance instance)
+    {
+        if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
+            POM_LOG_ERROR("Attempting to get vulkan instance extensions from a non-vulkan window.");
+        }
+
+        VkSurfaceKHR surface;
+
+        if (!SDL_Vulkan_CreateSurface(windowHandle, instance, &surface)) {
+            POM_LOG_FATAL(SDL_GetError());
+        }
+
+        return surface;
+    }
+
+    maths::ivec2 Window::getVulkanDrawableExtent()
+    {
+        if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
+            POM_LOG_ERROR("Attempting to get vulkan drawable extent from a non-vulkan window.");
+        }
+
+        maths::ivec2 extent;
+
+        SDL_Vulkan_GetDrawableSize(windowHandle, &extent.x, &extent.y);
+        return extent;
+    }
+
 } // namespace pom
