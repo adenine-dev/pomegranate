@@ -1,9 +1,14 @@
+# cmake output
 build
+
+# binaries and docs
 bin
 
+# ides, editors and 
 .vscode
 .vs
-
 .cache
 
-notes
+# the output of binary embeds.
+*/embed/*.hpp
+*/embed/*.cpp

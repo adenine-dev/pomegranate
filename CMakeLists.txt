@@ -10,6 +10,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include("target_add_binary_embed")
+include("add_shader_module")
 include("assign_source_group")
 include("define_filename_macro")
 
