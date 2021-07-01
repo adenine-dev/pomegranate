@@ -1,5 +1,8 @@
 #include <pomegranate/pomegranate.hpp>
 
+#include "embed/basic_frag_spv.hpp"
+#include "embed/basic_vert_spv.hpp"
+
 #include <bitset>
 #include <set>
 
@@ -9,6 +12,8 @@ const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
 
 const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
+
+const u32 MAX_FRAMES_IN_FLIGHT = 2;
 
 struct GameState {
     VkInstance instance;
@@ -23,6 +28,16 @@ struct GameState {
     VkExtent2D swapchainExtent;
     std::vector<VkImage> swapchainImages;
     std::vector<VkImageView> swapchainImageViews;
+    VkRenderPass renderPass;
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+    std::vector<VkFence> imagesInFlight;
 };
 
 struct SwapChainSupport {
@@ -186,6 +201,24 @@ u32 rateGPU(VkPhysicalDevice device, VkSurfaceKHR surface)
     return score;
 }
 
+VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned char* bytes)
+{
+    VkShaderModuleCreateInfo shaderModuleCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .codeSize = size,
+        // FIXME: this won't be safe for general use
+        .pCode = reinterpret_cast<const u32*>(bytes) // NOLINT this code will always be aligned to 4 bytes so it is safe
+    };
+
+    VkShaderModule shaderModule = VK_NULL_HANDLE;
+    POM_ASSERT(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) == VK_SUCCESS,
+               "Failed to create shader module");
+
+    return shaderModule;
+}
+
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
     // instance
@@ -238,7 +271,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
         .pEngineName = "pomegranate",
         .engineVersion = VK_MAKE_VERSION(0, 1, 0),
-        .apiVersion = VK_API_VERSION_1_2,
+        .apiVersion = VK_API_VERSION_1_0,
     };
 
     VkInstanceCreateInfo instanceCreateInfo = {
@@ -459,7 +492,345 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
             "Failed to create image view")
     }
 
+    // renderpass
+    VkAttachmentDescription colorAttachment = {
+        .flags = 0,
+        .format = gamestate->swapchainImageFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    };
+
+    VkAttachmentReference colorAttachmentRef = {
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+
+    VkSubpassDescription subpassDesc = {
+        .flags = 0,
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount = 0,
+        .pInputAttachments = nullptr,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachmentRef,
+        .pResolveAttachments = nullptr,
+        .pDepthStencilAttachment = nullptr,
+        .preserveAttachmentCount = 0,
+        .pPreserveAttachments = nullptr,
+    };
+
+    VkSubpassDependency subpassDependency = {
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .srcAccessMask = 0,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .dependencyFlags = 0,
+    };
+
+    VkRenderPassCreateInfo renderPassCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .attachmentCount = 1,
+        .pAttachments = &colorAttachment,
+        .subpassCount = 1,
+        .pSubpasses = &subpassDesc,
+        .dependencyCount = 1,
+        .pDependencies = &subpassDependency,
+    };
+
+    POM_ASSERT(vkCreateRenderPass(gamestate->device, &renderPassCreateInfo, nullptr, &gamestate->renderPass)
+                   == VK_SUCCESS,
+               "failed to create renderpass");
+
     // pipeline
+    VkShaderModule vertShaderModule = createShaderModule(gamestate->device, basic_vert_spv_size, basic_vert_spv_data);
+    VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage = VK_SHADER_STAGE_VERTEX_BIT,
+        .module = vertShaderModule,
+        .pName = "main",
+        .pSpecializationInfo = nullptr,
+    };
+
+    VkShaderModule fragShaderModule = createShaderModule(gamestate->device, basic_frag_spv_size, basic_frag_spv_data);
+    VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .module = fragShaderModule,
+        .pName = "main",
+        .pSpecializationInfo = nullptr,
+    };
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageCreateInfo, fragShaderStageCreateInfo };
+
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .vertexBindingDescriptionCount = 0,
+        .pVertexBindingDescriptions = nullptr,
+        .vertexAttributeDescriptionCount = 0,
+        .pVertexAttributeDescriptions = nullptr,
+    };
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = VK_FALSE,
+    };
+
+    VkViewport viewport = {
+        .x = 0.f,
+        .y = 0.f,
+        .width = (float)gamestate->swapchainExtent.width,
+        .height = (float)gamestate->swapchainExtent.height,
+        .minDepth = 0.f,
+        .maxDepth = 1.f,
+    };
+
+    VkRect2D scissor { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent };
+
+    VkPipelineViewportStateCreateInfo viewportCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .viewportCount = 1,
+        .pViewports = &viewport,
+        .scissorCount = 1,
+        .pScissors = &scissor,
+    };
+
+    VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .depthBiasConstantFactor = 0.f,
+        .depthBiasClamp = 0.f,
+        .depthBiasSlopeFactor = 0.f,
+        .lineWidth = 1.f,
+    };
+
+    VkPipelineMultisampleStateCreateInfo multisampleCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable = VK_FALSE,
+        .minSampleShading = 1.f,
+        .pSampleMask = nullptr,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable = VK_FALSE,
+    };
+
+    // mix based on opacity
+    VkPipelineColorBlendAttachmentState colorBlendAttachment = {
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask
+        = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .attachmentCount = 1,
+        .pAttachments = &colorBlendAttachment,
+        .blendConstants = { 0.f, 0.f, 0.f, 0.f },
+    };
+
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .setLayoutCount = 0,
+        .pSetLayouts = nullptr,
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
+
+    POM_ASSERT(vkCreatePipelineLayout(gamestate->device, &pipelineLayoutCreateInfo, nullptr, &gamestate->pipelineLayout)
+                   == VK_SUCCESS,
+               "failed to create pipeline");
+
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = 2,
+        .pStages = shaderStages,
+        .pVertexInputState = &vertexInputCreateInfo,
+        .pInputAssemblyState = &inputAssemblyCreateInfo,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewportCreateInfo,
+        .pRasterizationState = &rasterizationCreateInfo,
+        .pMultisampleState = &multisampleCreateInfo,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &colorBlendCreateInfo,
+        .pDynamicState = nullptr,
+        .layout = gamestate->pipelineLayout,
+        .renderPass = gamestate->renderPass,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1,
+    };
+
+    POM_ASSERT(vkCreateGraphicsPipelines(gamestate->device,
+                                         VK_NULL_HANDLE,
+                                         1,
+                                         &pipelineCreateInfo,
+                                         nullptr,
+                                         &gamestate->graphicsPipeline)
+                   == VK_SUCCESS,
+               "Failed to create graphics pipeline");
+
+    vkDestroyShaderModule(gamestate->device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
+
+    // swapchain framebuffers
+    gamestate->swapchainFramebuffers.resize(gamestate->swapchainImageViews.size());
+
+    for (u32 i = 0; i < gamestate->swapchainFramebuffers.size(); i++) {
+        VkFramebufferCreateInfo framebufferCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .renderPass = gamestate->renderPass,
+            .attachmentCount = 1,
+            .pAttachments = &gamestate->swapchainImageViews[i],
+            .width = gamestate->swapchainExtent.width,
+            .height = gamestate->swapchainExtent.height,
+            .layers = 1,
+        };
+
+        POM_ASSERT(vkCreateFramebuffer(gamestate->device,
+                                       &framebufferCreateInfo,
+                                       nullptr,
+                                       &gamestate->swapchainFramebuffers[i])
+                       == VK_SUCCESS,
+                   "failed to create framebuffer");
+    }
+
+    // command buffer
+    VkCommandPoolCreateInfo commandPoolCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = graphicsQueueFamily,
+    };
+
+    POM_ASSERT(vkCreateCommandPool(gamestate->device, &commandPoolCreateInfo, nullptr, &gamestate->commandPool)
+                   == VK_SUCCESS,
+               "Failed to create command pool.");
+
+    gamestate->commandBuffers.resize(gamestate->swapchainFramebuffers.size());
+
+    VkCommandBufferAllocateInfo commandBufferAllocateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .commandPool = gamestate->commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = static_cast<uint32_t>(gamestate->commandBuffers.size()),
+    };
+
+    POM_ASSERT(
+        vkAllocateCommandBuffers(gamestate->device, &commandBufferAllocateCreateInfo, gamestate->commandBuffers.data())
+            == VK_SUCCESS,
+        "Failed to allocate command buffers.");
+
+    for (u32 i = 0; i < gamestate->commandBuffers.size(); i++) {
+        VkCommandBufferBeginInfo commandBufferBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .pInheritanceInfo = nullptr,
+        };
+
+        POM_ASSERT(vkBeginCommandBuffer(gamestate->commandBuffers[i], &commandBufferBeginInfo) == VK_SUCCESS,
+                   "Failed to begin recording command buffer.");
+
+        VkClearValue clearColor = { 0.f, 0.f, 0.f, 1.f };
+
+        VkRenderPassBeginInfo renderPassBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .pNext = nullptr,
+            .renderPass = gamestate->renderPass,
+            .framebuffer = gamestate->swapchainFramebuffers[i],
+            .renderArea = { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent },
+            .clearValueCount = 1,
+            .pClearValues = &clearColor,
+        };
+
+        vkCmdBeginRenderPass(gamestate->commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(gamestate->commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+
+        vkCmdDraw(gamestate->commandBuffers[i], 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(gamestate->commandBuffers[i]);
+
+        POM_ASSERT(vkEndCommandBuffer(gamestate->commandBuffers[i]) == VK_SUCCESS,
+                   "Failed to end recording command buffer.");
+    }
+
+    // syncronization
+    gamestate->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    gamestate->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    gamestate->inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    gamestate->imagesInFlight.resize(gamestate->swapchainImages.size(), VK_NULL_HANDLE);
+
+    VkSemaphoreCreateInfo semaphoreCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+    };
+
+    VkFenceCreateInfo fenceCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+    };
+
+    for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        POM_ASSERT(
+            vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr, &gamestate->imageAvailableSemaphores[i])
+                == VK_SUCCESS,
+            "Failed to create image available semaphore");
+
+        POM_ASSERT(
+            vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr, &gamestate->renderFinishedSemaphores[i])
+                == VK_SUCCESS,
+            "Failed to create render finish semaphore");
+
+        POM_ASSERT(vkCreateFence(gamestate->device, &fenceCreateInfo, nullptr, &gamestate->inFlightFences[i])
+                       == VK_SUCCESS,
+                   "Failed to create fence");
+    }
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -468,6 +839,61 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 {
+    const u32 frame = pom::Application::get()->getFrame() % MAX_FRAMES_IN_FLIGHT;
+
+    vkWaitForFences(gamestate->device, 1, &gamestate->inFlightFences[frame], VK_TRUE, UINT64_MAX);
+
+    u32 imageIndex;
+    vkAcquireNextImageKHR(gamestate->device,
+                          gamestate->swapchain,
+                          UINT64_MAX,
+                          gamestate->imageAvailableSemaphores[frame],
+                          VK_NULL_HANDLE,
+                          &imageIndex);
+
+    if (gamestate->imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(gamestate->device, 1, &gamestate->imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    gamestate->imagesInFlight[imageIndex] = gamestate->inFlightFences[frame];
+
+    VkSemaphore waitSemaphores[] = { gamestate->imageAvailableSemaphores[frame] };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSemaphore signalSemaphores[] = { gamestate->renderFinishedSemaphores[frame] };
+
+    VkSubmitInfo submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = waitSemaphores,
+        .pWaitDstStageMask = waitStages,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &gamestate->commandBuffers[imageIndex],
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores = signalSemaphores,
+    };
+
+    vkResetFences(gamestate->device, 1, &gamestate->inFlightFences[frame]);
+    POM_ASSERT(vkQueueSubmit(gamestate->graphicsQueue, 1, &submitInfo, gamestate->inFlightFences[frame]) == VK_SUCCESS,
+               "Failed to submit to queue");
+
+    VkSwapchainKHR swapchains[] = { gamestate->swapchain };
+
+    VkPresentInfoKHR presentInfo {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = signalSemaphores,
+        .swapchainCount = 1,
+        .pSwapchains = swapchains,
+        .pImageIndices = &imageIndex,
+        .pResults = nullptr,
+    };
+
+    vkQueuePresentKHR(gamestate->presentQueue, &presentInfo);
+
+    vkQueueWaitIdle(gamestate->presentQueue);
+
+    vkDeviceWaitIdle(gamestate->device);
 }
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gamestate, pom::InputEvent* ev)
@@ -480,6 +906,23 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(gamestate->device, gamestate->renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(gamestate->device, gamestate->imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(gamestate->device, gamestate->inFlightFences[i], nullptr);
+    }
+
+    vkDestroyCommandPool(gamestate->device, gamestate->commandPool, nullptr);
+
+    for (auto* framebuffer : gamestate->swapchainFramebuffers) {
+        vkDestroyFramebuffer(gamestate->device, framebuffer, nullptr);
+    }
+
+    vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
+
+    vkDestroyRenderPass(gamestate->device, gamestate->renderPass, nullptr);
+
     for (auto* imageView : gamestate->swapchainImageViews) {
         vkDestroyImageView(gamestate->device, imageView, nullptr);
     }

@@ -4,11 +4,7 @@ build
 # binaries and docs
 bin
 
-# ides, editors and 
+# ides, editors, etc
 .vscode
 .vs
 .cache
-
-# the output of binary embeds.
-*/embed/*.hpp
-*/embed/*.cpp

@@ -1,20 +1,26 @@
 function(target_add_binary_embed target filename)
     get_filename_component(base_filename ${filename} NAME)
+    
+    set(alignment 1)
+    get_filename_component(pathname ${filename} DIRECTORY)
 
-    message("all arguments: ${ARGV}")
-
-    if (DEFINED ARGV2)
-        message(${ARGV2})
-        set(pathname ${ARGV2})
-    else()
-        get_filename_component(pathname ${filename} DIRECTORY)
-    endif()
+    math(EXPR last "${ARGC} - 1")
+    foreach(n RANGE 0 ${last})
+        if (${ARGV${n}} STREQUAL "ALIGNMENT")
+            math(EXPR n "${n} + 1")
+            set(alignment ${ARGV${n}})
+        elseif(${ARGV${n}} STREQUAL "OUTDIR")
+            math(EXPR n "${n} + 1")
+            message(${ARGV${n}})
+            set(pathname ${ARGV${n}})
+        endif()
+    endforeach()
 
     string(MAKE_C_IDENTIFIER ${base_filename} c_name)
 
     add_custom_command(
         OUTPUT ${pathname}/${c_name}.hpp ${pathname}/${c_name}.cpp
-        COMMAND ${CMAKE_COMMAND} -DRUN_CREATE_BINARY_EMBED=1 -DGENERATE_FILENAME=${filename} -DGENERATE_FILEPATH=${pathname} -P ${CMAKE_SOURCE_DIR}/cmake/target_add_binary_embed.cmake
+        COMMAND ${CMAKE_COMMAND} -DRUN_CREATE_BINARY_EMBED=1 -DGENERATE_ALIGNMENT=${alignment} -DGENERATE_FILENAME=${filename} -DGENERATE_FILEPATH=${pathname} -P ${CMAKE_SOURCE_DIR}/cmake/target_add_binary_embed.cmake
         MAIN_DEPENDENCY ${filename}
         VERBATIM
     )
@@ -26,7 +32,7 @@ function(target_add_binary_embed target filename)
 endfunction(target_add_binary_embed)
 
 # you should use nothing below this.
-function(create_binary_embed filename pathname)
+function(create_binary_embed filename pathname alignment)
     get_filename_component(base_filename ${filename} NAME)
     string(MAKE_C_IDENTIFIER ${base_filename} c_name)
 
@@ -42,21 +48,21 @@ function(create_binary_embed filename pathname)
         endif ()
     endforeach ()
 
-    set(output_c "// This file was automatically generated from \"${filename}\" and should not be manually modified.
+    set(output_c "// This file was automatically generated and should not be manually modified.
 
 #include \"${c_name}.hpp\"
 
-const unsigned ${c_name}_data[] = {
+alignas(${alignment}) const unsigned char ${c_name}_data[] = {
     ${output_c}
 }\;
 const size_t ${c_name}_size = sizeof(${c_name}_data)\;")
 
-    set(output_h "// This file was automatically generated from ${filename} and should not be manually modified.
+    set(output_h "// This file was automatically generated and should not be manually modified.
 
 #pragma once
 #include <cstdint>
 
-extern const unsigned ${c_name}_data[]\;
+alignas(${alignment}) extern const unsigned char ${c_name}_data[]\;
 extern const size_t ${c_name}_size\;")
 
     file(WRITE ${pathname}/${c_name}.cpp ${output_c})
@@ -66,5 +72,5 @@ endfunction(create_binary_embed)
 
 
 if (RUN_CREATE_BINARY_EMBED)
-    create_binary_embed(${GENERATE_FILENAME} ${GENERATE_FILEPATH})
+    create_binary_embed(${GENERATE_FILENAME} ${GENERATE_FILEPATH} ${GENERATE_ALIGNMENT})
 endif ()
