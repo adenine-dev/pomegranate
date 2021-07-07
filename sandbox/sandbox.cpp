@@ -3,7 +3,6 @@
 #include "embed/basic_frag_spv.hpp"
 #include "embed/basic_vert_spv.hpp"
 
-#include <bitset>
 #include <set>
 
 // Theoretically this is completely wrong, queue family indices can be any valid u32 including u32max. Practically no
@@ -14,6 +13,15 @@ const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
 
 const u32 MAX_FRAMES_IN_FLIGHT = 2;
+
+struct Vertex {
+    pom::maths::vec3 pos;
+    pom::maths::vec4 color;
+};
+
+static const Vertex VERTEX_DATA[] = { { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+                                      { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+                                      { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } } };
 
 struct GameState {
     bool paused = false;
@@ -46,6 +54,9 @@ struct GameState {
     // pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+    // vertex buffer
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
 };
 
 struct SwapChainSupport {
@@ -209,6 +220,21 @@ u32 rateGPU(VkPhysicalDevice device, VkSurfaceKHR surface)
     }
 
     return score;
+}
+
+u32 findMemoryType(VkPhysicalDevice physicalDevice, u32 filter, VkMemoryPropertyFlags props)
+{
+    VkPhysicalDeviceMemoryProperties physicalMemoryProps;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalMemoryProps);
+
+    for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
+        if (filter & (1 << i) && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
+            return i;
+        }
+    }
+
+    POM_LOG_FATAL("failed to find suitable memory type.");
+    return -1;
 }
 
 VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned char* bytes)
@@ -644,6 +670,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     createSwapchain(gamestate, window.getVulkanDrawableExtent());
 
     // pipeline
+    // TODO: as much of this as possible should load from the shaders themselves.
     VkShaderModule vertShaderModule = createShaderModule(gamestate->device, basic_vert_spv_size, basic_vert_spv_data);
     VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -668,14 +695,35 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageCreateInfo, fragShaderStageCreateInfo };
 
+    VkVertexInputBindingDescription vertexBindingDesc = {
+        .binding = 0,
+        .stride = sizeof(Vertex),
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+    };
+
+    VkVertexInputAttributeDescription vertexAttribDescs[] = { {
+                                                                  // position
+                                                                  .location = 0,
+                                                                  .binding = 0,
+                                                                  .format = VK_FORMAT_R32G32B32_SFLOAT,
+                                                                  .offset = offsetof(Vertex, pos),
+                                                              },
+                                                              {
+                                                                  // color
+                                                                  .location = 1,
+                                                                  .binding = 0,
+                                                                  .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                                                                  .offset = offsetof(Vertex, color),
+                                                              } };
+
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .vertexBindingDescriptionCount = 0,
-        .pVertexBindingDescriptions = nullptr,
-        .vertexAttributeDescriptionCount = 0,
-        .pVertexAttributeDescriptions = nullptr,
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions = &vertexBindingDesc,
+        .vertexAttributeDescriptionCount = 2,
+        .pVertexAttributeDescriptions = vertexAttribDescs,
     };
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {
@@ -877,6 +925,45 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                        == VK_SUCCESS,
                    "Failed to create fence");
     }
+
+    // vertex buffer
+    VkBufferCreateInfo vertexBufferCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = sizeof(VERTEX_DATA),
+        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    };
+
+    POM_ASSERT(vkCreateBuffer(gamestate->device, &vertexBufferCreateInfo, nullptr, &gamestate->vertexBuffer)
+                   == VK_SUCCESS,
+               "Failed to create vertex buffer");
+
+    VkMemoryRequirements memoryReqs;
+    vkGetBufferMemoryRequirements(gamestate->device, gamestate->vertexBuffer, &memoryReqs);
+
+    VkMemoryAllocateInfo memoryAllocInfo = {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = memoryReqs.size,
+        .memoryTypeIndex = findMemoryType(gamestate->physicalDevice,
+                                          memoryReqs.memoryTypeBits,
+                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
+    };
+
+    POM_ASSERT(vkAllocateMemory(gamestate->device, &memoryAllocInfo, nullptr, &gamestate->vertexBufferMemory)
+                   == VK_SUCCESS,
+               "Failed to allocate vertex buffer memory.")
+
+    vkBindBufferMemory(gamestate->device, gamestate->vertexBuffer, gamestate->vertexBufferMemory, 0);
+
+    void* data;
+    vkMapMemory(gamestate->device, gamestate->vertexBufferMemory, 0, sizeof(VERTEX_DATA), 0, &data);
+    memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
+    vkUnmapMemory(gamestate->device, gamestate->vertexBufferMemory);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -953,6 +1040,9 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     VkRect2D scissor { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent };
     vkCmdSetScissor(gamestate->commandBuffers[imageIndex], 0, 1, &scissor);
 
+    size_t offset = 0;
+    vkCmdBindVertexBuffers(gamestate->commandBuffers[imageIndex], 0, 1, &gamestate->vertexBuffer, &offset);
+
     vkCmdBindPipeline(gamestate->commandBuffers[imageIndex],
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       gamestate->graphicsPipeline);
@@ -1011,7 +1101,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gamestate, pom::InputEvent* ev)
 {
-    POM_LOG_INFO((*ev));
     if (ev->type == pom::InputEventType::WINDOW_RESIZE) {
         VkExtent2D extent = {
             .width = (u32)ev->getSize().x,
@@ -1032,6 +1121,9 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
+    vkDestroyBuffer(gamestate->device, gamestate->vertexBuffer, nullptr);
+    vkFreeMemory(gamestate->device, gamestate->vertexBufferMemory, nullptr);
+
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(gamestate->device, gamestate->renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(gamestate->device, gamestate->imageAvailableSemaphores[i], nullptr);
