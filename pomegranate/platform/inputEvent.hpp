@@ -19,23 +19,20 @@ namespace pom {
 
         // TODO: differentiate between close and close requested?
         WINDOW_CLOSE, ///< Fires when a window is closed.
-        WINDOW_MOVE, ///< Fires when a window is moved, only makes sense on platforms that can do
-                     ///< that.
-        WINDOW_RESIZE, ///< Fires when a window is resized, only makes sense on platforms that can
-                       ///< do that.
+        WINDOW_MOVE, ///< Fires when a window is moved, only makes sense on platforms that can do that.
+        WINDOW_RESIZE, ///< Fires when a window is resized, only makes sense on platforms that can do that.
         WINDOW_FOCUS, ///< Fires when a window is focused, that is clicked onto.
         WINDOW_BLUR, ///< Fires when a window loses focus, that is clicked away from.
+        WINDOW_MINIMIZE, ///< Fires when a window is minimized, is immediately followed by a `WINDOW_BLUR` event.
+        WINDOW_MAXIMIZE, ///< Fires when a window loses maximized.
 
-        MOUSE_MOVE, ///< Fires when the mouse moves over the window, x/y are from the top-left
-                    ///< corner.
+        MOUSE_MOVE, ///< Fires when the mouse moves over the window, x/y are from the top-left corner.
         MOUSE_DOWN, ///< Fires when a mouse button is pressed down.
         MOUSE_UP, ///< Fires when a pressed mouse button is released.
         MOUSE_SCROLL, ///< Fires when the user scrolls, contains both x and y information.
 
-        KEY_DOWN, ///< Fires when the user presses a key down. Is only propagated to the focused
-                  ///< window.
-        KEY_UP, ///< Fires when the user releases a held key. Is only propagated to the focused
-                ///< window.
+        KEY_DOWN, ///< Fires when the user presses a key down. Is only propagated to the focused window.
+        KEY_UP, ///< Fires when the user releases a held key. Is only propagated to the focused window.
 
         // TODO: key type, drag/drop events, touch events, etc.
     };
@@ -73,6 +70,14 @@ namespace pom {
 
         /// Data concerning the window blur event. An empty type. Not intended to be used alone.
         struct WindowBlur {
+        };
+
+        /// Data concerning the window minimize event. An empty type. Not intended to be used alone.
+        struct WindowMinimize {
+        };
+
+        /// Data concerning the window maximize event. An empty type. Not intended to be used alone.
+        struct WindowMaximize {
         };
 
         /// Data concerning the mouse move event. Not intended to be used alone.
@@ -143,6 +148,8 @@ namespace pom {
             WindowResize windowResizeData;
             WindowFocus windowFocusData;
             WindowBlur windowBlurData;
+            WindowMinimize windowMinimizeData;
+            WindowMaximize windowMaximizeData;
             MouseMove mouseMoveData;
             MouseDown mouseDownData;
             MouseUp mouseUpData;
@@ -150,9 +157,6 @@ namespace pom {
             KeyDown keyDownData;
             KeyUp keyUpData;
         };
-
-        /// Prints a trace message of an event, and its associated data.
-        void debugPrint() const;
 
         /// Returns position data, only works when the event type is `WINDOW_MOVE` or `MOUSE_MOVE`.
         /// If the type is not valid this will assert.
@@ -192,5 +196,6 @@ namespace pom {
     /// @}
 
     POM_API std::ostream& operator<<(std::ostream& os, const InputEventType& type);
+    POM_API std::ostream& operator<<(std::ostream& os, const InputEvent& event);
 
 } // namespace pom

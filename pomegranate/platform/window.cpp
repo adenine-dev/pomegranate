@@ -13,8 +13,8 @@ namespace pom {
         // NOTE: maybe make this an option?
         SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
 
-        // FIXME: this code provides continuous events to both window resize and move, which
-        // SDL2 does not do by default. Make sure this is safe.
+        // FIXME: this code provides continuous events to both window resize and move, which SDL2 does not do by
+        // default. Make sure this is safe.
         SDL_AddEventWatch(
             [](void* /*userdata*/, SDL_Event* e) -> int {
                 if (e->type == SDL_WINDOWEVENT) {
@@ -84,19 +84,18 @@ namespace pom {
                 } break;
 
                     // See above, this preserves default behavior
-                    /* case SDL_WINDOWEVENT_MOVED: {
-                        self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
-                                           .sourceWindow = self,
-                                           .windowMoveData = { e.window.data1, e.window.data2 } });
+                    // case SDL_WINDOWEVENT_MOVED: {
+                    //     self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
+                    //                        .sourceWindow = self,
+                    //                        .windowMoveData = { e.window.data1, e.window.data2 } });
 
-                    } break;
-                    case SDL_WINDOWEVENT_RESIZED: {
-                        self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
-                                           .sourceWindow = self,
-                                           .windowResizeData = { e.window.data1, e.window.data2 }
-                    });
+                    // } break;
+                    // case SDL_WINDOWEVENT_RESIZED: {
+                    //     self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
+                    //                        .sourceWindow = self,
+                    //                        .windowResizeData = { e.window.data1, e.window.data2 } });
 
-                    } break; */
+                    // } break;
 
                 case SDL_WINDOWEVENT_FOCUS_GAINED: {
                     self->callbackFn(
@@ -105,6 +104,16 @@ namespace pom {
                 case SDL_WINDOWEVENT_FOCUS_LOST: {
                     self->callbackFn(
                         { .type = InputEventType::WINDOW_BLUR, .sourceWindow = self, .windowBlurData = {} });
+
+                } break;
+                case SDL_WINDOWEVENT_MINIMIZED: {
+                    self->callbackFn(
+                        { .type = InputEventType::WINDOW_MINIMIZE, .sourceWindow = self, .windowMinimizeData = {} });
+
+                } break;
+                case SDL_WINDOWEVENT_MAXIMIZED: {
+                    self->callbackFn(
+                        { .type = InputEventType::WINDOW_MAXIMIZE, .sourceWindow = self, .windowMaximizeData = {} });
 
                 } break;
                 }
@@ -163,7 +172,7 @@ namespace pom {
         }
     }
 
-    std::vector<const char*> Window::getRequiredVulkanExtensions()
+    std::vector<const char*> Window::getRequiredVulkanExtensions() const
     {
         if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
             POM_LOG_ERROR("Attempting to get vulkan instance extensions from a non-vulkan window.");
@@ -184,7 +193,7 @@ namespace pom {
         return extensions;
     }
 
-    VkSurfaceKHR Window::getVulkanSurface(VkInstance instance)
+    VkSurfaceKHR Window::getVulkanSurface(VkInstance instance) const
     {
         if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
             POM_LOG_ERROR("Attempting to get vulkan instance extensions from a non-vulkan window.");
@@ -199,15 +208,15 @@ namespace pom {
         return surface;
     }
 
-    maths::ivec2 Window::getVulkanDrawableExtent()
+    VkExtent2D Window::getVulkanDrawableExtent() const
     {
         if (graphicsAPI != gfx::GraphicsAPI::VULKAN) {
             POM_LOG_ERROR("Attempting to get vulkan drawable extent from a non-vulkan window.");
         }
 
-        maths::ivec2 extent;
+        VkExtent2D extent;
 
-        SDL_Vulkan_GetDrawableSize(windowHandle, &extent.x, &extent.y);
+        SDL_Vulkan_GetDrawableSize(windowHandle, (int*)&extent.width, (int*)&extent.height);
         return extent;
     }
 

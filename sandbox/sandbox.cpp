@@ -16,28 +16,36 @@ const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
 const u32 MAX_FRAMES_IN_FLIGHT = 2;
 
 struct GameState {
+    bool paused = false;
+    // instance
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
-    VkSurfaceKHR surface;
     VkPhysicalDevice physicalDevice;
+    // context
+    VkSurfaceKHR surface;
     VkDevice device;
+    u32 graphicsQueueFamily;
+    u32 presentQueueFamily;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    VkSwapchainKHR swapchain;
-    VkFormat swapchainImageFormat;
-    VkExtent2D swapchainExtent;
-    std::vector<VkImage> swapchainImages;
-    std::vector<VkImageView> swapchainImageViews;
-    VkRenderPass renderPass;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
-    std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     std::vector<VkFence> imagesInFlight;
+    std::vector<VkCommandBuffer> commandBuffers;
+    // context -> swapchain
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+    VkFormat swapchainImageFormat;
+    VkExtent2D swapchainExtent;
+    std::vector<VkImage> swapchainImages;
+    std::vector<VkImageView> swapchainImageViews;
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+    VkRenderPass renderPass;
+    VkViewport swapchainViewport;
+    // pipeline
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
 };
 
 struct SwapChainSupport {
@@ -48,7 +56,9 @@ struct SwapChainSupport {
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
 {
-    static const pom::AppCreateInfo aci = { .name = "Pomegranate Sandbox Application" };
+    static const pom::AppCreateInfo aci = {
+        .name = "Pomegranate Sandbox Application",
+    };
 
     return &aci;
 }
@@ -190,7 +200,7 @@ u32 rateGPU(VkPhysicalDevice device, VkSurfaceKHR surface)
     // require swapchain capabilities
     SwapChainSupport swapchainSupport = querySwapChainSupport(device, surface);
     if (swapchainSupport.formats.empty() || swapchainSupport.presentModes.empty()) {
-        return 0; // need some formats and present modes
+        return 0; // need at least one format and present mode
     }
 
     // prefer discrete gpu
@@ -217,6 +227,162 @@ VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned c
                "Failed to create shader module");
 
     return shaderModule;
+}
+
+void createSwapchain(GameState* gamestate, const VkExtent2D& extent)
+{
+    SwapChainSupport swapchainSupport = querySwapChainSupport(gamestate->physicalDevice, gamestate->surface);
+
+    VkSurfaceFormatKHR surfaceFormat = swapchainSupport.formats[0];
+    for (const auto& format : swapchainSupport.formats) {
+        if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            surfaceFormat = format;
+            break;
+        }
+    }
+
+    gamestate->swapchainImageFormat = surfaceFormat.format;
+
+    // TODO: only do this if vsync is desired
+    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    for (const auto& mode : swapchainSupport.presentModes) {
+        if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            break;
+        }
+    }
+    // if vsync is not desired
+    // for (const auto& mode : swapchainSupport.presentModes) {
+    //     if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+    //         presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    //         break;
+    //     }
+    // }
+
+    // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &support.capabilities);
+
+    gamestate->swapchainExtent = swapchainSupport.capabilities.currentExtent;
+    if (gamestate->swapchainExtent.width == UINT32_MAX) {
+        gamestate->swapchainExtent = extent;
+
+        gamestate->swapchainExtent.width = std::clamp(gamestate->swapchainExtent.width,
+                                                      swapchainSupport.capabilities.minImageExtent.width,
+                                                      swapchainSupport.capabilities.maxImageExtent.width);
+        gamestate->swapchainExtent.height = std::clamp(gamestate->swapchainExtent.height,
+                                                       swapchainSupport.capabilities.minImageExtent.height,
+                                                       swapchainSupport.capabilities.maxImageExtent.height);
+    }
+
+    gamestate->swapchainViewport = {
+        .x = 0.f,
+        .y = 0.f,
+        .width = (float)gamestate->swapchainExtent.width,
+        .height = (float)gamestate->swapchainExtent.height,
+        .minDepth = 0.f,
+        .maxDepth = 1.f,
+    };
+
+    u32 imageCount
+        = swapchainSupport.capabilities.maxImageCount == 0
+              ? swapchainSupport.capabilities.minImageCount + 1
+              : std::min(swapchainSupport.capabilities.minImageCount + 1, swapchainSupport.capabilities.maxImageCount);
+
+    u32 queueFamilyIndicies[] = { gamestate->graphicsQueueFamily, gamestate->presentQueueFamily };
+    bool sharedQueueFamily = gamestate->graphicsQueueFamily == gamestate->presentQueueFamily;
+    VkSwapchainCreateInfoKHR swapchainCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .surface = gamestate->surface,
+        .minImageCount = imageCount,
+        .imageFormat = surfaceFormat.format,
+        .imageColorSpace = surfaceFormat.colorSpace,
+        .imageExtent = gamestate->swapchainExtent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode = sharedQueueFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT,
+        .queueFamilyIndexCount = sharedQueueFamily ? 0u : 2u,
+        .pQueueFamilyIndices = sharedQueueFamily ? nullptr : queueFamilyIndicies,
+        .preTransform = swapchainSupport.capabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = presentMode,
+        .clipped = VK_TRUE,
+        .oldSwapchain = gamestate->swapchain, // default initialized to 0 which is also VK_NULL_HANDLE
+    };
+
+    POM_ASSERT(vkCreateSwapchainKHR(gamestate->device, &swapchainCreateInfo, nullptr, &gamestate->swapchain)
+                   == VK_SUCCESS,
+               "Failed to create swapchain.");
+
+    vkGetSwapchainImagesKHR(gamestate->device, gamestate->swapchain, &imageCount, nullptr);
+    gamestate->swapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(gamestate->device, gamestate->swapchain, &imageCount, gamestate->swapchainImages.data());
+
+    gamestate->swapchainImageViews.resize(gamestate->swapchainImages.size());
+
+    for (u32 i = 0; i < gamestate->swapchainImages.size(); i++) {
+        VkImageViewCreateInfo imageViewCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = gamestate->swapchainImages[i],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = gamestate->swapchainImageFormat,
+            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .baseMipLevel = 0,
+                                  .levelCount = 1,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 },
+        };
+
+        POM_ASSERT(
+            vkCreateImageView(gamestate->device, &imageViewCreateInfo, nullptr, &gamestate->swapchainImageViews[i])
+                == VK_SUCCESS,
+            "Failed to create image view")
+    }
+
+    // swapchain framebuffers
+    gamestate->swapchainFramebuffers.resize(gamestate->swapchainImageViews.size());
+
+    for (u32 i = 0; i < gamestate->swapchainFramebuffers.size(); i++) {
+        VkFramebufferCreateInfo framebufferCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .renderPass = gamestate->renderPass,
+            .attachmentCount = 1,
+            .pAttachments = &gamestate->swapchainImageViews[i],
+            .width = gamestate->swapchainExtent.width,
+            .height = gamestate->swapchainExtent.height,
+            .layers = 1,
+        };
+
+        POM_ASSERT(vkCreateFramebuffer(gamestate->device,
+                                       &framebufferCreateInfo,
+                                       nullptr,
+                                       &gamestate->swapchainFramebuffers[i])
+                       == VK_SUCCESS,
+                   "failed to create framebuffer");
+    }
+}
+
+void recreateSwapchain(GameState* gamestate, const VkExtent2D& extent)
+{
+    vkDeviceWaitIdle(gamestate->device);
+
+    for (auto* framebuffer : gamestate->swapchainFramebuffers) {
+        vkDestroyFramebuffer(gamestate->device, framebuffer, nullptr);
+    }
+
+    for (auto* imageView : gamestate->swapchainImageViews) {
+        vkDestroyImageView(gamestate->device, imageView, nullptr);
+    }
+
+    createSwapchain(gamestate, extent);
 }
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
@@ -332,32 +498,34 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(gamestate->physicalDevice, &queueFamilyCount, queueFamilies.data());
 
-    u32 graphicsQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
-    u32 presentQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
+    gamestate->graphicsQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
+    gamestate->presentQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
     for (u32 i = 0; i < queueFamilies.size(); i++) {
-        if (graphicsQueueFamily == INVALID_QUEUE_FAMILY_INDEX && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            graphicsQueueFamily = i;
+        if (gamestate->graphicsQueueFamily == INVALID_QUEUE_FAMILY_INDEX
+            && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            gamestate->graphicsQueueFamily = i;
         }
 
         VkBool32 hasPresentQueueFamily = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(gamestate->physicalDevice, i, gamestate->surface, &hasPresentQueueFamily);
-        if (presentQueueFamily == INVALID_QUEUE_FAMILY_INDEX && hasPresentQueueFamily) {
-            presentQueueFamily = i;
+        if (gamestate->presentQueueFamily == INVALID_QUEUE_FAMILY_INDEX && hasPresentQueueFamily) {
+            gamestate->presentQueueFamily = i;
         }
 
         // TODO: make this prefer to be the same family as the graphics family
-        if (graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX && presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX) {
+        if (gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX
+            && gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX) {
             break;
         }
     }
 
-    POM_ASSERT(graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "graphics queue family not found");
-    POM_ASSERT(presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "present queue family not found");
+    POM_ASSERT(gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "graphics queue family not found");
+    POM_ASSERT(gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "present queue family not found");
 
     // logical device & queues
     const f32 queuePriorities[] = { 1.f };
 
-    std::set<u32> uniqueQueueFamilies = { graphicsQueueFamily, presentQueueFamily };
+    std::set<u32> uniqueQueueFamilies = { gamestate->graphicsQueueFamily, gamestate->presentQueueFamily };
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     queueCreateInfos.reserve(uniqueQueueFamilies.size());
 
@@ -390,10 +558,10 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     POM_ASSERT(vkCreateDevice(gamestate->physicalDevice, &deviceCreateInfo, nullptr, &gamestate->device) == VK_SUCCESS,
                "Failed to create logical device.");
 
-    vkGetDeviceQueue(gamestate->device, graphicsQueueFamily, 0, &gamestate->graphicsQueue);
-    vkGetDeviceQueue(gamestate->device, presentQueueFamily, 0, &gamestate->presentQueue);
+    vkGetDeviceQueue(gamestate->device, gamestate->graphicsQueueFamily, 0, &gamestate->graphicsQueue);
+    vkGetDeviceQueue(gamestate->device, gamestate->presentQueueFamily, 0, &gamestate->presentQueue);
 
-    // swapchain
+    // swapchain setup
     SwapChainSupport swapchainSupport = querySwapChainSupport(gamestate->physicalDevice, gamestate->surface);
 
     VkSurfaceFormatKHR surfaceFormat = swapchainSupport.formats[0];
@@ -413,83 +581,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
             presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
             break;
         }
-    }
-
-    gamestate->swapchainExtent = swapchainSupport.capabilities.currentExtent;
-    if (gamestate->swapchainExtent.width == UINT32_MAX) {
-        pom::maths::ivec2 extent = window.getVulkanDrawableExtent();
-        gamestate->swapchainExtent.width = static_cast<u32>(extent.x);
-        gamestate->swapchainExtent.height = static_cast<u32>(extent.y);
-
-        gamestate->swapchainExtent.width = std::clamp(gamestate->swapchainExtent.width,
-                                                      swapchainSupport.capabilities.minImageExtent.width,
-                                                      swapchainSupport.capabilities.maxImageExtent.width);
-        gamestate->swapchainExtent.height = std::clamp(gamestate->swapchainExtent.height,
-                                                       swapchainSupport.capabilities.minImageExtent.height,
-                                                       swapchainSupport.capabilities.maxImageExtent.height);
-    }
-
-    u32 imageCount
-        = swapchainSupport.capabilities.maxImageCount == 0
-              ? swapchainSupport.capabilities.minImageCount + 1
-              : std::min(swapchainSupport.capabilities.minImageCount + 1, swapchainSupport.capabilities.maxImageCount);
-
-    u32 queueFamilyIndicies[] = { graphicsQueueFamily, presentQueueFamily };
-    bool sharedQueueFamily = graphicsQueueFamily == presentQueueFamily;
-    VkSwapchainCreateInfoKHR swapchainCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .pNext = nullptr,
-        .flags = 0,
-        .surface = gamestate->surface,
-        .minImageCount = imageCount,
-        .imageFormat = surfaceFormat.format,
-        .imageColorSpace = surfaceFormat.colorSpace,
-        .imageExtent = gamestate->swapchainExtent,
-        .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .imageSharingMode = sharedQueueFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT,
-        .queueFamilyIndexCount = sharedQueueFamily ? 0u : 2u,
-        .pQueueFamilyIndices = sharedQueueFamily ? nullptr : queueFamilyIndicies,
-        .preTransform = swapchainSupport.capabilities.currentTransform,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .presentMode = presentMode,
-        .clipped = VK_TRUE,
-        .oldSwapchain = VK_NULL_HANDLE,
-    };
-
-    POM_ASSERT(vkCreateSwapchainKHR(gamestate->device, &swapchainCreateInfo, nullptr, &gamestate->swapchain)
-                   == VK_SUCCESS,
-               "Failed to create swapchain.");
-
-    vkGetSwapchainImagesKHR(gamestate->device, gamestate->swapchain, &imageCount, nullptr);
-    gamestate->swapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(gamestate->device, gamestate->swapchain, &imageCount, gamestate->swapchainImages.data());
-
-    gamestate->swapchainImageViews.resize(gamestate->swapchainImages.size());
-
-    for (u32 i = 0; i < gamestate->swapchainImages.size(); i++) {
-        VkImageViewCreateInfo imageViewCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = gamestate->swapchainImages[i],
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = gamestate->swapchainImageFormat,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                  .baseMipLevel = 0,
-                                  .levelCount = 1,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 },
-        };
-
-        POM_ASSERT(
-            vkCreateImageView(gamestate->device, &imageViewCreateInfo, nullptr, &gamestate->swapchainImageViews[i])
-                == VK_SUCCESS,
-            "Failed to create image view")
     }
 
     // renderpass
@@ -549,6 +640,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                    == VK_SUCCESS,
                "failed to create renderpass");
 
+    // swapchain
+    createSwapchain(gamestate, window.getVulkanDrawableExtent());
+
     // pipeline
     VkShaderModule vertShaderModule = createShaderModule(gamestate->device, basic_vert_spv_size, basic_vert_spv_data);
     VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {
@@ -592,7 +686,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .primitiveRestartEnable = VK_FALSE,
     };
 
-    VkViewport viewport = {
+    gamestate->swapchainViewport = {
         .x = 0.f,
         .y = 0.f,
         .width = (float)gamestate->swapchainExtent.width,
@@ -608,9 +702,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .pNext = nullptr,
         .flags = 0,
         .viewportCount = 1,
-        .pViewports = &viewport,
+        .pViewports = nullptr,
         .scissorCount = 1,
-        .pScissors = &scissor,
+        .pScissors = nullptr,
     };
 
     VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = {
@@ -679,6 +773,16 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                    == VK_SUCCESS,
                "failed to create pipeline");
 
+    VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .dynamicStateCount = 2,
+        .pDynamicStates = dynamicStates,
+    };
+
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
@@ -693,7 +797,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .pMultisampleState = &multisampleCreateInfo,
         .pDepthStencilState = nullptr,
         .pColorBlendState = &colorBlendCreateInfo,
-        .pDynamicState = nullptr,
+        .pDynamicState = &dynamicStateCreateInfo,
         .layout = gamestate->pipelineLayout,
         .renderPass = gamestate->renderPass,
         .subpass = 0,
@@ -713,36 +817,12 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     vkDestroyShaderModule(gamestate->device, fragShaderModule, nullptr);
     vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
 
-    // swapchain framebuffers
-    gamestate->swapchainFramebuffers.resize(gamestate->swapchainImageViews.size());
-
-    for (u32 i = 0; i < gamestate->swapchainFramebuffers.size(); i++) {
-        VkFramebufferCreateInfo framebufferCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .renderPass = gamestate->renderPass,
-            .attachmentCount = 1,
-            .pAttachments = &gamestate->swapchainImageViews[i],
-            .width = gamestate->swapchainExtent.width,
-            .height = gamestate->swapchainExtent.height,
-            .layers = 1,
-        };
-
-        POM_ASSERT(vkCreateFramebuffer(gamestate->device,
-                                       &framebufferCreateInfo,
-                                       nullptr,
-                                       &gamestate->swapchainFramebuffers[i])
-                       == VK_SUCCESS,
-                   "failed to create framebuffer");
-    }
-
     // command buffer
     VkCommandPoolCreateInfo commandPoolCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0,
-        .queueFamilyIndex = graphicsQueueFamily,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        .queueFamilyIndex = gamestate->graphicsQueueFamily,
     };
 
     POM_ASSERT(vkCreateCommandPool(gamestate->device, &commandPoolCreateInfo, nullptr, &gamestate->commandPool)
@@ -763,40 +843,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         vkAllocateCommandBuffers(gamestate->device, &commandBufferAllocateCreateInfo, gamestate->commandBuffers.data())
             == VK_SUCCESS,
         "Failed to allocate command buffers.");
-
-    for (u32 i = 0; i < gamestate->commandBuffers.size(); i++) {
-        VkCommandBufferBeginInfo commandBufferBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .pInheritanceInfo = nullptr,
-        };
-
-        POM_ASSERT(vkBeginCommandBuffer(gamestate->commandBuffers[i], &commandBufferBeginInfo) == VK_SUCCESS,
-                   "Failed to begin recording command buffer.");
-
-        VkClearValue clearColor = { 0.f, 0.f, 0.f, 1.f };
-
-        VkRenderPassBeginInfo renderPassBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .pNext = nullptr,
-            .renderPass = gamestate->renderPass,
-            .framebuffer = gamestate->swapchainFramebuffers[i],
-            .renderArea = { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent },
-            .clearValueCount = 1,
-            .pClearValues = &clearColor,
-        };
-
-        vkCmdBeginRenderPass(gamestate->commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(gamestate->commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
-
-        vkCmdDraw(gamestate->commandBuffers[i], 3, 1, 0, 0);
-
-        vkCmdEndRenderPass(gamestate->commandBuffers[i]);
-
-        POM_ASSERT(vkEndCommandBuffer(gamestate->commandBuffers[i]) == VK_SUCCESS,
-                   "Failed to end recording command buffer.");
-    }
 
     // syncronization
     gamestate->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -839,17 +885,28 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 {
+    if (gamestate->paused) {
+        return;
+    }
+
     const u32 frame = pom::Application::get()->getFrame() % MAX_FRAMES_IN_FLIGHT;
 
     vkWaitForFences(gamestate->device, 1, &gamestate->inFlightFences[frame], VK_TRUE, UINT64_MAX);
 
-    u32 imageIndex;
-    vkAcquireNextImageKHR(gamestate->device,
-                          gamestate->swapchain,
-                          UINT64_MAX,
-                          gamestate->imageAvailableSemaphores[frame],
-                          VK_NULL_HANDLE,
-                          &imageIndex);
+    u32 imageIndex = 0;
+    VkResult result = vkAcquireNextImageKHR(gamestate->device,
+                                            gamestate->swapchain,
+                                            UINT64_MAX,
+                                            gamestate->imageAvailableSemaphores[frame],
+                                            VK_NULL_HANDLE,
+                                            &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        POM_LOG_DEBUG("next image: ", imageIndex);
+        recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        POM_LOG_FATAL("Failed to get next swapchain image");
+    }
 
     if (gamestate->imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
         vkWaitForFences(gamestate->device, 1, &gamestate->imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
@@ -859,6 +916,53 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     VkSemaphore waitSemaphores[] = { gamestate->imageAvailableSemaphores[frame] };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     VkSemaphore signalSemaphores[] = { gamestate->renderFinishedSemaphores[frame] };
+
+    VkCommandBufferBeginInfo commandBufferBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pInheritanceInfo = nullptr,
+    };
+
+    POM_ASSERT(vkBeginCommandBuffer(gamestate->commandBuffers[imageIndex], &commandBufferBeginInfo) == VK_SUCCESS,
+               "Failed to begin recording command buffer.");
+
+    const auto f = [](f32 n) -> f32 {
+        const f32 h = (f32)(pom::Application::get()->getFrame() % 255);
+        const u32 s = 100;
+        const u32 v = 100;
+        const f32 k = std::fmod((n + h * 360 / (255 * 60)), 6);
+        return v / 255.f - (v / 255.f) * (s / 255.f) * std::max(std::min(std::min(k, 4 - k), 1.f), 0.f);
+    };
+    VkClearValue clearColor = { f(5), f(3), f(1), 1.f };
+
+    VkRenderPassBeginInfo renderPassBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .pNext = nullptr,
+        .renderPass = gamestate->renderPass,
+        .framebuffer = gamestate->swapchainFramebuffers[imageIndex],
+        .renderArea = { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent },
+        .clearValueCount = 1,
+        .pClearValues = &clearColor,
+    };
+
+    vkCmdBeginRenderPass(gamestate->commandBuffers[imageIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    // calling this every frame doesn't really matter to my knowledge and is way easier than any other alternatives
+    vkCmdSetViewport(gamestate->commandBuffers[imageIndex], 0, 1, &gamestate->swapchainViewport);
+    VkRect2D scissor { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent };
+    vkCmdSetScissor(gamestate->commandBuffers[imageIndex], 0, 1, &scissor);
+
+    vkCmdBindPipeline(gamestate->commandBuffers[imageIndex],
+                      VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      gamestate->graphicsPipeline);
+
+    vkCmdDraw(gamestate->commandBuffers[imageIndex], 3, 1, 0, 0);
+
+    vkCmdEndRenderPass(gamestate->commandBuffers[imageIndex]);
+
+    POM_ASSERT(vkEndCommandBuffer(gamestate->commandBuffers[imageIndex]) == VK_SUCCESS,
+               "Failed to end recording command buffer.");
 
     VkSubmitInfo submitInfo = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -889,15 +993,37 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         .pResults = nullptr,
     };
 
-    vkQueuePresentKHR(gamestate->presentQueue, &presentInfo);
+    result = vkQueuePresentKHR(gamestate->presentQueue, &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        POM_LOG_DEBUG("queue: ", imageIndex);
+        recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
+    } else if (result != VK_SUCCESS) {
+        POM_LOG_FATAL("Failed to get next swapchain image");
+    }
 
     vkQueueWaitIdle(gamestate->presentQueue);
 
     vkDeviceWaitIdle(gamestate->device);
+
+    // POM_LOG_DEBUG("dt: ", dt, "ms");
 }
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gamestate, pom::InputEvent* ev)
 {
+    POM_LOG_INFO((*ev));
+    if (ev->type == pom::InputEventType::WINDOW_RESIZE) {
+        VkExtent2D extent = {
+            .width = (u32)ev->getSize().x,
+            .height = (u32)ev->getSize().y,
+        };
+        recreateSwapchain(gamestate, extent);
+        clientUpdate(gamestate, {}); // FIXME: this is kinda dumb, this only needs to redraw not re-update
+    } else if (ev->type == pom::InputEventType::WINDOW_MINIMIZE) {
+        gamestate->paused = true;
+    } else if (ev->type == pom::InputEventType::WINDOW_FOCUS) {
+        gamestate->paused = false;
+    }
 }
 
 POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)

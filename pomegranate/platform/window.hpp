@@ -50,16 +50,16 @@ namespace pom {
 
         /// Returns a list of the required vulkan extension from SDL. Only applicable when vulkan is enabled and is the
         /// chosen GraphicsAPI for this window.
-        [[nodiscard]] std::vector<const char*> getRequiredVulkanExtensions();
+        [[nodiscard]] std::vector<const char*> getRequiredVulkanExtensions() const;
 
         /// Returns the vulkan surface from SDL. Only applicable when vulkan is enabled and is the
         /// chosen GraphicsAPI for this window. Should be freed with `vkDestroySurfaceKHR`.
-        [[nodiscard]] VkSurfaceKHR getVulkanSurface(VkInstance instance);
+        [[nodiscard]] VkSurfaceKHR getVulkanSurface(VkInstance instance) const;
 
         /// Returns the vulkan drawable extent for swapchains, where the x component of the vector is the width and the
         /// y component the height. Only applicable when vulkan is enabled and is the chosen GraphicsAPI for this
         /// window.
-        [[nodiscard]] maths::ivec2 getVulkanDrawableExtent();
+        [[nodiscard]] VkExtent2D getVulkanDrawableExtent() const;
 
         /// Sets the function that will be called whenever this window receives an InputEvent. Will
         /// assert if invalid.

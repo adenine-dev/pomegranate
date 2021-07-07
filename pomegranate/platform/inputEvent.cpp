@@ -26,6 +26,12 @@ namespace pom {
         case InputEventType::WINDOW_BLUR: {
             os << "InputEventType::WINDOW_BLUR";
         } break;
+        case InputEventType::WINDOW_MINIMIZE: {
+            os << "InputEventType::WINDOW_MINIMIZE";
+        } break;
+        case InputEventType::WINDOW_MAXIMIZE: {
+            os << "InputEventType::WINDOW_MAXIMIZE";
+        } break;
         case InputEventType::MOUSE_MOVE: {
             os << "InputEventType::MOUSE_MOVE";
         } break;
@@ -172,65 +178,58 @@ namespace pom {
         }
     }
 
-    void InputEvent::debugPrint() const
+    POM_API std::ostream& operator<<(std::ostream& os, const InputEvent& event)
     {
-        switch (type) {
+        switch (event.type) {
         case InputEventType::NONE: {
-            POM_LOG_WARN("None Event (Something has gone terribly wrong)");
+            os << "None Event (Something has gone terribly wrong)";
         } break;
         case InputEventType::WINDOW_CLOSE: {
-            POM_LOG_TRACE("Window Close Event");
+            os << "Window Close Event";
         } break;
         case InputEventType::WINDOW_MOVE: {
-            POM_LOG_TRACE("Window Move Event { position: ", windowMoveData.position, " }");
+            os << "Window Move Event { position: " << event.windowMoveData.position << " }";
         } break;
         case InputEventType::WINDOW_RESIZE: {
-            POM_LOG_TRACE("Window Resize Event { size: ", windowResizeData.size, " }");
+            os << "Window Resize Event { size: " << event.windowResizeData.size << " }";
         } break;
         case InputEventType::WINDOW_FOCUS: {
-            POM_LOG_TRACE("Window Focus Event");
+            os << "Window Focus Event";
         } break;
         case InputEventType::WINDOW_BLUR: {
-            POM_LOG_TRACE("Window Blur Event");
+            os << "Window Blur Event";
+        } break;
+        case InputEventType::WINDOW_MINIMIZE: {
+            os << "Window Minimize Event";
+        } break;
+        case InputEventType::WINDOW_MAXIMIZE: {
+            os << "Window Maximize Event";
         } break;
         case InputEventType::MOUSE_MOVE: {
-            POM_LOG_TRACE("Mouse Move Event { position: ", mouseMoveData.position, " }");
+            os << "Mouse Move Event { position: " << event.mouseMoveData.position << " }";
         } break;
         case InputEventType::MOUSE_DOWN: {
-            POM_LOG_TRACE("Mouse Down Event { button: ",
-                          mouseDownData.button,
-                          ", repeatCount: ",
-                          +mouseDownData.repeatCount,
-                          " }");
+            os << "Mouse Down Event { button: " << event.mouseDownData.button
+               << ", repeatCount: " << +event.mouseDownData.repeatCount << " }";
         } break;
         case InputEventType::MOUSE_UP: {
-            POM_LOG_TRACE("Mouse Up Event { button: ",
-                          mouseUpData.button,
-                          ", repeatCount: ",
-                          +mouseUpData.repeatCount,
-                          " }");
+            os << "Mouse Up Event { button: " << event.mouseUpData.button
+               << ", repeatCount: " << +event.mouseUpData.repeatCount << " }";
         } break;
         case InputEventType::MOUSE_SCROLL: {
-            POM_LOG_TRACE("Mouse Scroll Event { delta: ", mouseScrollData.delta, " }");
+            os << "Mouse Scroll Event { delta: " << event.mouseScrollData.delta << " }";
         } break;
         case InputEventType::KEY_DOWN: {
-            POM_LOG_TRACE("Key Down Event { hid: ",
-                          keyDownData.hid,
-                          ", code: ",
-                          keyDownData.code,
-                          ", repeated: ",
-                          keyDownData.repeated,
-                          " }");
+            os << "Key Down Event { hid: " << event.keyDownData.hid << ", code: " << event.keyDownData.code
+               << ", repeated: " << event.keyDownData.repeated << " }";
         } break;
         case InputEventType::KEY_UP: {
-            POM_LOG_TRACE("Key Up Event { hid: ",
-                          keyUpData.hid,
-                          ", code: ",
-                          keyUpData.code,
-                          ", repeated: ",
-                          keyUpData.repeated,
-                          " }");
+            os << "Key Up Event { hid: " << event.keyUpData.hid << ", code: " << event.keyUpData.code
+               << ", repeated: " << event.keyUpData.repeated << " }";
         } break;
         }
+
+        return os;
     }
+
 } // namespace pom
