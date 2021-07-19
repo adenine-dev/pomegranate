@@ -12,7 +12,7 @@ const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
 const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
 
-const u32 MAX_FRAMES_IN_FLIGHT = 2;
+const u32 MAX_FRAMES_IN_FLIGHT = 1;
 
 struct Vertex {
     pom::maths::vec3 pos;
@@ -29,19 +29,18 @@ struct GameState {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
     VkPhysicalDevice physicalDevice;
-    // context
-    VkSurfaceKHR surface;
-    VkDevice device;
     u32 graphicsQueueFamily;
     u32 presentQueueFamily;
+    VkDevice device;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    VkCommandPool commandPool;
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    std::vector<VkFence> imagesInFlight;
-    std::vector<VkCommandBuffer> commandBuffers;
+    // context
+    VkSurfaceKHR surface;
+    // std::vector<VkSemaphore> imageAvailableSemaphores;
+    // std::vector<VkSemaphore> renderFinishedSemaphores;
+    // std::vector<VkFence> inFlightFences;
+    // std::vector<VkFence> imagesInFlight;
+    u32 frameIndex = 0;
     // context -> swapchain
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     VkFormat swapchainImageFormat;
@@ -51,6 +50,11 @@ struct GameState {
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkRenderPass renderPass;
     VkViewport swapchainViewport;
+    u32 imageIndex = 0;
+    // command buffer
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VkFence> commandBufferRecordFences;
     // pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
@@ -233,7 +237,7 @@ u32 findMemoryType(VkPhysicalDevice physicalDevice, u32 filter, VkMemoryProperty
         }
     }
 
-    POM_LOG_FATAL("failed to find suitable memory type.");
+    POM_FATAL("failed to find suitable memory type.");
     return -1;
 }
 
@@ -414,260 +418,327 @@ void recreateSwapchain(GameState* gamestate, const VkExtent2D& extent)
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
     // instance
-    std::vector<const char*> validationLayers;
-#ifdef _DEBUG
-    validationLayers.push_back("VK_LAYER_KHRONOS_validation");
-    u32 layerCount = 0;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    /*    std::vector<const char*> validationLayers;
+    #ifdef _DEBUG
+        validationLayers.push_back("VK_LAYER_KHRONOS_validation");
+        u32 layerCount = 0;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const auto* layer : validationLayers) {
-        bool found = false;
-        for (u32 i = 0; i < layerCount; i++) {
-            if (strcmp(layer, availableLayers[i].layerName) == 0) {
-                found = true;
+        for (const auto* layer : validationLayers) {
+            bool found = false;
+            for (u32 i = 0; i < layerCount; i++) {
+                if (strcmp(layer, availableLayers[i].layerName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            POM_ASSERT(found, "was unable to find requested layer: ", layer);
+        }
+    #endif
+
+        u32 extensionCount;
+        POM_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr) == VK_SUCCESS,
+                   "Failed to get vulkan extensions.");
+
+        std::vector<VkExtensionProperties> extensionProps(extensionCount);
+        std::vector<const char*> extensions;
+
+        POM_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensionProps.data()) ==
+    VK_SUCCESS, "Failed to get vulkan extensions.");
+
+        // currently we aren't doing headless things so this is required.
+        extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
+    #if defined(_WIN32)
+        extensions.push_back("VK_KHR_win32_surface");
+    // currently only support win32, but here for future reference.
+    // #elif defined(__ANDROID__)
+    //     extensions.push_back("VK_KHR_android_surface");
+    // #elif defined(_DIRECT2DISPLAY)
+    //     extensions.push_back("VK_KHR_display");
+    // #elif defined(__linux__)
+    //     // wayland, x11?
+    //     extensions.push_back("VK_KHR_xcb_surface");
+    // #elif defined(__APPLE__)
+    //     extensions.push_back("VK_EXT_metal_surface");
+    #endif
+
+    #ifdef _DEBUG
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    #endif
+
+        for (const auto* layer : validationLayers) {
+            bool found = false;
+            for (u32 i = 0; i < layerCount; i++) {
+                if (strcmp(layer, availableLayers[i].layerName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            POM_ASSERT(found, "was unable to find requested layer: ", layer);
+        }
+
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+                               | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = debugCallback,
+            .pUserData = nullptr,
+        };
+
+        VkApplicationInfo appInfo = {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pNext = nullptr,
+            .pApplicationName = "test",
+            .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
+            .pEngineName = "pomegranate",
+            .engineVersion = VK_MAKE_VERSION(0, 1, 0),
+            .apiVersion = VK_API_VERSION_1_2,
+        };
+
+        VkInstanceCreateInfo instanceCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo,
+            .flags = 0,
+            .pApplicationInfo = &appInfo,
+            .enabledLayerCount = static_cast<u32>(validationLayers.size()),
+            .ppEnabledLayerNames = validationLayers.data(),
+            .enabledExtensionCount = static_cast<u32>(extensions.size()),
+            .ppEnabledExtensionNames = extensions.data(),
+        };
+
+        POM_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &gamestate->instance) == VK_SUCCESS,
+                   "Failed to create instance.");
+
+        // debug messanger
+        auto vkCreateDebugUtilsMessengerEXT = PFN_vkCreateDebugUtilsMessengerEXT(
+            vkGetInstanceProcAddr(gamestate->instance, "vkCreateDebugUtilsMessengerEXT"));
+        POM_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
+        VkDebugUtilsMessengerCreateInfoEXT messangerCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
+            .messageSeverity
+            = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
+              | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+                           | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = debugCallback,
+            .pUserData = nullptr,
+        };
+
+        vkCreateDebugUtilsMessengerEXT(gamestate->instance, &messangerCreateInfo, nullptr, &gamestate->debugMessenger);
+
+        // window surface
+        pom::Window& window = pom::Application::get()->getMainWindow();
+        gamestate->surface = window.getVulkanSurface(gamestate->instance);
+
+        // physical device
+        u32 deviceCount = 0;
+        POM_ASSERT(vkEnumeratePhysicalDevices(gamestate->instance, &deviceCount, nullptr) == VK_SUCCESS,
+                   "Failed to get devices.");
+        POM_ASSERT(deviceCount, "No GPU with vulkan support available");
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        POM_ASSERT(vkEnumeratePhysicalDevices(gamestate->instance, &deviceCount, devices.data()) == VK_SUCCESS,
+                   "Failed to get devices.");
+
+        u32 highestScore = 0;
+        for (auto* device : devices) {
+            u32 rating = rateGPU(device, gamestate->surface);
+            if (highestScore < rating) {
+                highestScore = rating;
+                gamestate->physicalDevice = device;
+            }
+        }
+
+        // queue families
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(gamestate->physicalDevice, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(gamestate->physicalDevice, &queueFamilyCount, queueFamilies.data());
+
+        gamestate->graphicsQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
+        gamestate->presentQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
+        for (u32 i = 0; i < queueFamilies.size(); i++) {
+            if (gamestate->graphicsQueueFamily == INVALID_QUEUE_FAMILY_INDEX
+                && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                gamestate->graphicsQueueFamily = i;
+            }
+
+            VkBool32 hasPresentQueueFamily = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(gamestate->physicalDevice, i, gamestate->surface,
+    &hasPresentQueueFamily); if (gamestate->presentQueueFamily == INVALID_QUEUE_FAMILY_INDEX && hasPresentQueueFamily) {
+                gamestate->presentQueueFamily = i;
+            }
+
+            // TODO: make this prefer to be the same family as the graphics family
+            if (gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX
+                && gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX) {
                 break;
             }
         }
-        POM_ASSERT(found, "was unable to find requested layer: ", layer);
-    }
-#endif
 
-    pom::Window& window = pom::Application::get()->getMainWindow();
+        POM_ASSERT(gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "graphics queue family not found");
+        POM_ASSERT(gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "present queue family not found");
 
-    auto extensions = window.getRequiredVulkanExtensions();
+        // logical device & queues
+        const f32 queuePriorities[] = { 1.f };
 
-#ifdef _DEBUG
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
+        std::set<u32> uniqueQueueFamilies = { gamestate->graphicsQueueFamily, gamestate->presentQueueFamily };
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        queueCreateInfos.reserve(uniqueQueueFamilies.size());
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .flags = 0,
-        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-                           | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-                           | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                       | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = debugCallback,
-        .pUserData = nullptr,
-    };
-
-    VkApplicationInfo appInfo = {
-        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pNext = nullptr,
-        .pApplicationName = "test",
-        .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
-        .pEngineName = "pomegranate",
-        .engineVersion = VK_MAKE_VERSION(0, 1, 0),
-        .apiVersion = VK_API_VERSION_1_0,
-    };
-
-    VkInstanceCreateInfo instanceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo,
-        .flags = 0,
-        .pApplicationInfo = &appInfo,
-        .enabledLayerCount = static_cast<u32>(validationLayers.size()),
-        .ppEnabledLayerNames = validationLayers.data(),
-        .enabledExtensionCount = static_cast<u32>(extensions.size()),
-        .ppEnabledExtensionNames = extensions.data(),
-    };
-
-    POM_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &gamestate->instance) == VK_SUCCESS,
-               "Failed to create instance.");
-
-    // debug messanger
-    auto vkCreateDebugUtilsMessengerEXT = PFN_vkCreateDebugUtilsMessengerEXT(
-        vkGetInstanceProcAddr(gamestate->instance, "vkCreateDebugUtilsMessengerEXT"));
-    POM_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
-    VkDebugUtilsMessengerCreateInfoEXT messangerCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .flags = 0,
-        .messageSeverity
-        = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
-          | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-                       | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = debugCallback,
-        .pUserData = nullptr,
-    };
-
-    vkCreateDebugUtilsMessengerEXT(gamestate->instance, &messangerCreateInfo, nullptr, &gamestate->debugMessenger);
-
-    // window surface
-    gamestate->surface = window.getVulkanSurface(gamestate->instance);
-
-    // physical device
-    u32 deviceCount = 0;
-    vkEnumeratePhysicalDevices(gamestate->instance, &deviceCount, nullptr);
-    POM_ASSERT(deviceCount, "No GPU with vulkan support available");
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(gamestate->instance, &deviceCount, devices.data());
-
-    u32 highestScore = 0;
-    for (auto* device : devices) {
-        u32 rating = rateGPU(device, gamestate->surface);
-        if (highestScore < rating) {
-            highestScore = rating;
-            gamestate->physicalDevice = device;
-        }
-    }
-
-    // queue families
-    uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(gamestate->physicalDevice, &queueFamilyCount, nullptr);
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(gamestate->physicalDevice, &queueFamilyCount, queueFamilies.data());
-
-    gamestate->graphicsQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
-    gamestate->presentQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
-    for (u32 i = 0; i < queueFamilies.size(); i++) {
-        if (gamestate->graphicsQueueFamily == INVALID_QUEUE_FAMILY_INDEX
-            && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            gamestate->graphicsQueueFamily = i;
+        for (auto queueFamily : uniqueQueueFamilies) {
+            queueCreateInfos.push_back({
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .queueFamilyIndex = queueFamily,
+                .queueCount = 1,
+                .pQueuePriorities = queuePriorities,
+            });
         }
 
-        VkBool32 hasPresentQueueFamily = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(gamestate->physicalDevice, i, gamestate->surface, &hasPresentQueueFamily);
-        if (gamestate->presentQueueFamily == INVALID_QUEUE_FAMILY_INDEX && hasPresentQueueFamily) {
-            gamestate->presentQueueFamily = i;
-        }
+        VkPhysicalDeviceFeatures deviceFeatures {};
 
-        // TODO: make this prefer to be the same family as the graphics family
-        if (gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX
-            && gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX) {
-            break;
-        }
-    }
-
-    POM_ASSERT(gamestate->graphicsQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "graphics queue family not found");
-    POM_ASSERT(gamestate->presentQueueFamily != INVALID_QUEUE_FAMILY_INDEX, "present queue family not found");
-
-    // logical device & queues
-    const f32 queuePriorities[] = { 1.f };
-
-    std::set<u32> uniqueQueueFamilies = { gamestate->graphicsQueueFamily, gamestate->presentQueueFamily };
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    queueCreateInfos.reserve(uniqueQueueFamilies.size());
-
-    for (auto queueFamily : uniqueQueueFamilies) {
-        queueCreateInfos.push_back({
-            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        VkDeviceCreateInfo deviceCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .queueFamilyIndex = queueFamily,
-            .queueCount = 1,
-            .pQueuePriorities = queuePriorities,
-        });
-    }
+            .queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size()),
+            .pQueueCreateInfos = queueCreateInfos.data(),
+            .enabledLayerCount = static_cast<u32>(validationLayers.size()),
+            .ppEnabledLayerNames = validationLayers.data(),
+            .enabledExtensionCount = REQUIRED_DEVICE_EXTENSIONS_COUNT,
+            .ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS,
+            .pEnabledFeatures = &deviceFeatures,
+        };
 
-    VkPhysicalDeviceFeatures deviceFeatures {};
+        POM_ASSERT(vkCreateDevice(gamestate->physicalDevice, &deviceCreateInfo, nullptr, &gamestate->device) ==
+    VK_SUCCESS, "Failed to create logical device.");
 
-    VkDeviceCreateInfo deviceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size()),
-        .pQueueCreateInfos = queueCreateInfos.data(),
-        .enabledLayerCount = static_cast<u32>(validationLayers.size()),
-        .ppEnabledLayerNames = validationLayers.data(),
-        .enabledExtensionCount = REQUIRED_DEVICE_EXTENSIONS_COUNT,
-        .ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS,
-        .pEnabledFeatures = &deviceFeatures,
-    };
+        vkGetDeviceQueue(gamestate->device, gamestate->graphicsQueueFamily, 0, &gamestate->graphicsQueue);
+        vkGetDeviceQueue(gamestate->device, gamestate->presentQueueFamily, 0, &gamestate->presentQueue);
 
-    POM_ASSERT(vkCreateDevice(gamestate->physicalDevice, &deviceCreateInfo, nullptr, &gamestate->device) == VK_SUCCESS,
-               "Failed to create logical device.");
+        // swapchain setup
+        SwapChainSupport swapchainSupport = querySwapChainSupport(gamestate->physicalDevice, gamestate->surface);
 
-    vkGetDeviceQueue(gamestate->device, gamestate->graphicsQueueFamily, 0, &gamestate->graphicsQueue);
-    vkGetDeviceQueue(gamestate->device, gamestate->presentQueueFamily, 0, &gamestate->presentQueue);
-
-    // swapchain setup
-    SwapChainSupport swapchainSupport = querySwapChainSupport(gamestate->physicalDevice, gamestate->surface);
-
-    VkSurfaceFormatKHR surfaceFormat = swapchainSupport.formats[0];
-    for (const auto& format : swapchainSupport.formats) {
-        if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            surfaceFormat = format;
-            break;
+        VkSurfaceFormatKHR surfaceFormat = swapchainSupport.formats[0];
+        for (const auto& format : swapchainSupport.formats) {
+            if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                surfaceFormat = format;
+                break;
+            }
         }
-    }
 
-    gamestate->swapchainImageFormat = surfaceFormat.format;
+        gamestate->swapchainImageFormat = surfaceFormat.format;
 
-    VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
-    // TODO: only do this if vsync is desired
-    for (const auto& mode : swapchainSupport.presentModes) {
-        if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-            break;
+        VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        // TODO: only do this if vsync is desired
+        for (const auto& mode : swapchainSupport.presentModes) {
+            if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
+                presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                break;
+            }
         }
-    }
 
-    // renderpass
-    VkAttachmentDescription colorAttachment = {
-        .flags = 0,
-        .format = gamestate->swapchainImageFormat,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-    };
+        // renderpass
+        VkAttachmentDescription colorAttachment = {
+            .flags = 0,
+            .format = gamestate->swapchainImageFormat,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        };
 
-    VkAttachmentReference colorAttachmentRef = {
-        .attachment = 0,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-    };
+        VkAttachmentReference colorAttachmentRef = {
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        };
 
-    VkSubpassDescription subpassDesc = {
-        .flags = 0,
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = 0,
-        .pInputAttachments = nullptr,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentRef,
-        .pResolveAttachments = nullptr,
-        .pDepthStencilAttachment = nullptr,
-        .preserveAttachmentCount = 0,
-        .pPreserveAttachments = nullptr,
-    };
+        VkSubpassDescription subpassDesc = {
+            .flags = 0,
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .inputAttachmentCount = 0,
+            .pInputAttachments = nullptr,
+            .colorAttachmentCount = 1,
+            .pColorAttachments = &colorAttachmentRef,
+            .pResolveAttachments = nullptr,
+            .pDepthStencilAttachment = nullptr,
+            .preserveAttachmentCount = 0,
+            .pPreserveAttachments = nullptr,
+        };
 
-    VkSubpassDependency subpassDependency = {
-        .srcSubpass = VK_SUBPASS_EXTERNAL,
-        .dstSubpass = 0,
-        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-        .dependencyFlags = 0,
-    };
+        VkSubpassDependency subpassDependency = {
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dependencyFlags = 0,
+        };
 
-    VkRenderPassCreateInfo renderPassCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .attachmentCount = 1,
-        .pAttachments = &colorAttachment,
-        .subpassCount = 1,
-        .pSubpasses = &subpassDesc,
-        .dependencyCount = 1,
-        .pDependencies = &subpassDependency,
-    };
+        VkRenderPassCreateInfo renderPassCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .attachmentCount = 1,
+            .pAttachments = &colorAttachment,
+            .subpassCount = 1,
+            .pSubpasses = &subpassDesc,
+            .dependencyCount = 1,
+            .pDependencies = &subpassDependency,
+        };
 
-    POM_ASSERT(vkCreateRenderPass(gamestate->device, &renderPassCreateInfo, nullptr, &gamestate->renderPass)
-                   == VK_SUCCESS,
-               "failed to create renderpass");
+        POM_ASSERT(vkCreateRenderPass(gamestate->device, &renderPassCreateInfo, nullptr, &gamestate->renderPass)
+                       == VK_SUCCESS,
+                   "failed to create renderpass");
 
-    // swapchain
-    createSwapchain(gamestate, window.getVulkanDrawableExtent());
+        // swapchain
+        createSwapchain(gamestate, window.getVulkanDrawableExtent());
+    */
+
+    // super hacky test stuff
+    auto* instanceVk = dynamic_cast<pom::gfx::InstanceVk*>(pom::Application::get()->getGraphicsInstance());
+    auto* contextVk = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
+
+    gamestate->instance = instanceVk->instance;
+    gamestate->physicalDevice = instanceVk->physicalDevice;
+    gamestate->graphicsQueueFamily = instanceVk->graphicsQueueFamilyIndex;
+    gamestate->presentQueueFamily = instanceVk->presentQueueFamilyIndex;
+    gamestate->device = instanceVk->device;
+    gamestate->graphicsQueue = instanceVk->graphicsQueue;
+    gamestate->presentQueue = instanceVk->presentQueue;
+
+    gamestate->surface = contextVk->surface;
+    // VkCommandPool commandPool;
+    // std::vector<VkSemaphore> imageAvailableSemaphores;
+    // std::vector<VkSemaphore> renderFinishedSemaphores;
+    // std::vector<VkFence> inFlightFences;
+    // std::vector<VkFence> imagesInFlight;
+    // std::vector<VkCommandBuffer> commandBuffers;
+    gamestate->swapchain = contextVk->swapchain;
+    gamestate->swapchainImageFormat = contextVk->swapchainImageFormat;
+    gamestate->swapchainExtent = contextVk->swapchainExtent;
+    gamestate->swapchainImages = contextVk->swapchainImages;
+    gamestate->swapchainImageViews = contextVk->swapchainImageViews;
+    gamestate->swapchainFramebuffers = contextVk->swapchainFramebuffers;
+    gamestate->renderPass = contextVk->swapchainRenderPass;
+    gamestate->swapchainViewport = contextVk->swapchainViewport;
+    // end super hacky test stuff
 
     // pipeline
     // TODO: as much of this as possible should load from the shaders themselves.
@@ -893,16 +964,17 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         "Failed to allocate command buffers.");
 
     // syncronization
-    gamestate->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    gamestate->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    gamestate->inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-    gamestate->imagesInFlight.resize(gamestate->swapchainImages.size(), VK_NULL_HANDLE);
+    // gamestate->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    // gamestate->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    // gamestate->inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+    // gamestate->imagesInFlight.resize(gamestate->swapchainImages.size(), VK_NULL_HANDLE);
 
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-    };
+    gamestate->commandBufferRecordFences.resize(MAX_FRAMES_IN_FLIGHT);
+    // VkSemaphoreCreateInfo semaphoreCreateInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+    //     .pNext = nullptr,
+    //     .flags = 0,
+    // };
 
     VkFenceCreateInfo fenceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -911,17 +983,19 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     };
 
     for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        POM_ASSERT(
-            vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr, &gamestate->imageAvailableSemaphores[i])
-                == VK_SUCCESS,
-            "Failed to create image available semaphore");
+        // POM_ASSERT(
+        //     vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr,
+        //     &gamestate->imageAvailableSemaphores[i])
+        //         == VK_SUCCESS,
+        //     "Failed to create image available semaphore");
 
-        POM_ASSERT(
-            vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr, &gamestate->renderFinishedSemaphores[i])
-                == VK_SUCCESS,
-            "Failed to create render finish semaphore");
+        // POM_ASSERT(
+        //     vkCreateSemaphore(gamestate->device, &semaphoreCreateInfo, nullptr,
+        //     &gamestate->renderFinishedSemaphores[i])
+        //         == VK_SUCCESS,
+        //     "Failed to create render finish semaphore");
 
-        POM_ASSERT(vkCreateFence(gamestate->device, &fenceCreateInfo, nullptr, &gamestate->inFlightFences[i])
+        POM_ASSERT(vkCreateFence(gamestate->device, &fenceCreateInfo, nullptr, &gamestate->commandBufferRecordFences[i])
                        == VK_SUCCESS,
                    "Failed to create fence");
     }
@@ -976,33 +1050,15 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         return;
     }
 
-    const u32 frame = pom::Application::get()->getFrame() % MAX_FRAMES_IN_FLIGHT;
+    gamestate->imageIndex = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext())
+                                ->swapchainImageIndex;
 
-    vkWaitForFences(gamestate->device, 1, &gamestate->inFlightFences[frame], VK_TRUE, UINT64_MAX);
-
-    u32 imageIndex = 0;
-    VkResult result = vkAcquireNextImageKHR(gamestate->device,
-                                            gamestate->swapchain,
-                                            UINT64_MAX,
-                                            gamestate->imageAvailableSemaphores[frame],
-                                            VK_NULL_HANDLE,
-                                            &imageIndex);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        POM_LOG_DEBUG("next image: ", imageIndex);
-        recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
-    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        POM_LOG_FATAL("Failed to get next swapchain image");
-    }
-
-    if (gamestate->imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(gamestate->device, 1, &gamestate->imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-    }
-    gamestate->imagesInFlight[imageIndex] = gamestate->inFlightFences[frame];
-
-    VkSemaphore waitSemaphores[] = { gamestate->imageAvailableSemaphores[frame] };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore signalSemaphores[] = { gamestate->renderFinishedSemaphores[frame] };
+    vkWaitForFences(gamestate->device,
+                    1,
+                    &gamestate->commandBufferRecordFences[gamestate->frameIndex],
+                    VK_TRUE,
+                    UINT64_MAX);
+    vkResetFences(gamestate->device, 1, &gamestate->commandBufferRecordFences[gamestate->frameIndex]);
 
     VkCommandBufferBeginInfo commandBufferBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1011,7 +1067,8 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         .pInheritanceInfo = nullptr,
     };
 
-    POM_ASSERT(vkBeginCommandBuffer(gamestate->commandBuffers[imageIndex], &commandBufferBeginInfo) == VK_SUCCESS,
+    POM_ASSERT(vkBeginCommandBuffer(gamestate->commandBuffers[gamestate->frameIndex], &commandBufferBeginInfo)
+                   == VK_SUCCESS,
                "Failed to begin recording command buffer.");
 
     const auto f = [](f32 n) -> f32 {
@@ -1027,92 +1084,123 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
         .renderPass = gamestate->renderPass,
-        .framebuffer = gamestate->swapchainFramebuffers[imageIndex],
+        .framebuffer = gamestate->swapchainFramebuffers[gamestate->imageIndex],
         .renderArea = { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent },
         .clearValueCount = 1,
         .pClearValues = &clearColor,
     };
 
-    vkCmdBeginRenderPass(gamestate->commandBuffers[imageIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(gamestate->commandBuffers[gamestate->frameIndex],
+                         &renderPassBeginInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
 
     // calling this every frame doesn't really matter to my knowledge and is way easier than any other alternatives
-    vkCmdSetViewport(gamestate->commandBuffers[imageIndex], 0, 1, &gamestate->swapchainViewport);
+    vkCmdSetViewport(gamestate->commandBuffers[gamestate->frameIndex], 0, 1, &gamestate->swapchainViewport);
     VkRect2D scissor { .offset = { 0, 0 }, .extent = gamestate->swapchainExtent };
-    vkCmdSetScissor(gamestate->commandBuffers[imageIndex], 0, 1, &scissor);
+    vkCmdSetScissor(gamestate->commandBuffers[gamestate->frameIndex], 0, 1, &scissor);
 
     size_t offset = 0;
-    vkCmdBindVertexBuffers(gamestate->commandBuffers[imageIndex], 0, 1, &gamestate->vertexBuffer, &offset);
+    vkCmdBindVertexBuffers(gamestate->commandBuffers[gamestate->frameIndex], 0, 1, &gamestate->vertexBuffer, &offset);
 
-    vkCmdBindPipeline(gamestate->commandBuffers[imageIndex],
+    vkCmdBindPipeline(gamestate->commandBuffers[gamestate->frameIndex],
                       VK_PIPELINE_BIND_POINT_GRAPHICS,
                       gamestate->graphicsPipeline);
 
-    vkCmdDraw(gamestate->commandBuffers[imageIndex], 3, 1, 0, 0);
+    vkCmdDraw(gamestate->commandBuffers[gamestate->frameIndex], 3, 1, 0, 0);
 
-    vkCmdEndRenderPass(gamestate->commandBuffers[imageIndex]);
+    vkCmdEndRenderPass(gamestate->commandBuffers[gamestate->frameIndex]);
 
-    POM_ASSERT(vkEndCommandBuffer(gamestate->commandBuffers[imageIndex]) == VK_SUCCESS,
+    POM_ASSERT(vkEndCommandBuffer(gamestate->commandBuffers[gamestate->frameIndex]) == VK_SUCCESS,
                "Failed to end recording command buffer.");
 
     VkSubmitInfo submitInfo = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = waitSemaphores,
-        .pWaitDstStageMask = waitStages,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
         .commandBufferCount = 1,
-        .pCommandBuffers = &gamestate->commandBuffers[imageIndex],
-        .signalSemaphoreCount = 1,
-        .pSignalSemaphores = signalSemaphores,
+        .pCommandBuffers = &gamestate->commandBuffers[gamestate->frameIndex],
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr,
     };
 
-    vkResetFences(gamestate->device, 1, &gamestate->inFlightFences[frame]);
-    POM_ASSERT(vkQueueSubmit(gamestate->graphicsQueue, 1, &submitInfo, gamestate->inFlightFences[frame]) == VK_SUCCESS,
+    POM_ASSERT(vkQueueSubmit(gamestate->graphicsQueue,
+                             1,
+                             &submitInfo,
+                             gamestate->commandBufferRecordFences[gamestate->frameIndex])
+                   == VK_SUCCESS,
                "Failed to submit to queue");
 
-    VkSwapchainKHR swapchains[] = { gamestate->swapchain };
+    // present
+    pom::Application::get()->getMainWindow().getContext()->present();
 
-    VkPresentInfoKHR presentInfo {
-        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .pNext = nullptr,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = signalSemaphores,
-        .swapchainCount = 1,
-        .pSwapchains = swapchains,
-        .pImageIndices = &imageIndex,
-        .pResults = nullptr,
-    };
+    // VkSwapchainKHR swapchains[] = { gamestate->swapchain };
 
-    result = vkQueuePresentKHR(gamestate->presentQueue, &presentInfo);
+    // VkPresentInfoKHR presentInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+    //     .pNext = nullptr,
+    //     .waitSemaphoreCount = 1,
+    //     .pWaitSemaphores = signalSemaphores,
+    //     .swapchainCount = 1,
+    //     .pSwapchains = swapchains,
+    //     .pImageIndices = &gamestate->imageIndex,
+    //     .pResults = nullptr,
+    // };
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        POM_LOG_DEBUG("queue: ", imageIndex);
-        recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
-    } else if (result != VK_SUCCESS) {
-        POM_LOG_FATAL("Failed to get next swapchain image");
-    }
+    // VkResult result = vkQueuePresentKHR(gamestate->presentQueue, &presentInfo);
 
-    vkQueueWaitIdle(gamestate->presentQueue);
+    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    //     recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
+    // } else if (result != VK_SUCCESS) {
+    //     POM_FATAL("Failed to get next swapchain image");
+    // }
 
-    vkDeviceWaitIdle(gamestate->device);
+    gamestate->frameIndex = (gamestate->frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 
-    // POM_LOG_DEBUG("dt: ", dt, "ms");
+    // result = vkAcquireNextImageKHR(gamestate->device,
+    //                                gamestate->swapchain,
+    //                                UINT64_MAX,
+    //                                gamestate->imageAvailableSemaphores[gamestate->frameIndex],
+    //                                VK_NULL_HANDLE,
+    //                                &gamestate->imageIndex);
+
+    // if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    //     POM_DEBUG("next image: ", gamestate->imageIndex);
+    //     recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
+    // } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    //     POM_FATAL("Failed to get next swapchain image");
+    // }
+
+    // vkWaitForFences(gamestate->device, 1, &gamestate->inFlightFences[gamestate->frameIndex], VK_TRUE, UINT64_MAX);
+
+    // if (gamestate->imagesInFlight[gamestate->imageIndex] != VK_NULL_HANDLE) {
+    //     vkWaitForFences(gamestate->device, 1, &gamestate->imagesInFlight[gamestate->imageIndex], VK_TRUE,
+    //     UINT64_MAX);
+    // }
+    // gamestate->imagesInFlight[gamestate->imageIndex] = gamestate->inFlightFences[gamestate->frameIndex];
+
+    // vkQueueWaitIdle(gamestate->presentQueue);
+
+    // vkDeviceWaitIdle(gamestate->device);
+
+    POM_DEBUG("dt: ", dt, "ms");
 }
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gamestate, pom::InputEvent* ev)
 {
-    if (ev->type == pom::InputEventType::WINDOW_RESIZE) {
-        VkExtent2D extent = {
-            .width = (u32)ev->getSize().x,
-            .height = (u32)ev->getSize().y,
-        };
-        recreateSwapchain(gamestate, extent);
-        clientUpdate(gamestate, {}); // FIXME: this is kinda dumb, this only needs to redraw not re-update
-    } else if (ev->type == pom::InputEventType::WINDOW_MINIMIZE) {
-        gamestate->paused = true;
-    } else if (ev->type == pom::InputEventType::WINDOW_FOCUS) {
-        gamestate->paused = false;
-    }
+    // if (ev->type == pom::InputEventType::WINDOW_RESIZE) {
+    //     VkExtent2D extent = {
+    //         .width = (u32)ev->getSize().x,
+    //         .height = (u32)ev->getSize().y,
+    //     };
+    //     recreateSwapchain(gamestate, extent);
+    //     clientUpdate(gamestate, {}); // FIXME: this is kinda dumb, this only needs to redraw not re-update
+    // } else if (ev->type == pom::InputEventType::WINDOW_MINIMIZE) {
+    //     gamestate->paused = true;
+    // } else if (ev->type == pom::InputEventType::WINDOW_FOCUS) {
+    //     gamestate->paused = false;
+    // }
 }
 
 POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
@@ -1125,38 +1213,39 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
     vkFreeMemory(gamestate->device, gamestate->vertexBufferMemory, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(gamestate->device, gamestate->renderFinishedSemaphores[i], nullptr);
-        vkDestroySemaphore(gamestate->device, gamestate->imageAvailableSemaphores[i], nullptr);
-        vkDestroyFence(gamestate->device, gamestate->inFlightFences[i], nullptr);
+        // vkDestroySemaphore(gamestate->device, gamestate->renderFinishedSemaphores[i], nullptr);
+        // vkDestroySemaphore(gamestate->device, gamestate->imageAvailableSemaphores[i], nullptr);
+        // vkDestroyFence(gamestate->device, gamestate->inFlightFences[i], nullptr);
+        vkDestroyFence(gamestate->device, gamestate->commandBufferRecordFences[i], nullptr);
     }
 
     vkDestroyCommandPool(gamestate->device, gamestate->commandPool, nullptr);
 
-    for (auto* framebuffer : gamestate->swapchainFramebuffers) {
-        vkDestroyFramebuffer(gamestate->device, framebuffer, nullptr);
-    }
+    // for (auto* framebuffer : gamestate->swapchainFramebuffers) {
+    //     vkDestroyFramebuffer(gamestate->device, framebuffer, nullptr);
+    // }
 
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
 
-    vkDestroyRenderPass(gamestate->device, gamestate->renderPass, nullptr);
+    // vkDestroyRenderPass(gamestate->device, gamestate->renderPass, nullptr);
 
-    for (auto* imageView : gamestate->swapchainImageViews) {
-        vkDestroyImageView(gamestate->device, imageView, nullptr);
-    }
+    // for (auto* imageView : gamestate->swapchainImageViews) {
+    //     vkDestroyImageView(gamestate->device, imageView, nullptr);
+    // }
 
-    vkDestroySwapchainKHR(gamestate->device, gamestate->swapchain, nullptr);
+    // vkDestroySwapchainKHR(gamestate->device, gamestate->swapchain, nullptr);
 
-    vkDestroySurfaceKHR(gamestate->instance, gamestate->surface, nullptr);
+    // vkDestroySurfaceKHR(gamestate->instance, gamestate->surface, nullptr);
 
-    vkDestroyDevice(gamestate->device, nullptr);
+    // vkDestroyDevice(gamestate->device, nullptr);
 
-    auto vkDestroyDebugUtilsMessengerEXT = PFN_vkDestroyDebugUtilsMessengerEXT(
-        vkGetInstanceProcAddr(gamestate->instance, "vkDestroyDebugUtilsMessengerEXT"));
-    POM_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
-    vkDestroyDebugUtilsMessengerEXT(gamestate->instance, gamestate->debugMessenger, nullptr);
+    // auto vkDestroyDebugUtilsMessengerEXT = PFN_vkDestroyDebugUtilsMessengerEXT(
+    //     vkGetInstanceProcAddr(gamestate->instance, "vkDestroyDebugUtilsMessengerEXT"));
+    // POM_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
+    // vkDestroyDebugUtilsMessengerEXT(gamestate->instance, gamestate->debugMessenger, nullptr);
 
-    vkDestroyInstance(gamestate->instance, nullptr);
+    // vkDestroyInstance(gamestate->instance, nullptr);
 
     delete gamestate;
 }

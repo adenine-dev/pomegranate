@@ -6,7 +6,7 @@ namespace pom::platform {
     bool init()
     {
         if (SDL_Init(SDL_INIT_VIDEO)) {
-            POM_LOG_ERROR("Unable to initialize SDL. error: ", SDL_GetError());
+            POM_ERROR("Unable to initialize SDL. error: ", SDL_GetError());
             return false;
         }
 

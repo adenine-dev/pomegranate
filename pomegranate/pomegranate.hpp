@@ -76,8 +76,18 @@
 #include "platform/terminal.hpp"
 #include "platform/window.hpp"
 
+/// @defgroup gfx GFX
+/// @brief Low level graphics api abstraction layer.
+#include "graphics/gfx/context.hpp"
+#include "graphics/gfx/gfx.hpp"
+#include "graphics/gfx/instance.hpp"
+// TODO: if vulkan
+#include "graphics/gfx/vulkan/contextVk.hpp"
+#include "graphics/gfx/vulkan/instanceVk.hpp"
+
 /// @defgroup core Core
 /// @brief Core functionality.
 #include "core/application.hpp"
 #include "core/clientInterface.hpp"
+#include "core/core.hpp"
 #include "core/timing.hpp"

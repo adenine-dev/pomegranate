@@ -8,7 +8,8 @@ namespace pom {
 
     Application::Application(int argc, char** argv, std::string clientSOFile) :
         client(std::move(clientSOFile)), createInfo(client.clientGetAppCreateInfo(argc, argv)),
-        mainWindow(createInfo->name, createInfo->graphicsAPI)
+        graphicsInstance(gfx::Instance::create(createInfo->name, createInfo->graphicsAPI)),
+        mainWindow(createInfo->name, createInfo->graphicsAPI, createInfo->enableVsync)
     {
         POM_ASSERT(!instance, "Attempting to create multiple Application");
 
@@ -17,18 +18,29 @@ namespace pom {
         client.begin();
 
         mainWindow.setEventHandler([&](const pom::InputEvent& ev) {
-#ifdef _DEBUG
+            // POM_DEBUG(ev);
             // TODO: its prob good to detect this change somehow then act on it, but this is good enough for now.
             switch (ev.type) {
             case pom::InputEventType::KEY_DOWN: {
+#ifdef _DEBUG
                 if (ev.getKeycode() == pom::Keycode::R) {
                     client.reload();
                 }
+#endif
+            } break;
+            case pom::InputEventType::WINDOW_RESIZE: {
+                mainWindow.getContext()->recreateSwapchain({ (f32)ev.getSize().x, (f32)ev.getSize().y });
+                update(); // FIXME: don't need to update only to repaint?
+            } break;
+            case pom::InputEventType::WINDOW_MINIMIZE: {
+                paused = true;
+            } break;
+            case pom::InputEventType::WINDOW_FOCUS: {
+                paused = false;
             } break;
             default: {
             }
             }
-#endif
             client.onEvent(&ev);
         });
     }
@@ -38,10 +50,14 @@ namespace pom {
     void Application::update()
     {
         pom::DeltaTime dt = timer.elapsed();
+        timer.reset();
+
+        pom::Window::pollEvents();
+        if (paused) {
+            return;
+        }
 
         frame++;
-        timer.reset();
-        pom::Window::pollEvents();
 
         client.update(dt);
 

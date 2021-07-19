@@ -3,6 +3,7 @@
 #include "base.hpp"
 
 #include "clientInterface.hpp"
+#include "graphics/gfx/instance.hpp"
 #include "platform/window.hpp"
 
 namespace pom {
@@ -25,6 +26,12 @@ namespace pom {
         [[nodiscard]] inline Window& getMainWindow()
         {
             return mainWindow;
+        }
+
+        // TODO: remove and change all visibilities back to normal.
+        [[nodiscard]] inline gfx::Instance* getGraphicsInstance()
+        {
+            return graphicsInstance;
         }
 
         /// Returns true if the application should continue updating.
@@ -54,7 +61,10 @@ namespace pom {
 
         const AppCreateInfo* createInfo;
 
+        gfx::Instance* graphicsInstance;
         Window mainWindow;
+
+        bool paused = false;
 
         u64 frame = 0;
         Timer timer;

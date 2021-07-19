@@ -2,13 +2,17 @@
 
 int main(int argc, char** argv)
 {
-    pom::platform::init();
+    pom::init();
 
-    pom::Application app(argc, argv, CLIENT_SO_FILE);
+    {
+        pom::Application app(argc, argv, CLIENT_SO_FILE);
 
-    while (app.shouldUpdate()) {
-        app.update();
+        while (app.shouldUpdate()) {
+            app.update();
+        }
     }
+
+    pom::shutdown();
 
     return 0;
 }

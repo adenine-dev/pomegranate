@@ -5,7 +5,8 @@
 #include <SDL.h>
 
 #include "debug/logging.hpp"
-#include "graphics/api/api.hpp"
+#include "graphics/gfx/context.hpp"
+#include "graphics/gfx/gfx.hpp"
 #include "inputEvent.hpp"
 #include "maths/maths.hpp"
 
@@ -24,8 +25,10 @@ namespace pom {
         /// to the operating system to decide where it is located.
         /// @param size: Initial size of the window, if it is negative then it will default to
         /// 720x480, this behavior is subject to change.
+        /// @param api: The backend graphics API for this window.
         explicit Window(const char* title,
                         gfx::GraphicsAPI api,
+                        bool enableVSync,
                         const maths::ivec2& position = { -1, -1 },
                         const maths::ivec2& size = { -1, -1 });
         ~Window();
@@ -38,6 +41,18 @@ namespace pom {
             return closeRequested;
         }
 
+        /// Returns true if VSync is enabled.
+        [[nodiscard]] inline bool isVsync() const
+        {
+            return enableVSync;
+        }
+
+        /// Returns the graphics context associated with this window.
+        [[nodiscard]] inline gfx::Context* getContext() const
+        {
+            return graphicsContext;
+        }
+
         // tbh there shouldn't be a reason to include this.
         // /// Returns the SDL window pointer, should be used if more direct access to the window is
         // /// needed. Primarily meant to be used internally.
@@ -48,17 +63,12 @@ namespace pom {
         //     return windowHandle;
         // }
 
-        /// Returns a list of the required vulkan extension from SDL. Only applicable when vulkan is enabled and is the
-        /// chosen GraphicsAPI for this window.
-        [[nodiscard]] std::vector<const char*> getRequiredVulkanExtensions() const;
-
         /// Returns the vulkan surface from SDL. Only applicable when vulkan is enabled and is the
-        /// chosen GraphicsAPI for this window. Should be freed with `vkDestroySurfaceKHR`.
+        /// chosen GraphicsAPI for this window, may fail otherwise. Should be freed with `vkDestroySurfaceKHR`.
         [[nodiscard]] VkSurfaceKHR getVulkanSurface(VkInstance instance) const;
 
-        /// Returns the vulkan drawable extent for swapchains, where the x component of the vector is the width and the
-        /// y component the height. Only applicable when vulkan is enabled and is the chosen GraphicsAPI for this
-        /// window.
+        /// Returns the vulkan drawable extent for swapchains. Only applicable when vulkan is enabled and is the chosen
+        /// GraphicsAPI for this window, may fail otherwise.
         [[nodiscard]] VkExtent2D getVulkanDrawableExtent() const;
 
         /// Sets the function that will be called whenever this window receives an InputEvent. Will
@@ -77,8 +87,9 @@ namespace pom {
         POM_NOCOPY(Window);
 
         SDL_Window* windowHandle = nullptr;
-        gfx::GraphicsAPI graphicsAPI;
         bool closeRequested = false;
+        bool enableVSync;
+        gfx::Context* graphicsContext;
 
         // NOTE: this starts empty so if a client wants to do simulation stuff, they can without
         // setting up an event handler.

@@ -68,7 +68,7 @@ namespace pom {
             return mouseMoveData.position;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to get position for an event of type: ", type);
+            POM_FATAL("Attempting to get position for an event of type: ", type);
 
             // prevent warning, it is undefined behavior but it will never run so its only mostly
             // dumb :p
@@ -98,7 +98,7 @@ namespace pom {
             return mouseUpData.button;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to get mouse button for an event of type: ", type);
+            POM_FATAL("Attempting to get mouse button for an event of type: ", type);
 
             // see line 66.
             return mouseDownData.button;
@@ -116,7 +116,7 @@ namespace pom {
             return mouseUpData.repeatCount;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to get mouse repeat count for an event of type: ", type);
+            POM_FATAL("Attempting to get mouse repeat count for an event of type: ", type);
 
             // see line 66.
             return mouseDownData.repeatCount;
@@ -134,7 +134,7 @@ namespace pom {
             return keyUpData.hid;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to get keyboard hardware id for an event of type: ", type);
+            POM_FATAL("Attempting to get keyboard hardware id for an event of type: ", type);
 
             // see line 66.
             return keyDownData.hid;
@@ -152,7 +152,7 @@ namespace pom {
             return keyUpData.code;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to get keycode for an event of type: ", type);
+            POM_FATAL("Attempting to get keycode for an event of type: ", type);
 
             // see line 66.
             return keyDownData.code;
@@ -170,7 +170,7 @@ namespace pom {
             return keyUpData.repeated;
         } break;
         default: {
-            POM_LOG_FATAL("Attempting to check repeated key press state for an event of type: ", type);
+            POM_FATAL("Attempting to check repeated key press state for an event of type: ", type);
 
             // see line 66.
             return keyDownData.repeated;

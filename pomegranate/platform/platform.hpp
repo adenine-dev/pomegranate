@@ -5,12 +5,14 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace pom::platform {
 
     /// @addtogroup platform
     /// @{
 
+    /// Initializes the platform. Currently that means just initializing SDL.
     POM_API bool init();
 
     /// Opens a platform based error window, separate from all other state. Useful for throwing

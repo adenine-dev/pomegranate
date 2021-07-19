@@ -51,7 +51,7 @@ namespace pom {
 /// prints all of them consecutively. If you wish to color your output then you can use the @ref
 /// terminal_styles "terminal styling functions". For example:
 /// ```cpp
-/// POM_LOG_TRACE(4, " ", "strings", 4.5f);
+/// POM_TRACE(4, " ", "strings", 4.5f);
 /// // [TRACE] filename:linenumber : 4 strings4.5
 /// ```
 /// @{
@@ -59,17 +59,17 @@ namespace pom {
 // clang-format off
 
 /// Logs a trace message.
-#define POM_LOG_TRACE(...) ::pom::_log(::std::cout, ::pom::LogLevel::TRACE, ::pom::terminal::grey,   "[TRACE] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_TRACE(...) ::pom::_log(::std::cout, ::pom::LogLevel::TRACE, ::pom::terminal::grey,   "[TRACE] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs an info message.
-#define POM_LOG_INFO(...)  ::pom::_log(::std::cout, ::pom::LogLevel::INFO,  ::pom::terminal::blue,   "[INFO] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_INFO(...)  ::pom::_log(::std::cout, ::pom::LogLevel::INFO,  ::pom::terminal::blue,   "[INFO] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs a debug message.
-#define POM_LOG_DEBUG(...) ::pom::_log(::std::cout, ::pom::LogLevel::DEBUG, ::pom::terminal::green,  "[DEBUG] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_DEBUG(...) ::pom::_log(::std::cout, ::pom::LogLevel::DEBUG, ::pom::terminal::green,  "[DEBUG] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs a warning.
-#define POM_LOG_WARN(...)  ::pom::_log(::std::cout, ::pom::LogLevel::WARN,  ::pom::terminal::yellow, "[WARN] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_WARN(...)  ::pom::_log(::std::cout, ::pom::LogLevel::WARN,  ::pom::terminal::yellow, "[WARN] ",  ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs an error.
-#define POM_LOG_ERROR(...) ::pom::_log(::std::cout, ::pom::LogLevel::ERROR, ::pom::terminal::red,    "[ERROR] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
+#define POM_ERROR(...) ::pom::_log(::std::cout, ::pom::LogLevel::ERROR, ::pom::terminal::red,    "[ERROR] ", ::pom::terminal::reset, __FILENAME__, ":", __LINE__, " : ", __VA_ARGS__)
 /// Logs a fatal error and panics.
-#define POM_LOG_FATAL(...)                                                                                             \
+#define POM_FATAL(...)                                                                                             \
     {                                                                                                                  \
         ::pom::_log(::std::cerr,                                                                                       \
                     ::pom::LogLevel::FATAL,                                                                            \

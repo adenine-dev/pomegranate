@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/api/api.hpp"
+#include "graphics/gfx/gfx.hpp"
 #include "platform/inputEvent.hpp"
 #include "platform/platform.hpp"
 #include "timing.hpp"
@@ -43,7 +43,7 @@ namespace pom {
         /// `true` if the application should limit the number of updates per second (UPS). It is a good idea to set this
         /// to true because it will improve system wide performance. This *roughly* corresponds with FPS (frames per
         /// second). Common UPS include 24, 30, 60, 120, and 240.
-        bool limitUpdateRate = true;
+        bool limitUpdateRate = false;
 
         /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
         /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
@@ -52,6 +52,9 @@ namespace pom {
 
         /// Desired graphics API for the application's rendering systems.
         gfx::GraphicsAPI graphicsAPI = gfx::GraphicsAPI::VULKAN;
+
+        /// `true` if VSync should be used, this does not override `targetUPS`.
+        bool enableVsync = true;
 
         // TODO: version? engine config? application type? icon?
     };

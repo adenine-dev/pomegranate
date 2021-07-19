@@ -16,10 +16,10 @@ namespace pom {
         auto duration = endTime - startTime;
 
         // TODO: replace this with file stuffs and speedscope
-        POM_LOG_TRACE("[",
-                      functionName,
-                      "] : ",
-                      std::chrono::duration_cast<std::chrono::microseconds>(duration).count(),
-                      "µs");
+        POM_TRACE("[",
+                  functionName,
+                  "] : ",
+                  std::chrono::duration_cast<std::chrono::microseconds>(duration).count(),
+                  "µs");
     }
 } // namespace pom
