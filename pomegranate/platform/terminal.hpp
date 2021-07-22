@@ -33,26 +33,61 @@ namespace pom::terminal {
     /// color, and each onColor function sets the background color, `reset` resets both.
     /// @{
 
+    /// Resets an output stream's style.
     POM_API std::ostream& reset(std::ostream& os);
 
+    /// Paints the foreground of an output stream black.
     POM_API std::ostream& black(std::ostream& os);
+
+    /// Paints the foreground of an output stream red.
     POM_API std::ostream& red(std::ostream& os);
+
+    /// Paints the foreground of an output stream green.
     POM_API std::ostream& green(std::ostream& os);
+
+    /// Paints the foreground of an output stream blue.
     POM_API std::ostream& blue(std::ostream& os);
+
+    /// Paints the foreground of an output stream yellow.
     POM_API std::ostream& yellow(std::ostream& os);
+
+    /// Paints the foreground of an output stream cyan.
     POM_API std::ostream& cyan(std::ostream& os);
+
+    /// Paints the foreground of an output stream magenta.
     POM_API std::ostream& magenta(std::ostream& os);
+
+    /// Paints the foreground of an output stream white.
     POM_API std::ostream& white(std::ostream& os);
+
+    /// Paints the foreground of an output stream grey.
     POM_API std::ostream& grey(std::ostream& os);
 
+    /// Paints the background of an output stream black.
     POM_API std::ostream& onBlack(std::ostream& os);
+
+    /// Paints the background of an output stream red.
     POM_API std::ostream& onRed(std::ostream& os);
+
+    /// Paints the background of an output stream green.
     POM_API std::ostream& onGreen(std::ostream& os);
+
+    /// Paints the background of an output stream blue.
     POM_API std::ostream& onBlue(std::ostream& os);
+
+    /// Paints the background of an output stream yellow.
     POM_API std::ostream& onYellow(std::ostream& os);
+
+    /// Paints the background of an output stream cyan.
     POM_API std::ostream& onCyan(std::ostream& os);
+
+    /// Paints the background of an output stream magenta.
     POM_API std::ostream& onMagenta(std::ostream& os);
+
+    /// Paints the background of an output stream white.
     POM_API std::ostream& onWhite(std::ostream& os);
+
+    /// Paints the background of an output stream grey.
     POM_API std::ostream& onGrey(std::ostream& os);
 
     /// @}

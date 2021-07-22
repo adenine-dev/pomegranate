@@ -336,16 +336,36 @@ a.anchor {
   font-size: 3em;
   line-height: 1.2em;
   font-weight: bold;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.title .mlabels {
+  align-self: center;
+  height: min-content;
+}
+
+.title .mlabels .mlabel {
+  font-size: initial;
+  font-weight: normal;
+  display: inline;
+}
+
+.title > .ingroups {
+  font-size: 1rem;
+  display: contents;
+}
+
+.title >.ingroups::before {
+  content: "";
+  display: block;
+  flex-basis: 100%;
 }
 
 a#details + .groupheader {
   display: none;
   /* color: red; */
-}
-
-.title > .ingroups {
-  font-size: 1rem;
-  /* padding-top: 20px; */
 }
 
 .memItemLeft,
@@ -401,7 +421,8 @@ a#details + .groupheader {
 .memproto .mlabels .mlabels-right {
   text-align: right;
 }
-.memproto .mlabels .mlabels-right .mlabel {
+
+.mlabels .mlabel {
   padding: 2px 4px;
   background-color: var(--alt-color);
   display: inline-block;

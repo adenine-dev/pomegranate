@@ -23,6 +23,7 @@ namespace pom {
         /// window.
         /// @param position: Initial position of the window, if it is negative then it will be left
         /// to the operating system to decide where it is located.
+        /// @param enableVSync: `true` if the window should use VSync.
         /// @param size: Initial size of the window, if it is negative then it will default to
         /// 720x480, this behavior is subject to change.
         /// @param api: The backend graphics API for this window.

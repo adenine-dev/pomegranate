@@ -8,6 +8,8 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
+    /// Vulkan Instance, should be created implicitly through Instance::create. Contains the instance, physical and
+    /// logical devices, and queues.
     class POM_API InstanceVk final : public Instance {
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
@@ -34,7 +36,9 @@ namespace pom::gfx {
         std::vector<const char*> validationLayers;
 
         VkInstance instance = VK_NULL_HANDLE;
+#ifdef _DEBUG
         VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+#endif
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
         // TODO: compute/transfer stuffs

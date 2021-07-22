@@ -12,12 +12,15 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
+    /// @private
     struct SwapchainSupportDetailsVk {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
         std::vector<VkPresentModeKHR> presentModes;
     };
 
+    /// Vulkan Context, should be created implicitly through Context::create. Contains swapchain information, a
+    /// swapchain render pass, and presentation syncronization objects.
     class POM_API ContextVk final : public Context {
     public:
         [[nodiscard]] inline GraphicsAPI getAPI() const final
