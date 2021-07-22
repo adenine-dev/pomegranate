@@ -23,7 +23,7 @@ namespace pom::gfx {
         VkFenceCreateInfo fenceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
             .pNext = nullptr,
-            .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+            .flags = 0,
         };
 
         for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -44,6 +44,8 @@ namespace pom::gfx {
 
     ContextVk::~ContextVk()
     {
+        vkDeviceWaitIdle(instance->device);
+
         for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(instance->device, renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(instance->device, imageAvailableSemaphores[i], nullptr);
@@ -305,6 +307,23 @@ namespace pom::gfx {
         }
 
         createSwapchain(ext, false);
+
+        // recreate current image available semaphores to reset it to the unsignaled state, the associated swapchain
+        // image may have been previously acquired and the semaphore set to signaled.
+        // TODO: reconsider how this works, instead do acquire->render->present instead of render->present->acquire?
+        VkSemaphoreCreateInfo semaphoreCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+        };
+
+        vkDestroySemaphore(instance->device, imageAvailableSemaphores[frameIndex], nullptr);
+        POM_ASSERT(
+            vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[frameIndex])
+                == VK_SUCCESS,
+            "Failed to create image available semaphore");
+
+        acquireNextSwapchainImage();
     }
 
     void ContextVk::present()
@@ -351,6 +370,15 @@ namespace pom::gfx {
         frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 
         acquireNextSwapchainImage();
+
+        vkWaitForFences(instance->device, 1, &inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
+
+        if (imagesInFlight[swapchainImageIndex] != VK_NULL_HANDLE) {
+            vkWaitForFences(instance->device, 1, &imagesInFlight[swapchainImageIndex], VK_TRUE, UINT64_MAX);
+        }
+        imagesInFlight[swapchainImageIndex] = inFlightFences[frameIndex];
+
+        vkResetFences(instance->device, 1, &inFlightFences[frameIndex]);
     }
 
     void ContextVk::acquireNextSwapchainImage()
@@ -369,15 +397,6 @@ namespace pom::gfx {
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             POM_FATAL("Failed to get next swapchain image");
         }
-
-        vkWaitForFences(instance->device, 1, &inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
-
-        if (imagesInFlight[swapchainImageIndex] != VK_NULL_HANDLE) {
-            vkWaitForFences(instance->device, 1, &imagesInFlight[swapchainImageIndex], VK_TRUE, UINT64_MAX);
-        }
-        imagesInFlight[swapchainImageIndex] = inFlightFences[frameIndex];
-
-        vkResetFences(instance->device, 1, &inFlightFences[frameIndex]);
     }
 
 } // namespace pom::gfx

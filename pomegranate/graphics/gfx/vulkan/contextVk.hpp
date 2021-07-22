@@ -58,7 +58,7 @@ namespace pom::gfx {
         VkViewport swapchainViewport;
         u32 swapchainImageIndex = 0;
 
-        static const u32 MAX_FRAMES_IN_FLIGHT = 1;
+        static const u32 MAX_FRAMES_IN_FLIGHT = 3;
 
         VkSemaphore imageAvailableSemaphores[MAX_FRAMES_IN_FLIGHT];
         VkSemaphore renderFinishedSemaphores[MAX_FRAMES_IN_FLIGHT];

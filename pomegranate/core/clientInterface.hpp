@@ -48,7 +48,7 @@ namespace pom {
         /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
         /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
         /// set to `true`.
-        u16 targetUPS = 60;
+        u16 targetUPS = 60; // NOLINT
 
         /// Desired graphics API for the application's rendering systems.
         gfx::GraphicsAPI graphicsAPI = gfx::GraphicsAPI::VULKAN;
