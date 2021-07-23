@@ -13,9 +13,17 @@ namespace pom {
     /// @{
 
     /// Log levels are the specified filter for terminal output, if the current log level is lower than the specified
-    /// message, then it should not be printed. For debug builds it defaults to DEBUG and for release builds it defaults
-    /// to ERROR.
-    enum class LogLevel { ALL = 0, TRACE = 0, DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4, FATAL = 5 };
+    /// message, then it should not be printed. For debug builds it defaults to `DEBUG` and for release builds it
+    /// defaults to `ERROR`.
+    enum class LogLevel {
+        ALL = 0, ///< Outputs all log messages.
+        TRACE = 0, ///< Outputs trace messages and above. (Currently equivelent to `ALL`)
+        DEBUG = 1, ///< Output debug messages and above.
+        INFO = 2, ///< Output info messages and above.
+        WARN = 3, ///< Output warn messages and above.
+        ERROR = 4, ///< Output error messages and above.
+        FATAL = 5 ///< Output fatal messages and above.
+    };
 
     /// Sets the current log level. This should primarily be done by the build system.
     /// @warning this code is unsafe and running it from multiple threads may cause issues.
