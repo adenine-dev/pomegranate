@@ -500,4 +500,73 @@ namespace pom::gfx {
         }
         };
     }
+
+    constexpr VkAttachmentLoadOp toVkAttachmentLoadOp(LoadOperation o)
+    {
+        switch (o) {
+        case LoadOperation::LOAD: {
+            return VK_ATTACHMENT_LOAD_OP_LOAD;
+        } break;
+        case LoadOperation::CLEAR: {
+            return VK_ATTACHMENT_LOAD_OP_CLEAR;
+        } break;
+        case LoadOperation::DONTCARE: {
+            return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        } break;
+        }
+    }
+
+    constexpr LoadOperation fromVkAttachmentLoadOp(VkAttachmentLoadOp o)
+    {
+        switch (o) {
+        case VK_ATTACHMENT_LOAD_OP_LOAD: {
+            return LoadOperation::LOAD;
+        } break;
+        case VK_ATTACHMENT_LOAD_OP_CLEAR: {
+            return LoadOperation::CLEAR;
+        } break;
+        case VK_ATTACHMENT_LOAD_OP_DONT_CARE: {
+            return LoadOperation::DONTCARE;
+        } break;
+        default: {
+            // NOTE: there has to be a better way to do this.
+#ifdef _DEBUG
+            POM_ERROR("Bad vk attachment load operation.");
+#endif
+            return LoadOperation::LOAD;
+        }
+        }
+    }
+
+    constexpr VkAttachmentStoreOp toVkAttachmentStoreOp(StoreOperation o)
+    {
+        switch (o) {
+        case StoreOperation::STORE: {
+            return VK_ATTACHMENT_STORE_OP_STORE;
+        } break;
+        case StoreOperation::DONTCARE: {
+            return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        } break;
+        }
+    }
+
+    constexpr StoreOperation fromVkAttachmentStoreOp(VkAttachmentStoreOp o)
+    {
+        switch (o) {
+        case VK_ATTACHMENT_STORE_OP_STORE: {
+            return StoreOperation::STORE;
+        } break;
+        case VK_ATTACHMENT_STORE_OP_DONT_CARE: {
+            return StoreOperation::DONTCARE;
+        } break;
+        default: {
+            // NOTE: there has to be a better way to do this.
+#ifdef _DEBUG
+            POM_ERROR("Bad vk attachment store operation.");
+#endif
+            return StoreOperation::STORE;
+        }
+        }
+    }
+
 } // namespace pom::gfx

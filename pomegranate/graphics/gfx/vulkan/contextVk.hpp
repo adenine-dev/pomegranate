@@ -5,11 +5,13 @@
 #include "../context.hpp"
 
 #include "instanceVk.hpp"
+#include "renderPassVk.hpp"
+#include "typesVk.hpp"
 
 #include "platform/window.hpp"
 
 namespace pom::gfx {
-    /// @addtogroup gfx
+    /// @addtogroup vulkan
     /// @{
 
     /// @private
@@ -19,13 +21,23 @@ namespace pom::gfx {
         std::vector<VkPresentModeKHR> presentModes;
     };
 
-    /// Vulkan Context, should be created implicitly through Context::create. Contains swapchain information, a
+    /// Vulkan Context, should be created implicitly through `Context::create`. Contains swapchain information, a
     /// swapchain render pass, and presentation syncronization objects.
     class POM_API ContextVk final : public Context {
     public:
         [[nodiscard]] inline GraphicsAPI getAPI() const final
         {
             return GraphicsAPI::VULKAN;
+        }
+
+        [[nodiscard]] Format getSwapchainFormat() const final
+        {
+            return fromVkFormat(swapchainImageFormat);
+        }
+
+        [[nodiscard]] const RenderPass* getSwapchainRenderPass() const final
+        {
+            return swapchainRenderPass;
         }
 
         ~ContextVk() final;
@@ -51,7 +63,8 @@ namespace pom::gfx {
         InstanceVk* instance;
         VkSurfaceKHR surface;
 
-        VkRenderPass swapchainRenderPass;
+        RenderPassVk* swapchainRenderPass;
+
         VkSwapchainKHR swapchain;
         VkFormat swapchainImageFormat;
         VkExtent2D swapchainExtent;

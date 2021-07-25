@@ -3,6 +3,7 @@
 #include "base.hpp"
 
 #include "gfx.hpp"
+#include "renderPass.hpp"
 
 #include "maths/vector.hpp"
 
@@ -25,6 +26,12 @@ namespace pom {
 
             /// Returns the GraphicsAPI associated with this context.
             [[nodiscard]] inline virtual GraphicsAPI getAPI() const = 0;
+
+            /// Returns the format of the swapchain images.
+            [[nodiscard]] virtual Format getSwapchainFormat() const = 0;
+
+            /// Returns the swapchain renderpass.
+            [[nodiscard]] virtual const RenderPass* getSwapchainRenderPass() const = 0;
 
             virtual ~Context();
 

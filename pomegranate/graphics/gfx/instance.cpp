@@ -19,6 +19,7 @@ namespace pom::gfx {
             POM_FATAL("Unknown Graphics api");
         }
         }
+
         return singleton;
     }
 

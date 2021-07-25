@@ -16,7 +16,7 @@ const u32 MAX_FRAMES_IN_FLIGHT = 3;
 
 struct Vertex {
     pom::maths::vec3 pos;
-    pom::maths::vec4 color;
+    pom::Color color;
 };
 
 static const Vertex VERTEX_DATA[] = { { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
@@ -44,7 +44,6 @@ struct GameState {
     std::vector<VkImage> swapchainImages;
     std::vector<VkImageView> swapchainImageViews;
     std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkRenderPass renderPass;
     VkViewport swapchainViewport;
     // u32 imageIndex = 0;
     // command buffer
@@ -125,7 +124,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->swapchainImages = contextVk->swapchainImages;
     gamestate->swapchainImageViews = contextVk->swapchainImageViews;
     gamestate->swapchainFramebuffers = contextVk->swapchainFramebuffers;
-    gamestate->renderPass = contextVk->swapchainRenderPass;
     gamestate->swapchainViewport = contextVk->swapchainViewport;
     // end super hacky test stuff
 
@@ -296,7 +294,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .pColorBlendState = &colorBlendCreateInfo,
         .pDynamicState = &dynamicStateCreateInfo,
         .layout = gamestate->pipelineLayout,
-        .renderPass = gamestate->renderPass,
+        .renderPass = dynamic_cast<const pom::gfx::RenderPassVk*>(contextVk->getSwapchainRenderPass())->getHandle(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1,
@@ -435,7 +433,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     VkRenderPassBeginInfo renderPassBeginInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
-        .renderPass = context->swapchainRenderPass,
+        .renderPass = dynamic_cast<const pom::gfx::RenderPassVk*>(context->getSwapchainRenderPass())->getHandle(),
         .framebuffer = context->swapchainFramebuffers[context->swapchainImageIndex],
         .renderArea = { .offset = { 0, 0 }, .extent = context->swapchainExtent },
         .clearValueCount = 1,

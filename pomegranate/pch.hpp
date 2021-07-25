@@ -22,6 +22,8 @@
 #    undef DELETE
 // used in logging.hpp as a loglevel, prob won't break anything.
 #    undef ERROR
+// used in util/color.hpp, prob won't break anything.
+#    undef TRANSPARENT
 #endif
 
 // libs

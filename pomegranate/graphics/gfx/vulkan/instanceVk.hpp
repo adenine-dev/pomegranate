@@ -5,10 +5,10 @@
 #include "contextVk.hpp"
 
 namespace pom::gfx {
-    /// @addtogroup gfx
+    /// @addtogroup vulkan
     /// @{
 
-    /// Vulkan Instance, should be created implicitly through Instance::create. Contains the instance, physical and
+    /// Vulkan Instance, should be created implicitly through `Instance::create`. Contains the instance, physical and
     /// logical devices, and queues.
     class POM_API InstanceVk final : public Instance {
     public:
@@ -21,9 +21,15 @@ namespace pom::gfx {
 
         [[nodiscard]] bool ready() const final;
 
+        // [[nodiscard]] VkDevice getDevice() const
+        // {
+        //     return device;
+        // }
+
     public:
         friend class Instance;
         friend class ContextVk;
+        friend class RenderPassVk;
 
         POM_NOCOPY(InstanceVk);
         InstanceVk(const char* appname);
