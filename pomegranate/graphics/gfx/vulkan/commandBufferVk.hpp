@@ -40,7 +40,11 @@ namespace pom::gfx {
     private:
         friend class ContextVk;
 
-        CommandBufferVk(ContextVk* context, VkDevice device, VkCommandPool pool, u32 count);
+        CommandBufferVk(CommandBufferSpecialization specialization,
+                        ContextVk* context,
+                        VkDevice device,
+                        VkCommandPool pool,
+                        u32 count);
 
         ContextVk* context;
         VkDevice device;

@@ -36,12 +36,22 @@ a:focus {
   overflow: auto;
 }
 
+#nav-tree::-webkit-scrollbar {
+  width: 10px;
+  background-color: var(--alt-color);
+}
+
+#nav-tree::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+}
+
 #side-nav::after {
   content: "";
   position: absolute;
   height: 90%;
   width: 1px;
   background-color: var(--alt-color);
+  z-index: -1;
   top: 5%;
   right: 0;
 }
@@ -63,7 +73,7 @@ a:focus {
 }
 
 #nav-tree .selected {
-  background-color: var(--nav-bg);
+  /* background-color: var(--nav-bg); */
   text-shadow: none;
   background-image: none;
   font-weight: bold;

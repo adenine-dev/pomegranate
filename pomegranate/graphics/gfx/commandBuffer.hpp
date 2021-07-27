@@ -12,8 +12,8 @@ namespace pom::gfx {
     /// @{
 
     /// Hint for what queue the `CommandBuffer` should be constructed from, only applies in graphics APIs where that is
-    /// applicable. In addition to this, some hardware won't have a dedicated queue for a certain specialization and the
-    /// command buffer will be constructed from a different more general queue.
+    /// applicable such as Vulkan. In addition to this, some hardware won't have a dedicated queue for a certain
+    /// specialization and the command buffer will be constructed from a different more general queue.
     enum class CommandBufferSpecialization {
         GRAPHICS,
         // COMPUTE,
@@ -23,7 +23,14 @@ namespace pom::gfx {
     /// Command buffers are used to submit actions to the GPU.
     class POM_API CommandBuffer {
     public:
+        CommandBuffer(CommandBufferSpecialization specialization);
         virtual ~CommandBuffer() = default;
+
+        /// Returns the GraphicsAPI associated with this command buffer.
+        [[nodiscard]] inline CommandBufferSpecialization getSpecialization() const
+        {
+            return specialization;
+        };
 
         /// Returns the GraphicsAPI associated with this command buffer.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
@@ -41,6 +48,9 @@ namespace pom::gfx {
 
         /// Stop recording to a command buffer.
         virtual void end() = 0;
+
+    protected:
+        CommandBufferSpecialization specialization;
     };
 
     /// @}

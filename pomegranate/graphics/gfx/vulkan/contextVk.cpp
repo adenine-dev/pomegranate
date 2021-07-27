@@ -366,7 +366,11 @@ namespace pom::gfx {
 
     [[nodiscard]] CommandBuffer* ContextVk::createCommandBuffer(CommandBufferSpecialization specialization)
     {
-        return new CommandBufferVk(this, instance->getDevice(), graphicsCommandPool, swapchainImages.size());
+        return new CommandBufferVk(specialization,
+                                   this,
+                                   instance->getDevice(),
+                                   graphicsCommandPool,
+                                   swapchainImages.size());
     }
 
     void ContextVk::submitCommandBuffer(CommandBuffer* commandBuffer)

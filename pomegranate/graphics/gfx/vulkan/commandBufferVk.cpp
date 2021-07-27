@@ -5,7 +5,12 @@
 #include "contextVk.hpp"
 
 namespace pom::gfx {
-    CommandBufferVk::CommandBufferVk(ContextVk* context, VkDevice device, VkCommandPool pool, u32 count) :
+    CommandBufferVk::CommandBufferVk(CommandBufferSpecialization specialization,
+                                     ContextVk* context,
+                                     VkDevice device,
+                                     VkCommandPool pool,
+                                     u32 count) :
+        CommandBuffer(specialization),
         context(context), device(device), commandBuffers(count), recordingFences(count),
         currentIndex(context->getSwapchainImageIndex())
     {
