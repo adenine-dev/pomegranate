@@ -6,12 +6,19 @@
 
 namespace pom::gfx {
     RenderPassVk::RenderPassVk(InstanceVk* instance, std::initializer_list<RenderPassAttachment> attachments) :
-        instance(instance), renderPass(VK_NULL_HANDLE)
+        instance(instance), renderPass(VK_NULL_HANDLE), clearColors(attachments.size())
     {
         std::vector<VkAttachmentDescription> attachmentDescs(attachments.size());
 
         u32 i = 0;
         for (auto attachment : attachments) {
+            clearColors[i] = {
+                attachment.clearColor.r,
+                attachment.clearColor.g,
+                attachment.clearColor.b,
+                attachment.clearColor.a,
+            };
+
             attachmentDescs[i] = {
                 .flags = 0,
                 .format = toVkFormat(attachment.format),
@@ -67,12 +74,12 @@ namespace pom::gfx {
             .pDependencies = &subpassDependency,
         };
 
-        POM_ASSERT(vkCreateRenderPass(instance->device, &renderPassCreateInfo, nullptr, &renderPass) == VK_SUCCESS,
+        POM_ASSERT(vkCreateRenderPass(instance->getDevice(), &renderPassCreateInfo, nullptr, &renderPass) == VK_SUCCESS,
                    "failed to create swapchain renderpass");
     }
 
     RenderPassVk::~RenderPassVk()
     {
-        vkDestroyRenderPass(instance->device, renderPass, nullptr);
+        vkDestroyRenderPass(instance->getDevice(), renderPass, nullptr);
     }
 } // namespace pom::gfx

@@ -21,15 +21,14 @@ namespace pom::gfx {
 
         [[nodiscard]] bool ready() const final;
 
-        // [[nodiscard]] VkDevice getDevice() const
-        // {
-        //     return device;
-        // }
+        [[nodiscard]] VkDevice getDevice() const
+        {
+            return device;
+        }
 
     public:
         friend class Instance;
         friend class ContextVk;
-        friend class RenderPassVk;
 
         POM_NOCOPY(InstanceVk);
         InstanceVk(const char* appname);

@@ -47,9 +47,10 @@ struct GameState {
     VkViewport swapchainViewport;
     // u32 imageIndex = 0;
     // command buffer
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
-    std::vector<VkFence> commandBufferRecordFences;
+    // VkCommandPool commandPool;
+    // std::vector<VkCommandBuffer> commandBuffers;
+    // std::vector<VkFence> commandBufferRecordFences;
+    pom::gfx::CommandBuffer* commandBuffer;
     // pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
@@ -313,46 +314,50 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
 
     // command buffer
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = gamestate->graphicsQueueFamily,
-    };
+    gamestate->commandBuffer = contextVk->createCommandBuffer(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
-    POM_ASSERT(vkCreateCommandPool(gamestate->device, &commandPoolCreateInfo, nullptr, &gamestate->commandPool)
-                   == VK_SUCCESS,
-               "Failed to create command pool.");
+    // VkCommandPoolCreateInfo commandPoolCreateInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    //     .pNext = nullptr,
+    //     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    //     .queueFamilyIndex = gamestate->graphicsQueueFamily,
+    // };
 
-    gamestate->commandBuffers.resize(gamestate->swapchainFramebuffers.size());
+    // POM_ASSERT(vkCreateCommandPool(gamestate->device, &commandPoolCreateInfo, nullptr, &gamestate->commandPool)
+    //                == VK_SUCCESS,
+    //            "Failed to create command pool.");
 
-    VkCommandBufferAllocateInfo commandBufferAllocateCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .commandPool = gamestate->commandPool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = static_cast<uint32_t>(gamestate->commandBuffers.size()),
-    };
+    // gamestate->commandBuffers.resize(gamestate->swapchainFramebuffers.size());
 
-    POM_ASSERT(
-        vkAllocateCommandBuffers(gamestate->device, &commandBufferAllocateCreateInfo, gamestate->commandBuffers.data())
-            == VK_SUCCESS,
-        "Failed to allocate command buffers.");
+    // VkCommandBufferAllocateInfo commandBufferAllocateCreateInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    //     .pNext = nullptr,
+    //     .commandPool = gamestate->commandPool,
+    //     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    //     .commandBufferCount = static_cast<uint32_t>(gamestate->commandBuffers.size()),
+    // };
 
-    // syncronization
-    gamestate->commandBufferRecordFences.resize(gamestate->commandBuffers.size());
+    // POM_ASSERT(
+    //     vkAllocateCommandBuffers(gamestate->device, &commandBufferAllocateCreateInfo,
+    //     gamestate->commandBuffers.data())
+    //         == VK_SUCCESS,
+    //     "Failed to allocate command buffers.");
 
-    VkFenceCreateInfo fenceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = VK_FENCE_CREATE_SIGNALED_BIT,
-    };
+    // // syncronization
+    // gamestate->commandBufferRecordFences.resize(gamestate->commandBuffers.size());
 
-    for (u32 i = 0; i < gamestate->commandBufferRecordFences.size(); i++) {
-        POM_ASSERT(vkCreateFence(gamestate->device, &fenceCreateInfo, nullptr, &gamestate->commandBufferRecordFences[i])
-                       == VK_SUCCESS,
-                   "Failed to create fence");
-    }
+    // VkFenceCreateInfo fenceCreateInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+    //     .pNext = nullptr,
+    //     .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+    // };
+
+    // for (u32 i = 0; i < gamestate->commandBufferRecordFences.size(); i++) {
+    //     POM_ASSERT(vkCreateFence(gamestate->device, &fenceCreateInfo, nullptr,
+    //     &gamestate->commandBufferRecordFences[i])
+    //                    == VK_SUCCESS,
+    //                "Failed to create fence");
+    // }
 
     // vertex buffer
     VkBufferCreateInfo vertexBufferCreateInfo = {
@@ -405,44 +410,49 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     }
     auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-    VkCommandBuffer commandBuffer = gamestate->commandBuffers[context->swapchainImageIndex];
-    VkFence recordFence = gamestate->commandBufferRecordFences[context->swapchainImageIndex];
+    // VkCommandBuffer commandBuffer = gamestate->commandBuffers[context->swapchainImageIndex];
+    // VkFence recordFence = gamestate->commandBufferRecordFences[context->swapchainImageIndex];
 
-    vkWaitForFences(gamestate->device, 1, &recordFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(gamestate->device, 1, &recordFence);
+    // vkWaitForFences(gamestate->device, 1, &recordFence, VK_TRUE, UINT64_MAX);
+    // vkResetFences(gamestate->device, 1, &recordFence);
 
-    VkCommandBufferBeginInfo commandBufferBeginInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .pInheritanceInfo = nullptr,
-    };
+    // VkCommandBufferBeginInfo commandBufferBeginInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    //     .pNext = nullptr,
+    //     .flags = 0,
+    //     .pInheritanceInfo = nullptr,
+    // };
 
-    POM_ASSERT(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) == VK_SUCCESS,
-               "Failed to begin recording command buffer.");
+    // POM_ASSERT(vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo) == VK_SUCCESS,
+    //            "Failed to begin recording command buffer.");
 
-    const auto f = [](f32 n) -> f32 {
-        const f32 h = (f32)(pom::Application::get()->getFrame() % 255);
-        const u32 s = 100;
-        const u32 v = 100;
-        const f32 k = std::fmod((n + h * 360 / (255 * 60)), 6);
-        return v / 255.f - (v / 255.f) * (s / 255.f) * std::max(std::min(std::min(k, 4 - k), 1.f), 0.f);
-    };
-    VkClearValue clearColor = { f(5), f(3), f(1), 1.f };
+    // const auto f = [](f32 n) -> f32 {
+    //     const f32 h = (f32)(pom::Application::get()->getFrame() % 255);
+    //     const u32 s = 100;
+    //     const u32 v = 100;
+    //     const f32 k = std::fmod((n + h * 360 / (255 * 60)), 6);
+    //     return v / 255.f - (v / 255.f) * (s / 255.f) * std::max(std::min(std::min(k, 4 - k), 1.f), 0.f);
+    // };
+    // VkClearValue clearColor = { f(5), f(3), f(1), 1.f };
 
-    VkRenderPassBeginInfo renderPassBeginInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .pNext = nullptr,
-        .renderPass = dynamic_cast<const pom::gfx::RenderPassVk*>(context->getSwapchainRenderPass())->getHandle(),
-        .framebuffer = context->swapchainFramebuffers[context->swapchainImageIndex],
-        .renderArea = { .offset = { 0, 0 }, .extent = context->swapchainExtent },
-        .clearValueCount = 1,
-        .pClearValues = &clearColor,
-    };
+    // VkRenderPassBeginInfo renderPassBeginInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+    //     .pNext = nullptr,
+    //     .renderPass = dynamic_cast<const
+    //     pom::gfx::RenderPassVk*>(context->getSwapchainRenderPass())->getHandle(), .framebuffer =
+    //     context->swapchainFramebuffers[context->swapchainImageIndex], .renderArea = { .offset = { 0, 0 },
+    //     .extent = context->swapchainExtent }, .clearValueCount = 1, .pClearValues = &clearColor,
+    // };
 
-    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    // vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // calling this every frame doesn't really matter to my knowledge and is way easier than any other alternatives
+    gamestate->commandBuffer->begin();
+    gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass());
+
+    auto* commandBuffer = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
+
+    // calling this every frame doesn't really matter to my knowledge and is way easier than any other
+    // alternatives
     vkCmdSetViewport(commandBuffer, 0, 1, &context->swapchainViewport);
     VkRect2D scissor { .offset = { 0, 0 }, .extent = context->swapchainExtent };
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
@@ -454,24 +464,29 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
-    vkCmdEndRenderPass(commandBuffer);
+    gamestate->commandBuffer->endRenderPass();
+    gamestate->commandBuffer->end();
 
-    POM_ASSERT(vkEndCommandBuffer(commandBuffer) == VK_SUCCESS, "Failed to end recording command buffer.");
+    context->submitCommandBuffer(gamestate->commandBuffer);
 
-    VkSubmitInfo submitInfo = {
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext = nullptr,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores = nullptr,
-        .pWaitDstStageMask = nullptr,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &commandBuffer,
-        .signalSemaphoreCount = 0,
-        .pSignalSemaphores = nullptr,
-    };
+    // vkCmdEndRenderPass(commandBuffer);
 
-    POM_ASSERT(vkQueueSubmit(context->instance->graphicsQueue, 1, &submitInfo, recordFence) == VK_SUCCESS,
-               "Failed to submit to queue");
+    // POM_ASSERT(vkEndCommandBuffer(commandBuffer) == VK_SUCCESS, "Failed to end recording command buffer.");
+
+    // VkSubmitInfo submitInfo = {
+    //     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    //     .pNext = nullptr,
+    //     .waitSemaphoreCount = 0,
+    //     .pWaitSemaphores = nullptr,
+    //     .pWaitDstStageMask = nullptr,
+    //     .commandBufferCount = 1,
+    //     .pCommandBuffers = &commandBuffer,
+    //     .signalSemaphoreCount = 0,
+    //     .pSignalSemaphores = nullptr,
+    // };
+
+    // POM_ASSERT(vkQueueSubmit(context->instance->graphicsQueue, 1, &submitInfo, recordFence) == VK_SUCCESS,
+    //            "Failed to submit to queue");
 
     pom::Application::get()->getMainWindow().getContext()->present();
 
@@ -488,14 +503,16 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
+    delete gamestate->commandBuffer;
+
     vkDestroyBuffer(gamestate->device, gamestate->vertexBuffer, nullptr);
     vkFreeMemory(gamestate->device, gamestate->vertexBufferMemory, nullptr);
 
-    for (size_t i = 0; i < gamestate->commandBufferRecordFences.size(); i++) {
-        vkDestroyFence(gamestate->device, gamestate->commandBufferRecordFences[i], nullptr);
-    }
+    // for (size_t i = 0; i < gamestate->commandBufferRecordFences.size(); i++) {
+    //     vkDestroyFence(gamestate->device, gamestate->commandBufferRecordFences[i], nullptr);
+    // }
 
-    vkDestroyCommandPool(gamestate->device, gamestate->commandPool, nullptr);
+    // vkDestroyCommandPool(gamestate->device, gamestate->commandPool, nullptr);
 
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);

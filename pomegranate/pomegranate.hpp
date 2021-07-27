@@ -83,14 +83,17 @@
 /// @defgroup gfx GFX
 /// @brief Low level graphics api abstraction layer.
 /// @ingroup graphics
+#include "graphics/gfx/commandBuffer.hpp"
 #include "graphics/gfx/context.hpp"
 #include "graphics/gfx/gfx.hpp"
 #include "graphics/gfx/instance.hpp"
 #include "graphics/gfx/renderPass.hpp"
+
 // TODO: if vulkan
 /// @defgroup vulkan Vulkan Implementation
 /// @ingroup gfx
 /// @brief Vulkan implementation of GFX
+#include "graphics/gfx/vulkan/commandBufferVk.hpp"
 #include "graphics/gfx/vulkan/contextVk.hpp"
 #include "graphics/gfx/vulkan/instanceVk.hpp"
 #include "graphics/gfx/vulkan/renderPassVk.hpp"

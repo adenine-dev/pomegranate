@@ -3,14 +3,16 @@
 #include "base.hpp"
 
 #include "gfx.hpp"
-#include "renderPass.hpp"
-
 #include "maths/vector.hpp"
+
+#include "commandBuffer.hpp"
 
 namespace pom {
     class Window;
 
     namespace gfx {
+        class RenderPass;
+
         /// @addtogroup gfx
         /// @{
 
@@ -20,6 +22,7 @@ namespace pom {
         public:
             /// Creates a Context with an associated Window, one window should only ever have one Context.
             static Context* create(GraphicsAPI api, Window* window);
+            virtual ~Context();
 
             /// Destroys a context.
             static void destroy(Context* context);
@@ -31,12 +34,16 @@ namespace pom {
             [[nodiscard]] virtual Format getSwapchainFormat() const = 0;
 
             /// Returns the swapchain renderpass.
-            [[nodiscard]] virtual const RenderPass* getSwapchainRenderPass() const = 0;
-
-            virtual ~Context();
+            [[nodiscard]] virtual RenderPass* getSwapchainRenderPass() = 0;
 
             /// Recreates the swapchain at a given size, this should be called whenever the window is resized.
             virtual void recreateSwapchain(const maths::vec2& extent) = 0;
+
+            /// Creates a command buffer tied to this context.
+            [[nodiscard]] virtual CommandBuffer* createCommandBuffer(CommandBufferSpecialization specialization) = 0;
+
+            // TODO: submit multiple command buffers and batch them
+            virtual void submitCommandBuffer(CommandBuffer* commandBuffer) = 0;
 
             /// Presents the rendered content to the associated Window. Should be called once per update.
             virtual void present() = 0;

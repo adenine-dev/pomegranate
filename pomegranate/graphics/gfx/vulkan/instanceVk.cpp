@@ -210,7 +210,9 @@ namespace pom::gfx {
 
     InstanceVk::~InstanceVk()
     {
-        vkDestroyDevice(device, nullptr);
+        if (ready()) {
+            vkDestroyDevice(device, nullptr);
+        }
 
         auto vkDestroyDebugUtilsMessengerEXT
             = PFN_vkDestroyDebugUtilsMessengerEXT(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));

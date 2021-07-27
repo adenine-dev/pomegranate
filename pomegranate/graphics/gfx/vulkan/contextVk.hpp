@@ -22,7 +22,7 @@ namespace pom::gfx {
     };
 
     /// Vulkan Context, should be created implicitly through `Context::create`. Contains swapchain information, a
-    /// swapchain render pass, and presentation syncronization objects.
+    /// swapchain render pass, presentation syncronization objects, and command pools.
     class POM_API ContextVk final : public Context {
     public:
         [[nodiscard]] inline GraphicsAPI getAPI() const final
@@ -35,7 +35,12 @@ namespace pom::gfx {
             return fromVkFormat(swapchainImageFormat);
         }
 
-        [[nodiscard]] const RenderPass* getSwapchainRenderPass() const final
+        [[nodiscard]] u32 getSwapchainImageIndex() const
+        {
+            return swapchainImageIndex;
+        }
+
+        [[nodiscard]] RenderPass* getSwapchainRenderPass() final
         {
             return swapchainRenderPass;
         }
@@ -45,6 +50,10 @@ namespace pom::gfx {
         void recreateSwapchain(const maths::vec2& extent) final;
 
         void present() final;
+
+        [[nodiscard]] CommandBuffer* createCommandBuffer(CommandBufferSpecialization specialization) final;
+
+        void submitCommandBuffer(CommandBuffer* commandBuffer) final;
 
     public:
         friend class Context;
@@ -81,6 +90,9 @@ namespace pom::gfx {
         VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
         std::vector<VkFence> imagesInFlight;
         u32 frameIndex = 0;
+
+        // TODO: consider how contexts and threads interact
+        VkCommandPool graphicsCommandPool;
     };
 
     /// @}
