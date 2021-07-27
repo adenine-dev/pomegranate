@@ -4,6 +4,8 @@
 
 #include "gfx.hpp"
 
+#include "maths/vector.hpp"
+
 namespace pom::gfx {
 
     class RenderPass;
@@ -48,6 +50,17 @@ namespace pom::gfx {
 
         /// Stop recording to a command buffer.
         virtual void end() = 0;
+
+        /// Submits a set viewport command to the command buffer.
+        // TODO: AABB struct
+        virtual void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) = 0;
+
+        /// Submits a set scissor command to the command buffer.
+        // TODO: AABB struct
+        virtual void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) = 0;
+
+        /// Submits a draw command to the command buffer.
+        virtual void draw(u32 vertexCount, u32 firstVertex = 0) = 0;
 
     protected:
         CommandBufferSpecialization specialization;

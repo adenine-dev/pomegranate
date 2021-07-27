@@ -96,4 +96,21 @@ namespace pom::gfx {
                    "Failed to end recording command buffer.");
     }
 
+    void CommandBufferVk::setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth)
+    {
+        VkViewport viewport { offset.x, offset.y, extent.x, extent.y, mindepth, maxdepth };
+        vkCmdSetViewport(getCurrentCommandBuffer(), 0, 1, &viewport);
+    }
+
+    void CommandBufferVk::setScissor(const maths::ivec2& offset, const maths::uvec2& extent)
+    {
+        VkRect2D scissor { .offset = { offset.x, offset.y }, .extent = { extent.x, extent.y } };
+        vkCmdSetScissor(getCurrentCommandBuffer(), 0, 1, &scissor);
+    }
+
+    void CommandBufferVk::draw(u32 vertexCount, u32 firstVertex)
+    {
+        vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, firstVertex, 0);
+    }
+
 } // namespace pom::gfx

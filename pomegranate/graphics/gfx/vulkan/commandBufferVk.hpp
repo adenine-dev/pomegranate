@@ -27,6 +27,12 @@ namespace pom::gfx {
 
         void end() final;
 
+        void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) final;
+
+        void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) final;
+
+        void draw(u32 vertexCount, u32 firstVertex = 0) final;
+
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {
             return commandBuffers[currentIndex];
