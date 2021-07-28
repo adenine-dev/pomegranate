@@ -3,17 +3,6 @@
 #include "embed/basic_frag_spv.hpp"
 #include "embed/basic_vert_spv.hpp"
 
-#include <set>
-
-// Theoretically this is completely wrong, queue family indices can be any valid u32 including u32max. Practically no
-// device will have more than a few queue families, much less 2^32-1 of them.
-const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
-
-const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
-
-const u32 MAX_FRAMES_IN_FLIGHT = 3;
-
 struct Vertex {
     pom::maths::vec3 pos;
     pom::Color color;
@@ -30,16 +19,12 @@ struct GameState {
     bool paused = false;
     // instance
     VkInstance instance;
-    VkPhysicalDevice physicalDevice;
     VkDevice device;
-    // context -> swapchain
     pom::gfx::CommandBuffer* commandBuffer;
     // pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     // vertex buffer
-    // VkBuffer vertexBuffer;
-    // VkDeviceMemory vertexBufferMemory;
     pom::gfx::Buffer* vertexBuffer;
     pom::gfx::Buffer* indexBuffer;
 };
@@ -84,7 +69,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     auto* instanceVk = dynamic_cast<pom::gfx::InstanceVk*>(pom::Application::get()->getGraphicsInstance());
     auto* contextVk = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-    gamestate->physicalDevice = instanceVk->physicalDevice;
     gamestate->device = instanceVk->device;
 
     // end super hacky test stuff
@@ -320,8 +304,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
 
-    // gamestate->commandBuffer->draw(gamestate->vertexBuffer->getSize() / sizeof(Vertex));
-    gamestate->commandBuffer->drawIndexed(6);
+    gamestate->commandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
 
     gamestate->commandBuffer->endRenderPass();
     gamestate->commandBuffer->end();
