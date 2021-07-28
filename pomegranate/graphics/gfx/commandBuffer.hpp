@@ -9,6 +9,7 @@
 namespace pom::gfx {
 
     class RenderPass;
+    class Buffer;
 
     /// @addtogroup gfx
     /// @{
@@ -45,7 +46,7 @@ namespace pom::gfx {
         // TODO: different frame buffers, currently only renders to swapchain framebuffer
         virtual void beginRenderPass(RenderPass* renderPass) = 0;
 
-        /// End the previously begun RenderPass.
+        /// End the previously begun `RenderPass` should only be called after `beginRenderPass`.
         virtual void endRenderPass() = 0;
 
         /// Stop recording to a command buffer.
@@ -61,6 +62,10 @@ namespace pom::gfx {
 
         /// Submits a draw command to the command buffer.
         virtual void draw(u32 vertexCount, u32 firstVertex = 0) = 0;
+
+        /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
+        /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read.
+        virtual void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
 
     protected:
         CommandBufferSpecialization specialization;

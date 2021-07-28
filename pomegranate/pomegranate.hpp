@@ -54,6 +54,10 @@
 #include "debug/logging.hpp"
 #include "debug/profiler.hpp"
 
+/// @defgroup util Utilities
+/// @brief Little utility things that don't fit anywhere else.
+#include "util/util.hpp"
+
 /// @defgroup maths Maths
 /// @brief All mathematical functionality.
 ///
@@ -83,6 +87,7 @@
 /// @defgroup gfx GFX
 /// @brief Low level graphics api abstraction layer.
 /// @ingroup graphics
+#include "graphics/gfx/buffer.hpp"
 #include "graphics/gfx/commandBuffer.hpp"
 #include "graphics/gfx/context.hpp"
 #include "graphics/gfx/gfx.hpp"
@@ -93,6 +98,7 @@
 /// @defgroup vulkan Vulkan Implementation
 /// @ingroup gfx
 /// @brief Vulkan implementation of GFX
+#include "graphics/gfx/vulkan/bufferVk.hpp"
 #include "graphics/gfx/vulkan/commandBufferVk.hpp"
 #include "graphics/gfx/vulkan/contextVk.hpp"
 #include "graphics/gfx/vulkan/instanceVk.hpp"

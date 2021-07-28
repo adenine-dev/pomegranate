@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../buffer.hpp"
 #include "../gfx.hpp"
 #include "../renderPass.hpp"
 
@@ -24,6 +25,12 @@ namespace pom::gfx {
 
     /// Converts a `VkAttachmentStoreOp` to a `StoreOperation`.
     POM_API constexpr StoreOperation fromVkAttachmentStoreOp(VkAttachmentStoreOp o);
+
+    /// Converts a `BufferUsage` to a `VkAttachmentStoreOp`.
+    POM_API constexpr VkBufferUsageFlags toVkBufferUsageFlags(BufferUsage u);
+
+    /// Converts a `VkBufferUsageFlags` to a `BufferUsage`.
+    POM_API constexpr BufferUsage fromVkBufferUsageFlags(VkBufferUsageFlags u);
 
     /// @}
 } // namespace pom::gfx

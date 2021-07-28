@@ -569,4 +569,38 @@ namespace pom::gfx {
         }
     }
 
+    constexpr VkBufferUsageFlags toVkBufferUsageFlags(BufferUsage u)
+    {
+        VkBufferUsageFlags ret = 0;
+
+        if (u & BufferUsage::VERTEX) {
+            ret |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        }
+        if (u & BufferUsage::INDEX) {
+            ret |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        }
+        if (u & BufferUsage::UNIFORM) {
+            ret |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        }
+
+        return ret;
+    }
+
+    constexpr BufferUsage fromVkBufferUsageFlags(VkBufferUsageFlags u)
+    {
+        auto ret = static_cast<BufferUsage>(0);
+
+        if (u & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
+            ret |= BufferUsage::VERTEX;
+        }
+        if (u & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) {
+            ret |= BufferUsage::INDEX;
+        }
+        if (u & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
+            ret |= BufferUsage::UNIFORM;
+        }
+
+        return ret;
+    }
+
 } // namespace pom::gfx

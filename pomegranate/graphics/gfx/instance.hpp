@@ -10,6 +10,13 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
+    /// Capabilities of a given GPU, contains information on the variable abilities and attributes of the hardware.
+    struct Capabilities {
+        /// The number of vertex buffers that can be bound at once.
+        u32 vertexInputBindings;
+        // TODO: everything else...
+    };
+
     /// Corresponds to a hardware Graphics device, may not be strictly a GPU for example integrated CPU graphics.
     struct GPU {
         /// Human readable name of the device.
@@ -18,7 +25,9 @@ namespace pom::gfx {
         bool discrete;
         /// Graphics API dependent handle.
         void* handle;
-        // TODO: other device properties, esp capabilities.
+        /// The capabilities of the GPU, see Capabilities.
+        Capabilities capabilities;
+        // TODO: other device properties.
     };
 
     /// Singleton information associated with a graphics API.
@@ -40,6 +49,13 @@ namespace pom::gfx {
         /// Returns true if the Instance is ready to be used. Currently this involves calling `determineGPU`.
         [[nodiscard]] virtual bool ready() const = 0;
 
+        /// Returns the active GPU, only valid after calling `determineGPU`.
+        [[nodiscard]] const GPU& getGPU() const
+        {
+            POM_ASSERT(ready(), "Attempting to get active GPU before the instance is ready.");
+            return GPUs[selectedGPUIndex];
+        };
+
         static Instance* create(const char* name, GraphicsAPI api);
 
         static void destroy();
@@ -55,6 +71,7 @@ namespace pom::gfx {
         friend class InstanceVk;
 
         std::vector<GPU> GPUs;
+        u32 selectedGPUIndex;
 
         static Instance* singleton;
     };

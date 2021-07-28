@@ -5,6 +5,8 @@
 #include "../commandBuffer.hpp"
 
 namespace pom::gfx {
+    class InstanceVk;
+
     /// @addtogroup vulkan
     /// @{
 
@@ -33,6 +35,8 @@ namespace pom::gfx {
 
         void draw(u32 vertexCount, u32 firstVertex = 0) final;
 
+        void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) final;
+
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {
             return commandBuffers[currentIndex];
@@ -48,15 +52,17 @@ namespace pom::gfx {
 
         CommandBufferVk(CommandBufferSpecialization specialization,
                         ContextVk* context,
-                        VkDevice device,
+                        InstanceVk* instance,
                         VkCommandPool pool,
                         u32 count);
 
         ContextVk* context;
-        VkDevice device;
+        InstanceVk* instance;
         std::vector<VkCommandBuffer> commandBuffers;
         std::vector<VkFence> recordingFences;
         u32 currentIndex;
+
+        std::vector<VkBuffer> vertexBufferBindings;
     };
 
     /// @}

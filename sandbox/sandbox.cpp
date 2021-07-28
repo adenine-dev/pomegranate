@@ -31,12 +31,6 @@ struct GameState {
     u32 graphicsQueueFamily;
     VkDevice device;
     VkQueue graphicsQueue;
-    // context
-    // std::vector<VkSemaphore> imageAvailableSemaphores;
-    // std::vector<VkSemaphore> renderFinishedSemaphores;
-    // std::vector<VkFence> inFlightFences;
-    // std::vector<VkFence> imagesInFlight;
-    // u32 frameIndex = 0;
     // context -> swapchain
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     VkFormat swapchainImageFormat;
@@ -45,18 +39,14 @@ struct GameState {
     std::vector<VkImageView> swapchainImageViews;
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkViewport swapchainViewport;
-    // u32 imageIndex = 0;
-    // command buffer
-    // VkCommandPool commandPool;
-    // std::vector<VkCommandBuffer> commandBuffers;
-    // std::vector<VkFence> commandBufferRecordFences;
     pom::gfx::CommandBuffer* commandBuffer;
     // pipeline
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     // vertex buffer
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
+    // VkBuffer vertexBuffer;
+    // VkDeviceMemory vertexBufferMemory;
+    pom::gfx::Buffer* vertexBuffer;
 };
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
@@ -308,43 +298,10 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->commandBuffer = contextVk->createCommandBuffer(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
     // vertex buffer
-    VkBufferCreateInfo vertexBufferCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = sizeof(VERTEX_DATA),
-        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-    };
-
-    POM_ASSERT(vkCreateBuffer(gamestate->device, &vertexBufferCreateInfo, nullptr, &gamestate->vertexBuffer)
-                   == VK_SUCCESS,
-               "Failed to create vertex buffer");
-
-    VkMemoryRequirements memoryReqs;
-    vkGetBufferMemoryRequirements(gamestate->device, gamestate->vertexBuffer, &memoryReqs);
-
-    VkMemoryAllocateInfo memoryAllocInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .allocationSize = memoryReqs.size,
-        .memoryTypeIndex = findMemoryType(gamestate->physicalDevice,
-                                          memoryReqs.memoryTypeBits,
-                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
-    };
-
-    POM_ASSERT(vkAllocateMemory(gamestate->device, &memoryAllocInfo, nullptr, &gamestate->vertexBufferMemory)
-                   == VK_SUCCESS,
-               "Failed to allocate vertex buffer memory.")
-
-    vkBindBufferMemory(gamestate->device, gamestate->vertexBuffer, gamestate->vertexBufferMemory, 0);
-
-    void* data;
-    vkMapMemory(gamestate->device, gamestate->vertexBufferMemory, 0, sizeof(VERTEX_DATA), 0, &data);
+    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(VERTEX_DATA));
+    void* data = gamestate->vertexBuffer->map(0, sizeof(VERTEX_DATA));
     memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
-    vkUnmapMemory(gamestate->device, gamestate->vertexBufferMemory);
+    gamestate->vertexBuffer->unmap();
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -356,6 +313,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     if (gamestate->paused) {
         return;
     }
+
     auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
     gamestate->commandBuffer->begin();
@@ -371,12 +329,11 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
                                           context->swapchainViewport.maxDepth);
     gamestate->commandBuffer->setScissor({ 0, 0 }, { context->swapchainExtent.width, context->swapchainExtent.height });
 
-    size_t offset = 0;
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &gamestate->vertexBuffer, &offset);
+    gamestate->commandBuffer->bindVertexBuffer(gamestate->vertexBuffer);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
 
-    gamestate->commandBuffer->draw(3);
+    gamestate->commandBuffer->draw(gamestate->vertexBuffer->getSize() / sizeof(Vertex));
 
     gamestate->commandBuffer->endRenderPass();
     gamestate->commandBuffer->end();
@@ -398,10 +355,9 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
-    delete gamestate->commandBuffer;
 
-    vkDestroyBuffer(gamestate->device, gamestate->vertexBuffer, nullptr);
-    vkFreeMemory(gamestate->device, gamestate->vertexBufferMemory, nullptr);
+    delete gamestate->vertexBuffer;
+    delete gamestate->commandBuffer;
 
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);

@@ -237,6 +237,7 @@ namespace pom::gfx {
 
         // select best gpu.
         u32 maxScore = 0;
+        u32 i = 0;
         for (auto& gpu : GPUs) {
             u32 score = 1;
 
@@ -316,7 +317,10 @@ namespace pom::gfx {
                 physicalDevice = device;
                 graphicsQueueFamilyIndex = graphicsQueueFamily;
                 presentQueueFamilyIndex = presentQueueFamily;
+                selectedGPUIndex = i;
             }
+
+            i++;
         }
 
         // create logical device and queues

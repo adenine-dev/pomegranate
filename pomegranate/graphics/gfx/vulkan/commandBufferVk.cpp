@@ -2,16 +2,18 @@
 
 #include "commandBufferVk.hpp"
 
+#include "bufferVk.hpp"
 #include "contextVk.hpp"
+#include "instanceVk.hpp"
 
 namespace pom::gfx {
     CommandBufferVk::CommandBufferVk(CommandBufferSpecialization specialization,
                                      ContextVk* context,
-                                     VkDevice device,
+                                     InstanceVk* instance,
                                      VkCommandPool pool,
                                      u32 count) :
         CommandBuffer(specialization),
-        context(context), device(device), commandBuffers(count), recordingFences(count),
+        context(context), instance(instance), commandBuffers(count), recordingFences(count),
         currentIndex(context->getSwapchainImageIndex())
     {
         VkFenceCreateInfo fenceCreateInfo = {
@@ -29,19 +31,20 @@ namespace pom::gfx {
         };
 
         for (u32 i = 0; i < count; i++) {
-            POM_ASSERT(vkCreateFence(device, &fenceCreateInfo, nullptr, &recordingFences[i]) == VK_SUCCESS,
+            POM_ASSERT(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &recordingFences[i]) == VK_SUCCESS,
                        "Failed to create recording fence");
 
-            POM_ASSERT(vkAllocateCommandBuffers(device, &commandBufferAllocateCreateInfo, commandBuffers.data())
-                           == VK_SUCCESS,
-                       "Failed to allocate command buffers.");
+            POM_ASSERT(
+                vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers.data())
+                    == VK_SUCCESS,
+                "Failed to allocate command buffers.");
         }
     }
 
     CommandBufferVk::~CommandBufferVk()
     {
         for (auto& recordingFence : recordingFences) {
-            vkDestroyFence(device, recordingFence, nullptr);
+            vkDestroyFence(instance->device, recordingFence, nullptr);
         }
     }
 
@@ -52,8 +55,8 @@ namespace pom::gfx {
         // only thing that locks it into being Context specific, and it may be worth recondiering this choice.
         currentIndex = context->getSwapchainImageIndex();
 
-        vkWaitForFences(device, 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
-        vkResetFences(device, 1, &getCurrentRecordingFence());
+        vkWaitForFences(instance->device, 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
+        vkResetFences(instance->device, 1, &getCurrentRecordingFence());
 
         VkCommandBufferBeginInfo commandBufferBeginInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -111,6 +114,16 @@ namespace pom::gfx {
     void CommandBufferVk::draw(u32 vertexCount, u32 firstVertex)
     {
         vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, firstVertex, 0);
+    }
+
+    void CommandBufferVk::bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint, size_t offset)
+    {
+        POM_ASSERT(vertexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched vertex buffer api");
+        POM_ASSERT(vertexBuffer->getUsage() & BufferUsage::VERTEX,
+                   "Attempting to use a buffer created without the vertex BufferUsage.")
+
+        VkBuffer buffer = dynamic_cast<BufferVk*>(vertexBuffer)->getBuffer();
+        vkCmdBindVertexBuffers(getCurrentCommandBuffer(), bindPoint, 1, &buffer, &offset);
     }
 
 } // namespace pom::gfx
