@@ -529,7 +529,7 @@ namespace pom::gfx {
             return LoadOperation::DONTCARE;
         } break;
         default: {
-            // NOTE: there has to be a better way to do this.
+            // FIXME: there has to be a better way to do this.
 #ifdef _DEBUG
             POM_ERROR("Bad vk attachment load operation.");
 #endif
@@ -560,7 +560,7 @@ namespace pom::gfx {
             return StoreOperation::DONTCARE;
         } break;
         default: {
-            // NOTE: there has to be a better way to do this.
+            // FIXME: there has to be a better way to do this.
 #ifdef _DEBUG
             POM_ERROR("Bad vk attachment store operation.");
 #endif
@@ -601,6 +601,37 @@ namespace pom::gfx {
         }
 
         return ret;
+    }
+
+    constexpr VkIndexType toVkIndexType(IndexType t)
+    {
+        switch (t) {
+        case IndexType::U16: {
+            return VK_INDEX_TYPE_UINT16;
+        } break;
+        case IndexType::U32: {
+            return VK_INDEX_TYPE_UINT32;
+        } break;
+        }
+    }
+
+    constexpr IndexType fromVkIndexType(VkIndexType t)
+    {
+        switch (t) {
+        case VK_INDEX_TYPE_UINT16: {
+            return IndexType::U16;
+        } break;
+        case VK_INDEX_TYPE_UINT32: {
+            return IndexType::U32;
+        } break;
+        default: {
+            // FIXME: there has to be a better way to do this.
+#ifdef _DEBUG
+            POM_ERROR("Bad vk index type.");
+#endif
+            return IndexType::U32;
+        }
+        }
     }
 
 } // namespace pom::gfx

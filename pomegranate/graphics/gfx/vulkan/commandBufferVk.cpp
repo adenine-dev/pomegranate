@@ -111,9 +111,14 @@ namespace pom::gfx {
         vkCmdSetScissor(getCurrentCommandBuffer(), 0, 1, &scissor);
     }
 
-    void CommandBufferVk::draw(u32 vertexCount, u32 firstVertex)
+    void CommandBufferVk::draw(u32 vertexCount, u32 vertexOffset)
     {
-        vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, firstVertex, 0);
+        vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, vertexOffset, 0);
+    }
+
+    void CommandBufferVk::drawIndexed(u32 indexCount, u32 firstIndex, i32 vertexOffset)
+    {
+        vkCmdDrawIndexed(getCurrentCommandBuffer(), indexCount, 1, firstIndex, vertexOffset, 0);
     }
 
     void CommandBufferVk::bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint, size_t offset)
@@ -124,6 +129,18 @@ namespace pom::gfx {
 
         VkBuffer buffer = dynamic_cast<BufferVk*>(vertexBuffer)->getBuffer();
         vkCmdBindVertexBuffers(getCurrentCommandBuffer(), bindPoint, 1, &buffer, &offset);
+    }
+
+    void CommandBufferVk::bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset)
+    {
+        POM_ASSERT(indexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
+        POM_ASSERT(indexBuffer->getUsage() & BufferUsage::INDEX,
+                   "Attempting to use a buffer created without the index BufferUsage.")
+
+        vkCmdBindIndexBuffer(getCurrentCommandBuffer(),
+                             dynamic_cast<BufferVk*>(indexBuffer)->getBuffer(),
+                             offset,
+                             toVkIndexType(type));
     }
 
 } // namespace pom::gfx

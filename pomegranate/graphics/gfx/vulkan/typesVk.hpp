@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../buffer.hpp"
+#include "../commandBuffer.hpp"
 #include "../gfx.hpp"
 #include "../renderPass.hpp"
 
@@ -31,6 +32,12 @@ namespace pom::gfx {
 
     /// Converts a `VkBufferUsageFlags` to a `BufferUsage`.
     POM_API constexpr BufferUsage fromVkBufferUsageFlags(VkBufferUsageFlags u);
+
+    /// Converts a `IndexType` to a `VkIndexType`.
+    POM_API constexpr VkIndexType toVkIndexType(IndexType t);
+
+    /// Converts a `VkIndexType` to a `IndexType`.
+    POM_API constexpr IndexType fromVkIndexType(VkIndexType t);
 
     /// @}
 } // namespace pom::gfx

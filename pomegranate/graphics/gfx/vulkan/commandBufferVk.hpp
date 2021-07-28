@@ -33,9 +33,13 @@ namespace pom::gfx {
 
         void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) final;
 
-        void draw(u32 vertexCount, u32 firstVertex = 0) final;
+        void draw(u32 vertexCount, u32 vertexOffset = 0) final;
+
+        void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) final;
 
         void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) final;
+
+        void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) final;
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {

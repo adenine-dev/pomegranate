@@ -23,6 +23,12 @@ namespace pom::gfx {
         // TRANSFER //TODO: transfer queues
     };
 
+    enum class IndexType {
+        // U8, // TODO: VK_EXT_index_type_uint8 ?
+        U16,
+        U32
+    };
+
     /// Command buffers are used to submit actions to the GPU.
     class POM_API CommandBuffer {
     public:
@@ -61,11 +67,19 @@ namespace pom::gfx {
         virtual void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) = 0;
 
         /// Submits a draw command to the command buffer.
-        virtual void draw(u32 vertexCount, u32 firstVertex = 0) = 0;
+        virtual void draw(u32 vertexCount, u32 vertexOffset = 0) = 0;
+
+        /// Submits a draw indexed command to the command buffer.
+        virtual void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) = 0;
 
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
         /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read.
         virtual void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
+
+        /// Binds an index buffer, the Buffer **must** have been initialize with `BufferUsage::INDEX`. `type` is how the
+        /// data in the buffer will be read, this is independent from the type of whatever data was written into the
+        /// buffer. `offset` is the offset to the first byte from which indicies will be calculated.
+        virtual void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) = 0;
 
     protected:
         CommandBufferSpecialization specialization;

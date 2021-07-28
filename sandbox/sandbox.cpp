@@ -19,26 +19,20 @@ struct Vertex {
     pom::Color color;
 };
 
-static const Vertex VERTEX_DATA[] = { { { 0.0f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-                                      { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-                                      { { -0.5f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } } };
+static const Vertex VERTEX_DATA[] = { { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+                                      { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
+                                      { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+                                      { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } } };
+
+static const u16 INDEX_DATA[] = { 0, 1, 2, 0, 2, 3 };
 
 struct GameState {
     bool paused = false;
     // instance
     VkInstance instance;
     VkPhysicalDevice physicalDevice;
-    u32 graphicsQueueFamily;
     VkDevice device;
-    VkQueue graphicsQueue;
     // context -> swapchain
-    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-    VkFormat swapchainImageFormat;
-    VkExtent2D swapchainExtent;
-    std::vector<VkImage> swapchainImages;
-    std::vector<VkImageView> swapchainImageViews;
-    std::vector<VkFramebuffer> swapchainFramebuffers;
-    VkViewport swapchainViewport;
     pom::gfx::CommandBuffer* commandBuffer;
     // pipeline
     VkPipelineLayout pipelineLayout;
@@ -47,6 +41,7 @@ struct GameState {
     // VkBuffer vertexBuffer;
     // VkDeviceMemory vertexBufferMemory;
     pom::gfx::Buffer* vertexBuffer;
+    pom::gfx::Buffer* indexBuffer;
 };
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
@@ -63,21 +58,6 @@ POM_CLIENT_EXPORT GameState* clientCreateState()
     auto* gc = new GameState;
 
     return gc;
-}
-
-u32 findMemoryType(VkPhysicalDevice physicalDevice, u32 filter, VkMemoryPropertyFlags props)
-{
-    VkPhysicalDeviceMemoryProperties physicalMemoryProps;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalMemoryProps);
-
-    for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
-        if (filter & (1 << i) && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
-            return i;
-        }
-    }
-
-    POM_FATAL("failed to find suitable memory type.");
-    return -1;
 }
 
 VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned char* bytes)
@@ -302,6 +282,12 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     void* data = gamestate->vertexBuffer->map(0, sizeof(VERTEX_DATA));
     memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
     gamestate->vertexBuffer->unmap();
+
+    // index buffer
+    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX, sizeof(INDEX_DATA));
+    data = gamestate->indexBuffer->map(0, sizeof(INDEX_DATA));
+    memcpy(data, INDEX_DATA, sizeof(INDEX_DATA));
+    gamestate->indexBuffer->unmap();
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -330,10 +316,12 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     gamestate->commandBuffer->setScissor({ 0, 0 }, { context->swapchainExtent.width, context->swapchainExtent.height });
 
     gamestate->commandBuffer->bindVertexBuffer(gamestate->vertexBuffer);
+    gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
 
-    gamestate->commandBuffer->draw(gamestate->vertexBuffer->getSize() / sizeof(Vertex));
+    // gamestate->commandBuffer->draw(gamestate->vertexBuffer->getSize() / sizeof(Vertex));
+    gamestate->commandBuffer->drawIndexed(6);
 
     gamestate->commandBuffer->endRenderPass();
     gamestate->commandBuffer->end();
@@ -358,6 +346,7 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 
     delete gamestate->vertexBuffer;
     delete gamestate->commandBuffer;
+    delete gamestate->indexBuffer;
 
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
