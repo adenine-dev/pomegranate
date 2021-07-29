@@ -12,20 +12,95 @@
 #    define POM_VECTOR_SIZE_TYPE u8
 #endif
 
-#define IMPL_COMMON_VECTOR_FUNCS(N)                                                                                    \
+#define IMPL_COMMON_VECTOR_FUNCS(T, N)                                                                                 \
     /** Returns a reference to the nth member of a vector. \n                                                          \
         @warning No bounds checking is preformed so using this improperly can crash.                                   \
      */                                                                                                                \
-    inline T& operator[](const POM_VECTOR_SIZE_TYPE n)                                                                 \
+    constexpr T& operator[](const POM_VECTOR_SIZE_TYPE n)                                                              \
     {                                                                                                                  \
         return data[n];                                                                                                \
     }                                                                                                                  \
     /** Returns a const reference to the nth member of a vector. \n                                                    \
        @warning No bounds checking is preformed so using this improperly can crash.                                    \
      */                                                                                                                \
-    inline const T& operator[](const POM_VECTOR_SIZE_TYPE n) const                                                     \
+    constexpr const T& operator[](const POM_VECTOR_SIZE_TYPE n) const                                                  \
     {                                                                                                                  \
         return data[n];                                                                                                \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& add(T other)                                                                               \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] += other;                                                                                          \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& sub(const T& other)                                                                        \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] -= other;                                                                                          \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& mul(const T& other)                                                                        \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] *= other;                                                                                          \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& div(const T& other)                                                                        \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] /= other;                                                                                          \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& add(const Vector<T, N>& other)                                                             \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] += other[i];                                                                                       \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& sub(const Vector<T, N>& other)                                                             \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] -= other[i];                                                                                       \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& mul(const Vector<T, N>& other)                                                             \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] *= other[i];                                                                                       \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& div(const Vector<T, N>& other)                                                             \
+    {                                                                                                                  \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            data[i] /= other[i];                                                                                       \
+        return *this;                                                                                                  \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator+=(const Vector<T, N>& other)                                                      \
+    {                                                                                                                  \
+        return add(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator-=(const Vector<T, N>& other)                                                      \
+    {                                                                                                                  \
+        return sub(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator*=(const Vector<T, N>& other)                                                      \
+    {                                                                                                                  \
+        return mul(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator/=(const Vector<T, N>& other)                                                      \
+    {                                                                                                                  \
+        return div(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr bool operator==(const Vector<T, N>& other) const                                                         \
+    {                                                                                                                  \
+        bool ret = true;                                                                                               \
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
+            ret = ret && (data[i] == other[i]);                                                                        \
+        return ret;                                                                                                    \
+    }                                                                                                                  \
+    constexpr bool operator!=(const Vector<T, N>& other) const                                                         \
+    {                                                                                                                  \
+        return !(operator==(other));                                                                                   \
     }
 
 namespace pom::maths {
@@ -44,7 +119,7 @@ namespace pom::maths {
         /// Raw data of the vector, recommended to access through `operator[]()`.
         T data[N];
 
-        IMPL_COMMON_VECTOR_FUNCS(N)
+        IMPL_COMMON_VECTOR_FUNCS(T, N)
     };
 
     /// @private
@@ -65,7 +140,7 @@ namespace pom::maths {
             };
         };
 
-        IMPL_COMMON_VECTOR_FUNCS(2)
+        IMPL_COMMON_VECTOR_FUNCS(T, 2)
     };
 
     /// @private
@@ -90,7 +165,7 @@ namespace pom::maths {
             };
         };
 
-        IMPL_COMMON_VECTOR_FUNCS(3)
+        IMPL_COMMON_VECTOR_FUNCS(T, 3)
     };
 
     /// @private
@@ -119,8 +194,32 @@ namespace pom::maths {
             };
         };
 
-        IMPL_COMMON_VECTOR_FUNCS(4)
+        IMPL_COMMON_VECTOR_FUNCS(T, 4)
     };
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N>
+    constexpr Vector<T, N>& operator+(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        return lhs.add(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N>
+    constexpr Vector<T, N>& operator-=(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        return lhs.sub(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N>
+    constexpr Vector<T, N>& operator*=(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        return lhs.mul(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N>
+    constexpr Vector<T, N>& operator/=(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        return lhs.div(rhs);
+    }
 
     /// @addtogroup types
     /// @{
