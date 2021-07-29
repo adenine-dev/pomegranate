@@ -36,7 +36,19 @@ namespace pom::gfx {
     class POM_API Buffer {
     public:
         // TODO: CPU access flags, staging buffer for data that is write only probs.
-        static Buffer* create(BufferUsage usage, size_t size);
+
+        /// Creates a Buffer.
+        /// @arg usage: Some combination of `BufferUsage`s that this buffer can be used with.
+        /// @arg size: The size of the buffer.
+        /// @arg initialData: If passed the buffer will be initialized with this data.
+        /// @arg initialDataOffset: If passed the buffer will be created with the `initialData` at the specified offset.
+        /// @arg initialDataSize: If passed the size of `initialData`. If not passed `initialData` is assumed to be of
+        /// size `size`, and `initialDataOffset` should be 0.
+        static Buffer* create(BufferUsage usage,
+                              size_t size,
+                              const void* initialData = nullptr,
+                              size_t initialDataOffset = 0,
+                              size_t initialDataSize = 0);
 
         virtual ~Buffer() = default;
 

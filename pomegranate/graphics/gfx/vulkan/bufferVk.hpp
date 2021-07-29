@@ -13,7 +13,12 @@ namespace pom::gfx {
     /// memory.
     class POM_API BufferVk final : public Buffer {
     public:
-        BufferVk(InstanceVk* instance, BufferUsage usage, size_t size);
+        BufferVk(InstanceVk* instance,
+                 BufferUsage usage,
+                 size_t size,
+                 const void* data,
+                 size_t initialDataOffset,
+                 size_t initialDataSize);
         ~BufferVk() final;
 
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final

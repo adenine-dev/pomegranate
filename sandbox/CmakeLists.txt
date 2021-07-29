@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SOURCES
-    ./spirv-cross-test.cpp
+    ./sandbox.cpp
 )
 
 add_library(sandbox SHARED ${SOURCES})

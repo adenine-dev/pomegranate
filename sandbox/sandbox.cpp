@@ -3,15 +3,19 @@
 #include "embed/basic_frag_spv.hpp"
 #include "embed/basic_vert_spv.hpp"
 
+#include <spirv_reflect.hpp>
+
 struct Vertex {
     pom::maths::vec3 pos;
     pom::Color color;
 };
 
-static const Vertex VERTEX_DATA[] = { { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-                                      { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
-                                      { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-                                      { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } } };
+static Vertex VERTEX_DATA[] = { { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+                                { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
+                                { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+                                { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } } };
+
+static const f32 SCALE_DATA[] = { 2, 1.5, 1, 0.5 };
 
 static const u16 INDEX_DATA[] = { 0, 1, 2, 0, 2, 3 };
 
@@ -26,6 +30,7 @@ struct GameState {
     VkPipeline graphicsPipeline;
     // vertex buffer
     pom::gfx::Buffer* vertexBuffer;
+    pom::gfx::Buffer* scaleBuffer;
     pom::gfx::Buffer* indexBuffer;
 };
 
@@ -98,34 +103,65 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageCreateInfo, fragShaderStageCreateInfo };
 
-    VkVertexInputBindingDescription vertexBindingDesc = {
-        .binding = 0,
-        .stride = sizeof(Vertex),
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-    };
+    spirv_cross::CompilerReflection vertShaderModuleReflection(reinterpret_cast<const u32*>(basic_vert_spv_data),
+                                                               basic_vert_spv_size / sizeof(u32));
+
+    spirv_cross::ShaderResources vertShaderResources = vertShaderModuleReflection.get_shader_resources();
+
+    auto inputs = vertShaderResources.stage_inputs;
+
+    // std::vector<VkVertexInputBindingDescription> vertexBindingDescs;
+    // std::vector<VkVertexInputAttributeDescription> vertexAttribDescs;
+
+    for (auto& input : inputs) {
+        u32 set = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationDescriptorSet);
+        u32 binding = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationBinding);
+        u32 location = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationLocation);
+        u32 offset = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationOffset);
+
+        POM_DEBUG(input.name, ", ", set, ", ", binding, ", ", location, ", ", offset);
+    }
+
+    VkVertexInputBindingDescription vertexBindingDescs[] = { {
+                                                                 .binding = 0, //*
+                                                                 .stride = sizeof(Vertex), //*
+                                                                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+                                                             },
+                                                             {
+                                                                 .binding = 1, //*
+                                                                 .stride = sizeof(f32), //*
+                                                                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+                                                             } };
 
     VkVertexInputAttributeDescription vertexAttribDescs[] = { {
                                                                   // position
-                                                                  .location = 0,
+                                                                  .location = 0, //*
                                                                   .binding = 0,
-                                                                  .format = VK_FORMAT_R32G32B32_SFLOAT,
+                                                                  .format = VK_FORMAT_R32G32B32_SFLOAT, //*
                                                                   .offset = offsetof(Vertex, pos),
                                                               },
                                                               {
                                                                   // color
-                                                                  .location = 1,
+                                                                  .location = 1, //*
                                                                   .binding = 0,
-                                                                  .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                                                                  .format = VK_FORMAT_R32G32B32A32_SFLOAT, //*
                                                                   .offset = offsetof(Vertex, color),
+                                                              },
+                                                              {
+                                                                  // scale
+                                                                  .location = 2, //*
+                                                                  .binding = 1,
+                                                                  .format = VK_FORMAT_R32_SFLOAT, //*
+                                                                  .offset = 0,
                                                               } };
 
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .vertexBindingDescriptionCount = 1,
-        .pVertexBindingDescriptions = &vertexBindingDesc,
-        .vertexAttributeDescriptionCount = 2,
+        .vertexBindingDescriptionCount = 2,
+        .pVertexBindingDescriptions = vertexBindingDescs,
+        .vertexAttributeDescriptionCount = 3,
         .pVertexAttributeDescriptions = vertexAttribDescs,
     };
 
@@ -261,16 +297,13 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->commandBuffer = contextVk->createCommandBuffer(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
     // vertex buffer
-    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(VERTEX_DATA));
-    void* data = gamestate->vertexBuffer->map(0, sizeof(VERTEX_DATA));
-    memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
-    gamestate->vertexBuffer->unmap();
+    void* data;
+    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(VERTEX_DATA), VERTEX_DATA);
+
+    gamestate->scaleBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(SCALE_DATA), SCALE_DATA);
 
     // index buffer
-    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX, sizeof(INDEX_DATA));
-    data = gamestate->indexBuffer->map(0, sizeof(INDEX_DATA));
-    memcpy(data, INDEX_DATA, sizeof(INDEX_DATA));
-    gamestate->indexBuffer->unmap();
+    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX, sizeof(INDEX_DATA), INDEX_DATA);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -284,6 +317,19 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     }
 
     auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
+
+    // TODO: what is a matrix lol
+    auto frame = pom::Application::get()->getFrame();
+    for (u8 i = 0; i < 4; i++) {
+        VERTEX_DATA[i].pos = {
+            (f32)cos(i / 4.f * TAU + frame / 100.f) / 2.f,
+            (f32)sin(i / 4.f * TAU + frame / 100.f) / 2.f,
+            0.f,
+        };
+    }
+    void* data = gamestate->vertexBuffer->map(0, sizeof(VERTEX_DATA));
+    memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
+    gamestate->vertexBuffer->unmap();
 
     gamestate->commandBuffer->begin();
     gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass());
@@ -299,6 +345,8 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     gamestate->commandBuffer->setScissor({ 0, 0 }, { context->swapchainExtent.width, context->swapchainExtent.height });
 
     gamestate->commandBuffer->bindVertexBuffer(gamestate->vertexBuffer);
+    gamestate->commandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
+
     gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
@@ -327,6 +375,7 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
 
     delete gamestate->vertexBuffer;
+    delete gamestate->scaleBuffer;
     delete gamestate->commandBuffer;
     delete gamestate->indexBuffer;
 

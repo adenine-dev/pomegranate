@@ -5,7 +5,14 @@
 #include "typesVk.hpp"
 
 namespace pom::gfx {
-    BufferVk::BufferVk(InstanceVk* instance, BufferUsage usage, size_t size) : Buffer(usage, size), instance(instance)
+    BufferVk::BufferVk(InstanceVk* instance,
+                       BufferUsage usage,
+                       size_t size,
+                       const void* initialData,
+                       size_t initialDataOffset,
+                       size_t initialDataSize) :
+        Buffer(usage, size),
+        instance(instance)
     {
         VkBufferCreateInfo vertexBufferCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -56,6 +63,12 @@ namespace pom::gfx {
                    "Failed to allocate vertex buffer memory.")
 
         vkBindBufferMemory(instance->device, buffer, memory, 0);
+
+        if (initialData) {
+            void* data = map(initialDataOffset, initialDataSize ? initialDataSize : size);
+            memcpy(data, initialData, initialDataSize ? initialDataSize : size);
+            unmap();
+        }
     }
 
     BufferVk::~BufferVk()

@@ -5,6 +5,7 @@
 
 #include <spirv_glsl.hpp>
 #include <spirv_hlsl.hpp>
+
 #include <spirv_reflect.hpp>
 
 struct GameState {
@@ -39,7 +40,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
         u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
         u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-        POM_DEBUG(resource.name, ", ", set, ", ", binding, ", ", location);
+        u32 offset = compiler.get_decoration(resource.id, spv::DecorationOffset);
+
+        POM_DEBUG(resource.name, ", ", set, ", ", binding, ", ", location, ", ", offset);
     }
 }
 

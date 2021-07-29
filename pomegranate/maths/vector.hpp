@@ -33,19 +33,19 @@
             data[i] += other;                                                                                          \
         return *this;                                                                                                  \
     }                                                                                                                  \
-    constexpr Vector<T, N>& sub(const T& other)                                                                        \
+    constexpr Vector<T, N>& sub(T other)                                                                               \
     {                                                                                                                  \
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
             data[i] -= other;                                                                                          \
         return *this;                                                                                                  \
     }                                                                                                                  \
-    constexpr Vector<T, N>& mul(const T& other)                                                                        \
+    constexpr Vector<T, N>& mul(T other)                                                                               \
     {                                                                                                                  \
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
             data[i] *= other;                                                                                          \
         return *this;                                                                                                  \
     }                                                                                                                  \
-    constexpr Vector<T, N>& div(const T& other)                                                                        \
+    constexpr Vector<T, N>& div(T other)                                                                               \
     {                                                                                                                  \
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
             data[i] /= other;                                                                                          \
@@ -91,6 +91,22 @@
     {                                                                                                                  \
         return div(other);                                                                                             \
     }                                                                                                                  \
+    constexpr Vector<T, N>& operator+=(T other)                                                                        \
+    {                                                                                                                  \
+        return add(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator-=(T other)                                                                        \
+    {                                                                                                                  \
+        return sub(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator*=(T other)                                                                        \
+    {                                                                                                                  \
+        return mul(other);                                                                                             \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& operator/=(T other)                                                                        \
+    {                                                                                                                  \
+        return div(other);                                                                                             \
+    }                                                                                                                  \
     constexpr bool operator==(const Vector<T, N>& other) const                                                         \
     {                                                                                                                  \
         bool ret = true;                                                                                               \
@@ -113,7 +129,7 @@ namespace pom::maths {
     /// You probably want to use the @ref vector_specializations "Vector Specializations", but this
     /// can be used independently for larger vectors.
     /// The maximum value for `N` is determined by @ref POM_VECTOR_SIZE_TYPE
-    template <typename T, POM_VECTOR_SIZE_TYPE N> struct POM_API Vector {
+    template <typename T, POM_VECTOR_SIZE_TYPE N> struct Vector {
         static_assert(N > 0, "Cannot have a 0 size vector.");
 
         /// Raw data of the vector, recommended to access through `operator[]()`.
@@ -217,6 +233,26 @@ namespace pom::maths {
 
     template <typename T, POM_VECTOR_SIZE_TYPE N>
     constexpr Vector<T, N>& operator/=(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        return lhs.div(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N> constexpr Vector<T, N>& operator+(Vector<T, N> lhs, T rhs)
+    {
+        return lhs.add(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N> constexpr Vector<T, N>& operator-=(Vector<T, N> lhs, T rhs)
+    {
+        return lhs.sub(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N> constexpr Vector<T, N>& operator*=(Vector<T, N> lhs, T rhs)
+    {
+        return lhs.mul(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N> constexpr Vector<T, N>& operator/=(Vector<T, N> lhs, T rhs)
     {
         return lhs.div(rhs);
     }
