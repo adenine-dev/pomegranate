@@ -4,6 +4,8 @@
 #include "embed/basic_vert_spv.hpp"
 
 #include <spirv_glsl.hpp>
+#include <spirv_hlsl.hpp>
+#include <spirv_reflect.hpp>
 
 struct GameState {
 };
@@ -26,17 +28,17 @@ POM_CLIENT_EXPORT GameState* clientCreateState()
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
-    spirv_cross::CompilerGLSL glsl(reinterpret_cast<const u32*>(basic_vert_spv_data),
-                                   basic_vert_spv_size / sizeof(u32));
+    spirv_cross::CompilerReflection compiler(reinterpret_cast<const u32*>(basic_vert_spv_data),
+                                             basic_vert_spv_size / sizeof(u32));
 
     // The SPIR-V is now parsed, and we can perform reflection on it.
-    spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+    spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
     // Get all sampled images in the shader.
     for (auto& resource : resources.stage_inputs) {
-        u32 set = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        u32 binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
-        u32 location = glsl.get_decoration(resource.id, spv::DecorationLocation);
+        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
         POM_DEBUG(resource.name, ", ", set, ", ", binding, ", ", location);
     }
 }

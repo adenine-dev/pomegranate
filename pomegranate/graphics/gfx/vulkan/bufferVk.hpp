@@ -6,6 +6,11 @@
 
 namespace pom::gfx {
 
+    /// @addtogroup vulkan
+    /// @{
+
+    /// Vulkan Buffer, should be created implicitly through `Buffer::create`. Contains the buffer and corresponding
+    /// memory.
     class POM_API BufferVk final : public Buffer {
     public:
         BufferVk(InstanceVk* instance, BufferUsage usage, size_t size);

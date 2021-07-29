@@ -70,7 +70,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     auto* contextVk = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
     gamestate->device = instanceVk->device;
-
     // end super hacky test stuff
 
     // pipeline

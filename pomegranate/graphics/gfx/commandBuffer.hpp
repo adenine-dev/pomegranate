@@ -18,15 +18,17 @@ namespace pom::gfx {
     /// applicable such as Vulkan. In addition to this, some hardware won't have a dedicated queue for a certain
     /// specialization and the command buffer will be constructed from a different more general queue.
     enum class CommandBufferSpecialization {
-        GRAPHICS,
-        // COMPUTE,
-        // TRANSFER //TODO: transfer queues
+        GRAPHICS, ///< Command buffer should be constructed by the graphics queue.
+        // TODO: compute and transfer functionality.
+        // COMPUTE, ///< Command buffer should be constructed by the compute queue.
+        // TRANSFER ///< Command buffer should be constructed by the transfer queue.
     };
 
+    /// The type of a member in an index Buffer. @see CommandBuffer::bindIndexBuffer
     enum class IndexType {
         // U8, // TODO: VK_EXT_index_type_uint8 ?
-        U16,
-        U32
+        U16, ///< The type is an unsigned 16bit integer.
+        U32 ///< The type is an unsigned 32bit integer.
     };
 
     /// Command buffers are used to submit actions to the GPU.
