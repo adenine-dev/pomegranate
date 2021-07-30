@@ -249,14 +249,18 @@ namespace pom::gfx {
             vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
             bool hasGraphicsQueueFamily = false;
+            bool dedicatedTransferQueueFamily = false;
             VkBool32 hasPresentQueueFamily = false;
             u32 graphicsQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
             u32 presentQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
+            u32 transferQueueFamily = INVALID_QUEUE_FAMILY_INDEX;
             for (u32 i = 0; i < queueFamilies.size(); i++) {
-                // require graphics capable queue family
+                // require graphics capable queue family and default the transfer queue to be the same (all graphics
+                // queue families implicitly support transfer operations)
                 if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                     hasGraphicsQueueFamily = true;
                     graphicsQueueFamily = i;
+                    transferQueueFamily = graphicsQueueFamily;
                 }
 
                 // require present support
@@ -265,13 +269,34 @@ namespace pom::gfx {
                     presentQueueFamily = i;
                 }
 
-                if (hasGraphicsQueueFamily && hasPresentQueueFamily) {
-                    continue;
+                if (!dedicatedTransferQueueFamily && queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT
+                    && !(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT
+                         || queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+                    transferQueueFamily = i;
+                    dedicatedTransferQueueFamily = true;
                 }
-
-                // TODO: prefer a queue family that has both graphics and present capabilities.
             }
 
+            // prefer to share graphics and present in one queue.
+            if (graphicsQueueFamily != presentQueueFamily) {
+                vkGetPhysicalDeviceSurfaceSupportKHR(device,
+                                                     graphicsQueueFamily,
+                                                     context->surface,
+                                                     &hasPresentQueueFamily);
+                if (hasPresentQueueFamily) {
+                    presentQueueFamily = graphicsQueueFamily;
+                    score += 10;
+                }
+            } else {
+                score += 10; // NOTE: these are arbitrary values currently, prob shouldn't be.
+            }
+
+            // prefer dedicated transfer queue.
+            if (dedicatedTransferQueueFamily) {
+                score += 50;
+            }
+
+            // Require all queue families to be found.
             if (!hasGraphicsQueueFamily || !hasPresentQueueFamily) {
                 continue;
             }
@@ -317,11 +342,17 @@ namespace pom::gfx {
                 physicalDevice = device;
                 graphicsQueueFamilyIndex = graphicsQueueFamily;
                 presentQueueFamilyIndex = presentQueueFamily;
+                transferQueueFamilyIndex = transferQueueFamily;
                 selectedGPUIndex = i;
             }
 
             i++;
         }
+
+        POM_DEBUG(GPUs[selectedGPUIndex].name);
+        POM_DEBUG("graphicsQueueFamilyIndex: ", graphicsQueueFamilyIndex);
+        POM_DEBUG("presentQueueFamilyIndex: ", presentQueueFamilyIndex);
+        POM_DEBUG("transferQueueFamilyIndex: ", transferQueueFamilyIndex);
 
         // create logical device and queues
         const f32 queuePriorities[] = { 1.f };

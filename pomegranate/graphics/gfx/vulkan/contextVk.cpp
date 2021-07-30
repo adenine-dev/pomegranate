@@ -25,7 +25,7 @@ namespace pom::gfx {
         VkFenceCreateInfo fenceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
             .pNext = nullptr,
-            .flags = 0,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         };
 
         for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -40,6 +40,8 @@ namespace pom::gfx {
             POM_ASSERT(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &inFlightFences[i]) == VK_SUCCESS,
                        "Failed to create fence");
         }
+
+        vkResetFences(instance->device, 1, &inFlightFences[frameIndex]);
 
         acquireNextSwapchainImage();
 
@@ -357,7 +359,7 @@ namespace pom::gfx {
 
         // if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         //     POM_DEBUG("next image: ", swapchainImageIndex);
-        //     recreateSwapchain(gamestate, pom::Application::get()->getMainWindow().getVulkanDrawableExtent());
+        //     redraw
         // } else
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             POM_FATAL("Failed to get next swapchain image");

@@ -20,8 +20,10 @@ namespace pom::gfx {
         enum BufferUsage {
             VERTEX = 1 << 0, ///< This Buffer will be used as a vertex buffer. @see CommandBuffer::bindVertexBuffer
             INDEX = 1 << 1, ///< This Buffer will be used as an index buffer. @see CommandBuffer::bindIndexBuffer
-            UNIFORM = 1 << 2, ///< This Buffer will be used as an uniform buffer.s
-            // TODO: transfer, storage, texels, indirect
+            UNIFORM = 1 << 2, ///< This Buffer will be used as an uniform buffer.
+            TRANSFER_SRC = 1 << 3, ///< This Buffer will be used as a source for a buffer transfer.
+            TRANSFER_DST = 1 << 4 ///< This Buffer will be used as a destination for a buffer transfer.
+            // TODO: storage, texels, indirect
         };
 
 #ifndef DOXYGEN
@@ -31,6 +33,8 @@ namespace pom::gfx {
 
     POM_MAKE_FLAGS(BufferUsage);
 #endif
+
+    enum class BufferMemoryAccess { GPU_ONLY, CPU_VISIBLE };
 
     /// Static sized GPU buffer.
     class POM_API Buffer {

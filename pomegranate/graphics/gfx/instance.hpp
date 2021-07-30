@@ -10,24 +10,15 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
-    /// Capabilities of a given GPU, contains information on the variable abilities and attributes of the hardware.
-    struct Capabilities {
-        /// The number of vertex buffers that can be bound at once.
-        u32 vertexInputBindings;
-        // TODO: everything else...
-    };
-
     /// Corresponds to a hardware Graphics device, may not be strictly a GPU for example integrated CPU graphics.
     struct GPU {
         /// Human readable name of the device.
-        const char* name;
+        std::string name;
         /// true if the gpu is dedicated, this usually correlates with better performance.
         bool discrete;
         /// Graphics API dependent handle.
         void* handle;
-        /// The capabilities of the GPU, see Capabilities.
-        Capabilities capabilities;
-        // TODO: other device properties.
+        // TODO: other device properties and capabilities
     };
 
     /// Singleton information associated with a graphics API.

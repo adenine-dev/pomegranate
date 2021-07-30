@@ -49,9 +49,11 @@ namespace pom::gfx {
         // TODO: compute/transfer stuffs
         u32 graphicsQueueFamilyIndex;
         u32 presentQueueFamilyIndex;
+        u32 transferQueueFamilyIndex;
         VkDevice device;
         VkQueue graphicsQueue;
         VkQueue presentQueue;
+        VkQueue transferQueue;
     };
 
     ///@}
