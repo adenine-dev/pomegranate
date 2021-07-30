@@ -41,12 +41,14 @@ namespace pom::gfx {
         std::vector<const char*> validationLayers;
 
         VkInstance instance = VK_NULL_HANDLE;
+
 #ifdef _DEBUG
         VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 #endif
+
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-        // TODO: compute/transfer stuffs
+        // TODO: compute stuffs
         u32 graphicsQueueFamilyIndex;
         u32 presentQueueFamilyIndex;
         u32 transferQueueFamilyIndex;
@@ -54,6 +56,10 @@ namespace pom::gfx {
         VkQueue graphicsQueue;
         VkQueue presentQueue;
         VkQueue transferQueue;
+
+        // FIXME: this is extremely not threadsafe, there should be at least 1 pool per thread.
+        VkCommandPool graphicsCommandPool;
+        VkCommandPool transferCommandPool;
     };
 
     ///@}

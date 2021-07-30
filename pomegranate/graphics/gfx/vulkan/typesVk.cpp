@@ -582,6 +582,12 @@ namespace pom::gfx {
         if (u & BufferUsage::UNIFORM) {
             ret |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
         }
+        if (u & BufferUsage::TRANSFER_SRC) {
+            ret |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (u & BufferUsage::TRANSFER_DST) {
+            ret |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        }
 
         return ret;
     }
@@ -598,6 +604,12 @@ namespace pom::gfx {
         }
         if (u & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
             ret |= BufferUsage::UNIFORM;
+        }
+        if (u & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
+            ret |= BufferUsage::TRANSFER_SRC;
+        }
+        if (u & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
+            ret |= BufferUsage::TRANSFER_DST;
         }
 
         return ret;

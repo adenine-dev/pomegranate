@@ -14,7 +14,8 @@ namespace pom::gfx {
     /// vulkan command buffers and fences corresponding to the number of swapchain images.
     class POM_API CommandBufferVk final : public CommandBuffer {
     public:
-        ~CommandBufferVk();
+        CommandBufferVk(InstanceVk* instance, CommandBufferSpecialization specialization, u32 count);
+        ~CommandBufferVk() final;
 
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
         {
@@ -23,11 +24,13 @@ namespace pom::gfx {
 
         void begin() final;
 
-        void beginRenderPass(RenderPass* renderPass) final;
+        void beginRenderPass(RenderPass* renderPass, Context* context) final;
 
         void endRenderPass() final;
 
         void end() final;
+
+        void submit() final;
 
         void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) final;
 
@@ -41,6 +44,8 @@ namespace pom::gfx {
 
         void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) final;
 
+        void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
+
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {
             return commandBuffers[currentIndex];
@@ -51,22 +56,14 @@ namespace pom::gfx {
             return recordingFences[currentIndex];
         }
 
-    private:
+    protected:
         friend class ContextVk;
 
-        CommandBufferVk(CommandBufferSpecialization specialization,
-                        ContextVk* context,
-                        InstanceVk* instance,
-                        VkCommandPool pool,
-                        u32 count);
-
-        ContextVk* context;
         InstanceVk* instance;
+        VkCommandPool pool;
         std::vector<VkCommandBuffer> commandBuffers;
         std::vector<VkFence> recordingFences;
         u32 currentIndex;
-
-        std::vector<VkBuffer> vertexBufferBindings;
     };
 
     /// @}

@@ -2,18 +2,24 @@
 
 #include "bufferVk.hpp"
 
+#include "commandBufferVk.hpp"
 #include "typesVk.hpp"
 
 namespace pom::gfx {
     BufferVk::BufferVk(InstanceVk* instance,
                        BufferUsage usage,
+                       BufferMemoryAccess access,
                        size_t size,
                        const void* initialData,
                        size_t initialDataOffset,
                        size_t initialDataSize) :
-        Buffer(usage, size),
+        Buffer(usage, access, size),
         instance(instance)
     {
+        if (access == BufferMemoryAccess::GPU_ONLY) {
+            usage |= BufferUsage::TRANSFER_DST;
+        }
+
         VkBufferCreateInfo vertexBufferCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
@@ -37,7 +43,9 @@ namespace pom::gfx {
         VkPhysicalDeviceMemoryProperties physicalMemoryProps;
         vkGetPhysicalDeviceMemoryProperties(instance->physicalDevice, &physicalMemoryProps);
 
-        VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        VkMemoryPropertyFlags props = access == BufferMemoryAccess::CPU_WRITE
+                                          ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                                          : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
         // VK_MAX_MEMORY_TYPES will always be an invalid index.
         u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
@@ -64,10 +72,29 @@ namespace pom::gfx {
 
         vkBindBufferMemory(instance->device, buffer, memory, 0);
 
-        if (initialData) {
-            void* data = map(initialDataOffset, initialDataSize ? initialDataSize : size);
-            memcpy(data, initialData, initialDataSize ? initialDataSize : size);
-            unmap();
+        if (access == BufferMemoryAccess::GPU_ONLY) {
+            auto* transferBuffer = new BufferVk(instance,
+                                                BufferUsage::TRANSFER_SRC,
+                                                BufferMemoryAccess::CPU_WRITE,
+                                                size,
+                                                initialData,
+                                                initialDataOffset,
+                                                initialDataSize);
+
+            auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::TRANSFER, 1);
+            commandBuffer->begin();
+            commandBuffer->copyBuffer(transferBuffer, this, size, 0, 0);
+            commandBuffer->end();
+            commandBuffer->submit();
+
+            delete commandBuffer;
+            delete transferBuffer;
+        } else {
+            if (initialData) {
+                void* data = map(initialDataOffset, initialDataSize ? initialDataSize : size);
+                memcpy(data, initialData, initialDataSize ? initialDataSize : size);
+                unmap();
+            }
         }
     }
 

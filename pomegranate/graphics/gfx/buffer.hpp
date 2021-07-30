@@ -34,25 +34,33 @@ namespace pom::gfx {
     POM_MAKE_FLAGS(BufferUsage);
 #endif
 
-    enum class BufferMemoryAccess { GPU_ONLY, CPU_VISIBLE };
+    /// Dictates how a `Buffer`'s memory can be accessed.
+    // TODO: others
+    enum class BufferMemoryAccess {
+        GPU_ONLY, ///< The Buffer will only be used on the GPU. With this a Buffer *cannot* call `Buffer::map` or
+                  ///< `Buffer::unmap`.
+        CPU_WRITE, ///< The Buffer can be written to.
+    };
 
     /// Static sized GPU buffer.
     class POM_API Buffer {
     public:
-        // TODO: CPU access flags, staging buffer for data that is write only probs.
-
         /// Creates a Buffer.
         /// @arg usage: Some combination of `BufferUsage`s that this buffer can be used with.
+        /// @arg access: The memory access of this buffer. If it is `BufferMemoryUsage::GPU_ONLY` then `initialData`
+        /// should be passed and be of size `size`. `initialDataOffset` and `initialDataSize` should both be 0
+        /// indicating that the full buffer will be written to.
         /// @arg size: The size of the buffer.
         /// @arg initialData: If passed the buffer will be initialized with this data.
         /// @arg initialDataOffset: If passed the buffer will be created with the `initialData` at the specified offset.
         /// @arg initialDataSize: If passed the size of `initialData`. If not passed `initialData` is assumed to be of
         /// size `size`, and `initialDataOffset` should be 0.
-        static Buffer* create(BufferUsage usage,
-                              size_t size,
-                              const void* initialData = nullptr,
-                              size_t initialDataOffset = 0,
-                              size_t initialDataSize = 0);
+        [[nodiscard]] static Buffer* create(BufferUsage usage,
+                                            BufferMemoryAccess access,
+                                            size_t size,
+                                            const void* initialData = nullptr,
+                                            size_t initialDataOffset = 0,
+                                            size_t initialDataSize = 0);
 
         virtual ~Buffer() = default;
 
@@ -71,13 +79,20 @@ namespace pom::gfx {
             return usage;
         }
 
+        /// Returns the memory access of this buffer.
+        [[nodiscard]] inline BufferMemoryAccess getMemoryAccess() const
+        {
+            return memoryAccess;
+        }
+
         [[nodiscard]] virtual void* map(size_t offset, size_t size) = 0;
         virtual void unmap() = 0;
 
     protected:
-        Buffer(BufferUsage usage, size_t size);
+        Buffer(BufferUsage usage, BufferMemoryAccess memoryUsage, size_t size);
 
         BufferUsage usage;
+        BufferMemoryAccess memoryAccess;
         size_t size;
     };
 

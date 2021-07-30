@@ -40,6 +40,11 @@ namespace pom::gfx {
             return swapchainImageIndex;
         }
 
+        [[nodiscard]] u32 getSwapchainImageCount() const
+        {
+            return swapchainImages.size();
+        }
+
         [[nodiscard]] RenderPass* getSwapchainRenderPass() final
         {
             return swapchainRenderPass;
@@ -50,10 +55,6 @@ namespace pom::gfx {
         void recreateSwapchain(const maths::vec2& extent) final;
 
         void present() final;
-
-        [[nodiscard]] CommandBuffer* createCommandBuffer(CommandBufferSpecialization specialization) final;
-
-        void submitCommandBuffer(CommandBuffer* commandBuffer) final;
 
     public:
         friend class Context;
@@ -90,9 +91,6 @@ namespace pom::gfx {
         VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
         std::vector<VkFence> imagesInFlight;
         u32 frameIndex = 0;
-
-        // TODO: consider how contexts and threads interact
-        VkCommandPool graphicsCommandPool;
     };
 
     /// @}

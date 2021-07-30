@@ -39,12 +39,6 @@ namespace pom {
             /// Recreates the swapchain at a given size, this should be called whenever the window is resized.
             virtual void recreateSwapchain(const maths::vec2& extent) = 0;
 
-            /// Creates a command buffer tied to this context.
-            [[nodiscard]] virtual CommandBuffer* createCommandBuffer(CommandBufferSpecialization specialization) = 0;
-
-            // TODO: submit multiple command buffers and batch them
-            virtual void submitCommandBuffer(CommandBuffer* commandBuffer) = 0;
-
             /// Presents the rendered content to the associated Window. Should be called once per update.
             virtual void present() = 0;
 

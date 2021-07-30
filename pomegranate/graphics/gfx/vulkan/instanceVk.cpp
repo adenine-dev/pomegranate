@@ -211,6 +211,9 @@ namespace pom::gfx {
     InstanceVk::~InstanceVk()
     {
         if (ready()) {
+            vkDestroyCommandPool(device, graphicsCommandPool, nullptr);
+            vkDestroyCommandPool(device, transferCommandPool, nullptr);
+
             vkDestroyDevice(device, nullptr);
         }
 
@@ -349,15 +352,11 @@ namespace pom::gfx {
             i++;
         }
 
-        POM_DEBUG(GPUs[selectedGPUIndex].name);
-        POM_DEBUG("graphicsQueueFamilyIndex: ", graphicsQueueFamilyIndex);
-        POM_DEBUG("presentQueueFamilyIndex: ", presentQueueFamilyIndex);
-        POM_DEBUG("transferQueueFamilyIndex: ", transferQueueFamilyIndex);
-
         // create logical device and queues
         const f32 queuePriorities[] = { 1.f };
 
-        std::set<u32> uniqueQueueFamilies = { graphicsQueueFamilyIndex, presentQueueFamilyIndex };
+        std::set<u32> uniqueQueueFamilies
+            = { graphicsQueueFamilyIndex, presentQueueFamilyIndex, transferQueueFamilyIndex };
         std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
         queueCreateInfos.reserve(uniqueQueueFamilies.size());
 
@@ -392,6 +391,21 @@ namespace pom::gfx {
 
         vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
         vkGetDeviceQueue(device, presentQueueFamilyIndex, 0, &presentQueue);
+        vkGetDeviceQueue(device, transferQueueFamilyIndex, 0, &transferQueue);
+
+        VkCommandPoolCreateInfo commandPoolCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = graphicsQueueFamilyIndex,
+        };
+
+        POM_ASSERT(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &graphicsCommandPool) == VK_SUCCESS,
+                   "Failed to create graphics command pool.");
+
+        commandPoolCreateInfo.queueFamilyIndex = transferQueueFamilyIndex;
+        POM_ASSERT(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &transferCommandPool) == VK_SUCCESS,
+                   "Failed to create transfer command pool.");
     }
 
     bool InstanceVk::ready() const

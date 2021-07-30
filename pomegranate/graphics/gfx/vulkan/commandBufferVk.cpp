@@ -7,14 +7,11 @@
 #include "instanceVk.hpp"
 
 namespace pom::gfx {
-    CommandBufferVk::CommandBufferVk(CommandBufferSpecialization specialization,
-                                     ContextVk* context,
-                                     InstanceVk* instance,
-                                     VkCommandPool pool,
-                                     u32 count) :
-        CommandBuffer(specialization),
-        context(context), instance(instance), commandBuffers(count), recordingFences(count),
-        currentIndex(context->getSwapchainImageIndex())
+    CommandBufferVk::CommandBufferVk(InstanceVk* instance, CommandBufferSpecialization specialization, u32 count) :
+        CommandBuffer(specialization), instance(instance),
+        pool(specialization == CommandBufferSpecialization::TRANSFER ? instance->transferCommandPool
+                                                                     : instance->graphicsCommandPool),
+        commandBuffers(count), recordingFences(count), currentIndex(0)
     {
         VkFenceCreateInfo fenceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -43,17 +40,19 @@ namespace pom::gfx {
 
     CommandBufferVk::~CommandBufferVk()
     {
+        vkWaitForFences(instance->device, recordingFences.size(), recordingFences.data(), VK_TRUE, UINT64_MAX);
         for (auto& recordingFence : recordingFences) {
             vkDestroyFence(instance->device, recordingFence, nullptr);
         }
+
+        vkFreeCommandBuffers(instance->device, pool, commandBuffers.size(), commandBuffers.data());
     }
 
     void CommandBufferVk::begin()
     {
-        // NOTE: vkAcquireNextImageKHR doesn't guarantee images are processed in order so we can't simply increment
-        // this. maybe change it to get the oldest (and therefore most likely to be done) command buffer. This is the
-        // only thing that locks it into being Context specific, and it may be worth recondiering this choice.
-        currentIndex = context->getSwapchainImageIndex();
+        // FIXME: vkAcquireNextImageKHR doesn't guarantee images are processed in order so simply incrementing this is
+        // kinda dumb. maybe change it to get the oldest (and therefore most likely to be done) command buffer.
+        currentIndex = (currentIndex + 1) % commandBuffers.size();
 
         vkWaitForFences(instance->device, 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
         vkResetFences(instance->device, 1, &getCurrentRecordingFence());
@@ -69,18 +68,22 @@ namespace pom::gfx {
                    "Failed to begin recording command buffer.");
     }
 
-    void CommandBufferVk::beginRenderPass(RenderPass* renderPass)
+    void CommandBufferVk::beginRenderPass(RenderPass* renderPass, Context* context)
     {
         POM_ASSERT(renderPass->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched render pass api.");
+        POM_ASSERT(context->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched context api.");
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
 
         auto* rp = dynamic_cast<RenderPassVk*>(renderPass);
+        auto* ctx = dynamic_cast<ContextVk*>(context);
 
         VkRenderPassBeginInfo renderPassBeginInfo = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .pNext = nullptr,
             .renderPass = rp->getHandle(),
-            .framebuffer = context->swapchainFramebuffers[context->swapchainImageIndex],
-            .renderArea = { .offset = { 0, 0 }, .extent = context->swapchainExtent },
+            .framebuffer = ctx->swapchainFramebuffers[ctx->swapchainImageIndex],
+            .renderArea = { .offset = { 0, 0 }, .extent = ctx->swapchainExtent },
             .clearValueCount = rp->getClearColorCountVk(),
             .pClearValues = rp->getClearColorsVk(),
         };
@@ -90,6 +93,9 @@ namespace pom::gfx {
 
     void CommandBufferVk::endRenderPass()
     {
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
         vkCmdEndRenderPass(getCurrentCommandBuffer());
     }
 
@@ -99,31 +105,66 @@ namespace pom::gfx {
                    "Failed to end recording command buffer.");
     }
 
+    void CommandBufferVk::submit()
+    {
+        VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = nullptr,
+            .pWaitDstStageMask = nullptr,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &getCurrentCommandBuffer(),
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = nullptr,
+        };
+
+        VkQueue queue = specialization == CommandBufferSpecialization::TRANSFER ? instance->transferQueue
+                                                                                : instance->graphicsQueue;
+
+        POM_ASSERT(vkQueueSubmit(queue, 1, &submitInfo, getCurrentRecordingFence()) == VK_SUCCESS,
+                   "Failed to submit to queue");
+    }
+
     void CommandBufferVk::setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth)
     {
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
         VkViewport viewport { offset.x, offset.y, extent.x, extent.y, mindepth, maxdepth };
         vkCmdSetViewport(getCurrentCommandBuffer(), 0, 1, &viewport);
     }
 
     void CommandBufferVk::setScissor(const maths::ivec2& offset, const maths::uvec2& extent)
     {
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
         VkRect2D scissor { .offset = { offset.x, offset.y }, .extent = { extent.x, extent.y } };
         vkCmdSetScissor(getCurrentCommandBuffer(), 0, 1, &scissor);
     }
 
     void CommandBufferVk::draw(u32 vertexCount, u32 vertexOffset)
     {
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
         vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, vertexOffset, 0);
     }
 
     void CommandBufferVk::drawIndexed(u32 indexCount, u32 firstIndex, i32 vertexOffset)
     {
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
         vkCmdDrawIndexed(getCurrentCommandBuffer(), indexCount, 1, firstIndex, vertexOffset, 0);
     }
 
     void CommandBufferVk::bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint, size_t offset)
     {
         POM_ASSERT(vertexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched vertex buffer api");
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
         POM_ASSERT(vertexBuffer->getUsage() & BufferUsage::VERTEX,
                    "Attempting to use a buffer created without the vertex BufferUsage.")
 
@@ -134,6 +175,8 @@ namespace pom::gfx {
     void CommandBufferVk::bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset)
     {
         POM_ASSERT(indexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
         POM_ASSERT(indexBuffer->getUsage() & BufferUsage::INDEX,
                    "Attempting to use a buffer created without the index BufferUsage.")
 
@@ -141,6 +184,25 @@ namespace pom::gfx {
                              dynamic_cast<BufferVk*>(indexBuffer)->getBuffer(),
                              offset,
                              toVkIndexType(type));
+    }
+
+    void CommandBufferVk::copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
+    {
+        POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
+        POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
+        POM_ASSERT(src->getSize() - srcOffset >= size, "Attempting to copy from a buffer of insufficient size.");
+        POM_ASSERT(dst->getSize() - dstOffset >= size, "Attempting to copy into a buffer of insufficient size.");
+
+        VkBuffer srcBuffer = dynamic_cast<BufferVk*>(src)->getBuffer();
+        VkBuffer dstBuffer = dynamic_cast<BufferVk*>(dst)->getBuffer();
+
+        VkBufferCopy region = {
+            .srcOffset = srcOffset,
+            .dstOffset = dstOffset,
+            .size = size,
+        };
+
+        vkCmdCopyBuffer(getCurrentCommandBuffer(), srcBuffer, dstBuffer, 1, &region);
     }
 
 } // namespace pom::gfx

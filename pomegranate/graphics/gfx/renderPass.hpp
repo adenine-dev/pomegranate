@@ -42,7 +42,7 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this render pass.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        static RenderPass* create(std::initializer_list<RenderPassAttachment> attachments);
+        [[nodiscard]] static RenderPass* create(std::initializer_list<RenderPassAttachment> attachments);
     };
 
     /// @}

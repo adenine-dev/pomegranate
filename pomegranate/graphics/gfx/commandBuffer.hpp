@@ -10,6 +10,7 @@ namespace pom::gfx {
 
     class RenderPass;
     class Buffer;
+    class Context;
 
     /// @addtogroup gfx
     /// @{
@@ -18,10 +19,13 @@ namespace pom::gfx {
     /// applicable such as Vulkan. In addition to this, some hardware won't have a dedicated queue for a certain
     /// specialization and the command buffer will be constructed from a different more general queue.
     enum class CommandBufferSpecialization {
-        GRAPHICS, ///< Command buffer should be constructed by the graphics queue.
-        // TODO: compute and transfer functionality.
+        GRAPHICS, ///< Command buffer should be constructed by the graphics queue. This allows the buffer to use all
+                  ///< commands.
+        // TODO: compute
         // COMPUTE, ///< Command buffer should be constructed by the compute queue.
-        // TRANSFER ///< Command buffer should be constructed by the transfer queue.
+        TRANSFER ///< Command buffer should be constructed by the transfer queue. Regardless of what queue this command
+                 ///< buffer is constructed from this limits the commands that can be used by this command buffer to
+                 ///< only transfer commands.
     };
 
     /// The type of a member in an index Buffer. @see CommandBuffer::bindIndexBuffer
@@ -34,7 +38,13 @@ namespace pom::gfx {
     /// Command buffers are used to submit actions to the GPU.
     class POM_API CommandBuffer {
     public:
-        CommandBuffer(CommandBufferSpecialization specialization);
+        /// Creates a command buffer tied to this context.
+        /// @arg specialization: Dictates what this command buffer can do.
+        /// @arg countHint: hint for how many internal command buffers should be created. If not passed a number of
+        /// command buffers optimal for graphics rendering to the main window's `Context` will be used (the number of
+        /// swapchain images). Only applicable in api's where that works.
+        [[nodiscard]] static CommandBuffer* create(CommandBufferSpecialization specialization, u32 countHint = 0);
+
         virtual ~CommandBuffer() = default;
 
         /// Returns the GraphicsAPI associated with this command buffer.
@@ -50,40 +60,57 @@ namespace pom::gfx {
         // TODO: maybe explicitly keep track of command buffer state?
         virtual void begin() = 0;
 
-        /// Begin the first subpass of a RenderPass. Should be called **after** `begin`.
-        // TODO: different frame buffers, currently only renders to swapchain framebuffer
-        virtual void beginRenderPass(RenderPass* renderPass) = 0;
-
-        /// End the previously begun `RenderPass` should only be called after `beginRenderPass`.
-        virtual void endRenderPass() = 0;
-
         /// Stop recording to a command buffer.
         virtual void end() = 0;
 
-        /// Submits a set viewport command to the command buffer.
+        /// Send the command buffer to the GPU for processing. Must have previously called `end`.
+        // TODO: submit multiple command buffers and batch them
+        virtual void submit() = 0;
+
+        /// Begin the first subpass of a RenderPass. Should be called **after** `begin`. Requires the command buffer to
+        /// have been created with `CommandBufferSpecialization::GRAPHICS`.
+        // TODO: different frame buffers, currently only renders to swapchain framebuffer
+        virtual void beginRenderPass(RenderPass* renderPass, Context* context) = 0;
+
+        /// End the previously begun `RenderPass` should only be called after `beginRenderPass`. Requires the command
+        /// buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
+        virtual void endRenderPass() = 0;
+
+        /// Submits a set viewport command to the command buffer. Requires the command buffer to have been created with
+        /// `CommandBufferSpecialization::GRAPHICS`
         // TODO: AABB struct
         virtual void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) = 0;
 
-        /// Submits a set scissor command to the command buffer.
+        /// Submits a set scissor command to the command buffer. Requires the command buffer to have been created with
+        /// `CommandBufferSpecialization::GRAPHICS`
         // TODO: AABB struct
         virtual void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) = 0;
 
-        /// Submits a draw command to the command buffer.
+        /// Submits a draw command to the command buffer. Requires the command buffer to have been created with
+        /// `CommandBufferSpecialization::GRAPHICS`
         virtual void draw(u32 vertexCount, u32 vertexOffset = 0) = 0;
 
-        /// Submits a draw indexed command to the command buffer.
+        /// Submits a draw indexed command to the command buffer. Requires the command buffer to have been created with
+        /// `CommandBufferSpecialization::GRAPHICS`
         virtual void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) = 0;
 
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
-        /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read.
+        /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read. Requires the
+        /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
         virtual void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
 
         /// Binds an index buffer, the Buffer **must** have been initialize with `BufferUsage::INDEX`. `type` is how the
         /// data in the buffer will be read, this is independent from the type of whatever data was written into the
-        /// buffer. `offset` is the offset to the first byte from which indicies will be calculated.
+        /// buffer. `offset` is the offset to the first byte from which indicies will be calculated. Requires the
+        /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
         virtual void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) = 0;
 
+        /// Copies the contents of `src` to `dst`.
+        virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
+
     protected:
+        CommandBuffer(CommandBufferSpecialization specialization);
+
         CommandBufferSpecialization specialization;
     };
 

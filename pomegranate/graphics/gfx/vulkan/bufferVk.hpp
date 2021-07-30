@@ -15,8 +15,9 @@ namespace pom::gfx {
     public:
         BufferVk(InstanceVk* instance,
                  BufferUsage usage,
+                 BufferMemoryAccess access,
                  size_t size,
-                 const void* data,
+                 const void* initialData,
                  size_t initialDataOffset,
                  size_t initialDataSize);
         ~BufferVk() final;

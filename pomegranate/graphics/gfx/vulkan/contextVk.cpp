@@ -44,24 +44,11 @@ namespace pom::gfx {
         vkResetFences(instance->device, 1, &inFlightFences[frameIndex]);
 
         acquireNextSwapchainImage();
-
-        VkCommandPoolCreateInfo commandPoolCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = instance->graphicsQueueFamilyIndex,
-        };
-
-        POM_ASSERT(vkCreateCommandPool(instance->device, &commandPoolCreateInfo, nullptr, &graphicsCommandPool)
-                       == VK_SUCCESS,
-                   "Failed to create graphics command pool.");
     }
 
     ContextVk::~ContextVk()
     {
         vkDeviceWaitIdle(instance->device);
-
-        vkDestroyCommandPool(instance->device, graphicsCommandPool, nullptr);
 
         for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(instance->device, renderFinishedSemaphores[i], nullptr);
@@ -364,34 +351,6 @@ namespace pom::gfx {
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             POM_FATAL("Failed to get next swapchain image");
         }
-    }
-
-    [[nodiscard]] CommandBuffer* ContextVk::createCommandBuffer(CommandBufferSpecialization specialization)
-    {
-        return new CommandBufferVk(specialization, this, instance, graphicsCommandPool, swapchainImages.size());
-    }
-
-    void ContextVk::submitCommandBuffer(CommandBuffer* commandBuffer)
-    {
-        POM_ASSERT(commandBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched command buffer api.");
-
-        auto* cmdBuffer = dynamic_cast<CommandBufferVk*>(commandBuffer);
-
-        VkSubmitInfo submitInfo = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = nullptr,
-            .waitSemaphoreCount = 0,
-            .pWaitSemaphores = nullptr,
-            .pWaitDstStageMask = nullptr,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &cmdBuffer->getCurrentCommandBuffer(),
-            .signalSemaphoreCount = 0,
-            .pSignalSemaphores = nullptr,
-        };
-
-        POM_ASSERT(vkQueueSubmit(instance->graphicsQueue, 1, &submitInfo, cmdBuffer->getCurrentRecordingFence())
-                       == VK_SUCCESS,
-                   "Failed to submit to queue");
     }
 
 } // namespace pom::gfx

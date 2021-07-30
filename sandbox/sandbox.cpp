@@ -294,16 +294,25 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
 
     // command buffer
-    gamestate->commandBuffer = contextVk->createCommandBuffer(pom::gfx::CommandBufferSpecialization::GRAPHICS);
+    gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
     // vertex buffer
     void* data;
-    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(VERTEX_DATA), VERTEX_DATA);
+    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
+                                                       pom::gfx::BufferMemoryAccess::CPU_WRITE,
+                                                       sizeof(VERTEX_DATA),
+                                                       VERTEX_DATA);
 
-    gamestate->scaleBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX, sizeof(SCALE_DATA), SCALE_DATA);
+    gamestate->scaleBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
+                                                      pom::gfx::BufferMemoryAccess::GPU_ONLY,
+                                                      sizeof(SCALE_DATA),
+                                                      SCALE_DATA);
 
     // index buffer
-    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX, sizeof(INDEX_DATA), INDEX_DATA);
+    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX,
+                                                      pom::gfx::BufferMemoryAccess::GPU_ONLY,
+                                                      sizeof(INDEX_DATA),
+                                                      INDEX_DATA);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -332,7 +341,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     gamestate->vertexBuffer->unmap();
 
     gamestate->commandBuffer->begin();
-    gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass());
+    gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
 
     auto* commandBuffer = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
 
@@ -356,7 +365,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     gamestate->commandBuffer->endRenderPass();
     gamestate->commandBuffer->end();
 
-    context->submitCommandBuffer(gamestate->commandBuffer);
+    gamestate->commandBuffer->submit();
 
     pom::Application::get()->getMainWindow().getContext()->present();
 
