@@ -20,7 +20,7 @@ namespace pom {
         // FIXME: this code provides continuous events to both window resize and move, which SDL2 does not do by
         // default. Make sure this is safe.
         SDL_AddEventWatch(
-            [](void* /*userdata*/, SDL_Event* e) -> int {
+            [](void* userdata, SDL_Event* e) -> int {
                 if (e->type == SDL_WINDOWEVENT) {
                     auto* self = static_cast<Window*>(
                         SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID), POM_SDL_WINDOW_PTR));
@@ -30,20 +30,21 @@ namespace pom {
                         self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
                                            .sourceWindow = self,
                                            .windowMoveData = { e->window.data1, e->window.data2 } });
-
                     } break;
                     case SDL_WINDOWEVENT_RESIZED: {
+                        static_cast<Window*>(userdata)->graphicsContext->recreateSwapchain(
+                            { (f32)e->window.data1, (f32)e->window.data2 });
+
                         self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
                                            .sourceWindow = self,
                                            .windowResizeData = { e->window.data1, e->window.data2 } });
-
                     } break;
                     }
                 }
 
                 return 0;
             },
-            nullptr);
+            this);
 
         // TODO: load previous size/position values from file.
 

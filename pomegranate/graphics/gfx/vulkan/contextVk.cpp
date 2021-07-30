@@ -10,6 +10,13 @@ namespace pom::gfx {
     {
         if (!instance->ready()) {
             instance->determineGPU(this);
+        } else {
+            VkBool32 supported;
+            vkGetPhysicalDeviceSurfaceSupportKHR(instance->physicalDevice,
+                                                 instance->presentQueueFamilyIndex,
+                                                 surface,
+                                                 &supported);
+            POM_ASSERT(supported, "idk. it a failure tho");
         }
 
         createSwapchain(window->getVulkanDrawableExtent(), true);
