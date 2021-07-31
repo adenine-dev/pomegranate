@@ -22,23 +22,22 @@ namespace pom {
         SDL_AddEventWatch(
             [](void* userdata, SDL_Event* e) -> int {
                 if (e->type == SDL_WINDOWEVENT) {
-                    auto* self = static_cast<Window*>(
-                        SDL_GetWindowData(SDL_GetWindowFromID(e->window.windowID), POM_SDL_WINDOW_PTR));
+                    auto* self = static_cast<Window*>(userdata);
+                    if (SDL_GetWindowFromID(e->window.windowID) == self->windowHandle) {
+                        switch (e->window.event) {
+                        case SDL_WINDOWEVENT_MOVED: {
+                            self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
+                                               .sourceWindow = self,
+                                               .windowMoveData = { e->window.data1, e->window.data2 } });
+                        } break;
+                        case SDL_WINDOWEVENT_RESIZED: {
+                            self->graphicsContext->recreateSwapchain({ (f32)e->window.data1, (f32)e->window.data2 });
 
-                    switch (e->window.event) {
-                    case SDL_WINDOWEVENT_MOVED: {
-                        self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
-                                           .sourceWindow = self,
-                                           .windowMoveData = { e->window.data1, e->window.data2 } });
-                    } break;
-                    case SDL_WINDOWEVENT_RESIZED: {
-                        static_cast<Window*>(userdata)->graphicsContext->recreateSwapchain(
-                            { (f32)e->window.data1, (f32)e->window.data2 });
-
-                        self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
-                                           .sourceWindow = self,
-                                           .windowResizeData = { e->window.data1, e->window.data2 } });
-                    } break;
+                            self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
+                                               .sourceWindow = self,
+                                               .windowResizeData = { e->window.data1, e->window.data2 } });
+                        } break;
+                        }
                     }
                 }
 
@@ -54,8 +53,8 @@ namespace pom {
         }
 
         if (windowHandle = SDL_CreateWindow(title,
-                                            position.x < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.x,
                                             position.y < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.y,
+                                            position.x < 0 ? (int)SDL_WINDOWPOS_UNDEFINED : position.x,
                                             size.x < 0 ? DEFAULT_WIDTH : size.x,
                                             size.y < 0 ? DEFAULT_HEIGHT : size.y,
                                             flags);
@@ -107,6 +106,7 @@ namespace pom {
                     // } break;
 
                 case SDL_WINDOWEVENT_FOCUS_GAINED: {
+                    self->minimized = false;
                     self->callbackFn(
                         { .type = InputEventType::WINDOW_FOCUS, .sourceWindow = self, .windowFocusData = {} });
                 } break;
@@ -116,6 +116,7 @@ namespace pom {
 
                 } break;
                 case SDL_WINDOWEVENT_MINIMIZED: {
+                    self->minimized = true;
                     self->callbackFn(
                         { .type = InputEventType::WINDOW_MINIMIZE, .sourceWindow = self, .windowMinimizeData = {} });
 

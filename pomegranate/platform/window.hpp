@@ -54,6 +54,12 @@ namespace pom {
             return graphicsContext;
         }
 
+        /// Returns true if the window is currently minimized.
+        [[nodiscard]] inline bool isMinimized() const
+        {
+            return minimized;
+        }
+
         // tbh there shouldn't be a reason to include this.
         // /// Returns the SDL window pointer, should be used if more direct access to the window is
         // /// needed. Primarily meant to be used internally.
@@ -89,7 +95,9 @@ namespace pom {
 
         SDL_Window* windowHandle = nullptr;
         bool closeRequested = false;
+        bool minimized = false;
         bool enableVSync;
+
         gfx::Context* graphicsContext;
 
         // NOTE: this starts empty so if a client wants to do simulation stuff, they can without

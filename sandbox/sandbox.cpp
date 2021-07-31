@@ -340,7 +340,7 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 {
-    {
+    if (!pom::Application::get()->getMainWindow().isMinimized()) {
         auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
         // TODO: what is a matrix lol
@@ -388,7 +388,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         pom::Application::get()->getMainWindow().getContext()->present();
     }
 
-    {
+    if (!gamestate->otherWindow->isMinimized()) {
         auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
         gamestate->otherCommandBuffer->begin();
         gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
