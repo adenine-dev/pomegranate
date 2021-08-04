@@ -25,6 +25,8 @@ constexpr auto POM_ANSI_ESC_ON_GREY = "\033[48;5;246m";
 
 namespace pom::terminal {
 
+    POM_API bool init_terminal();
+
     /// @addtogroup terminal_output
     /// @{
 

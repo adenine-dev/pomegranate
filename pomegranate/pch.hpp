@@ -11,21 +11,6 @@
 #include <string>
 #include <utility>
 
-#ifdef POM_PLATFORM_WINDOWS
-#    define WIN32_LEAN_AND_MEAN
-#    define NOMINMAX
-#    include "windows.h"
-
-// Used in input.hpp as key names, prob won't break anything.
-#    undef KEY_EXECUTE
-#    undef OUT
-#    undef DELETE
-// used in logging.hpp as a loglevel, prob won't break anything.
-#    undef ERROR
-// used in util/color.hpp, prob won't break anything.
-#    undef TRANSPARENT
-#endif
-
 // libs
 #include "SDL.h"
 

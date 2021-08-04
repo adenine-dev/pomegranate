@@ -2,11 +2,18 @@
 
 #include "platform.hpp"
 
+#include "terminal.hpp"
+
 namespace pom::platform {
     bool init()
     {
         if (SDL_Init(SDL_INIT_VIDEO)) {
             POM_ERROR("Unable to initialize SDL. error: ", SDL_GetError());
+            return false;
+        }
+
+        if (!terminal::init_terminal()) {
+            POM_ERROR("Unable to initialize terminal");
             return false;
         }
 
