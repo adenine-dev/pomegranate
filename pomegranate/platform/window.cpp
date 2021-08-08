@@ -28,14 +28,14 @@ namespace pom {
                         case SDL_WINDOWEVENT_MOVED: {
                             self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
                                                .sourceWindow = self,
-                                               .windowMoveData = { e->window.data1, e->window.data2 } });
+                                               .windowMoveData = maths::ivec2 { e->window.data1, e->window.data2 } });
                         } break;
                         case SDL_WINDOWEVENT_RESIZED: {
                             self->graphicsContext->recreateSwapchain({ (f32)e->window.data1, (f32)e->window.data2 });
 
                             self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
                                                .sourceWindow = self,
-                                               .windowResizeData = { e->window.data1, e->window.data2 } });
+                                               .windowResizeData = maths::ivec2 { e->window.data1, e->window.data2 } });
                         } break;
                         }
                     }
@@ -134,7 +134,7 @@ namespace pom {
 
                 self->callbackFn({ .type = InputEventType::MOUSE_MOVE,
                                    .sourceWindow = self,
-                                   .mouseMoveData = { e.motion.x, e.motion.y } });
+                                   .mouseMoveData = maths::ivec2 { e.motion.x, e.motion.y } });
             } break;
             case SDL_MOUSEBUTTONDOWN: {
                 auto* self = static_cast<Window*>(
@@ -158,7 +158,7 @@ namespace pom {
 
                 self->callbackFn({ .type = InputEventType::MOUSE_SCROLL,
                                    .sourceWindow = self,
-                                   .mouseScrollData = { e.wheel.x, e.wheel.y } });
+                                   .mouseScrollData = maths::ivec2 { e.wheel.x, e.wheel.y } });
             } break;
             case SDL_KEYDOWN: {
                 auto* self = static_cast<Window*>(

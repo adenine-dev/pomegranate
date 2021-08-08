@@ -121,7 +121,6 @@ namespace pom::gfx {
 
         VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
         if (window->isVsync()) {
-            // TODO: only do this if vsync is desired
             for (const auto& mode : swapchainSupport.presentModes) {
                 if (mode == VK_PRESENT_MODE_MAILBOX_KHR) {
                     presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -162,7 +161,7 @@ namespace pom::gfx {
 
         u32 imageCount = swapchainSupport.capabilities.maxImageCount == 0
                              ? swapchainSupport.capabilities.minImageCount + 1
-                             : std::min(swapchainSupport.capabilities.minImageCount + 1,
+                             : std::min(std::max(swapchainSupport.capabilities.minImageCount + 1, 3u),
                                         swapchainSupport.capabilities.maxImageCount);
 
         u32 queueFamilyIndicies[] = { instance->graphicsQueueFamilyIndex, instance->presentQueueFamilyIndex };

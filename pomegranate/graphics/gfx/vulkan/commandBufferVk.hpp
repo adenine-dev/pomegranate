@@ -61,8 +61,9 @@ namespace pom::gfx {
 
         InstanceVk* instance;
         VkCommandPool pool;
-        std::vector<VkCommandBuffer> commandBuffers;
-        std::vector<VkFence> recordingFences;
+        u32 count;
+        VkCommandBuffer commandBuffers[POM_MAX_FRAMES_IN_FLIGHT] {};
+        VkFence recordingFences[POM_MAX_FRAMES_IN_FLIGHT] {};
         u32 currentIndex;
     };
 

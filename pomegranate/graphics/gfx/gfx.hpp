@@ -2,6 +2,10 @@
 
 #include "base.hpp"
 
+#ifndef POM_MAX_FRAMES_IN_FLIGHT
+#    define POM_MAX_FRAMES_IN_FLIGHT 3
+#endif
+
 namespace pom::gfx {
     /// @addtogroup gfx
     /// @{

@@ -28,7 +28,7 @@ struct GameState {
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     // vertex buffer
-    pom::gfx::Buffer* vertexBuffer;
+    pom::gfx::Buffer* vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
     pom::gfx::Buffer* scaleBuffer;
     pom::gfx::Buffer* indexBuffer;
 
@@ -83,12 +83,12 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->device = instanceVk->device;
     // end super hacky test stuff
 
-    gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
-    gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
-        if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
-            clientUpdate(gamestate, {});
-        }
-    });
+    // gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
+    // gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
+    //     if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
+    //         clientUpdate(gamestate, {});
+    //     }
+    // });
 
     gamestate->otherCommandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
     gamestate->otherVertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
@@ -316,11 +316,11 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
     // vertex buffer
-    void* data;
-    gamestate->vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
-                                                       pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                       sizeof(VERTEX_DATA),
-                                                       VERTEX_DATA);
+    for (auto& vertexBuffer : gamestate->vertexBuffers) {
+        vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
+                                                pom::gfx::BufferMemoryAccess::CPU_WRITE,
+                                                sizeof(VERTEX_DATA));
+    }
 
     gamestate->scaleBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
                                                       pom::gfx::BufferMemoryAccess::GPU_ONLY,
@@ -332,6 +332,45 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                       pom::gfx::BufferMemoryAccess::GPU_ONLY,
                                                       sizeof(INDEX_DATA),
                                                       INDEX_DATA);
+
+    //
+
+    pom::maths::mat4 m { {
+        { 1.f, 2.f, 3.f, 4.f },
+        { 5.f, 6.f, 7.f, 8.f },
+        { 9.f, 10.f, 11.f, 12.f },
+        { 13.f, 14.f, 15.f, 16.f },
+    } };
+    pom::maths::mat4 n { {
+        { 1.f, 2.f, 3.f, 4.f },
+        { 5.f, 6.f, 7.f, 8.f },
+        { 9.f, 10.f, 11.f, 12.f },
+        { 13.f, 14.f, 15.f, 16.f },
+    } };
+    POM_DEBUG(m);
+    POM_DEBUG(n);
+    POM_DEBUG(m * n);
+    n *= m;
+    POM_DEBUG(n);
+
+    m = pom::maths::mat4::identity();
+    POM_DEBUG(m);
+    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
+
+    m = pom::maths::mat4::scale({ 1, 2, 3 });
+    POM_DEBUG(m);
+    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
+
+    m = pom::maths::mat4::translate({ 1, 2, 3 });
+    POM_DEBUG(m);
+    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
+
+    m = pom::maths::mat4::rotate({ 0, 0, PI / 2 });
+    POM_DEBUG(m);
+    POM_DEBUG(m * pom::maths::vec4 { 1.f, 0.f, 0.f, 1.f });
+
+    auto m5 = pom::maths::Matrix<f32, 6, 6>::rotate(pom::maths::Vector<f32, 10>(PI / 2, 0, 0, 0, 0, 0, 0, PI, 0, 0));
+    POM_DEBUG(m5);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -340,85 +379,90 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 {
-    if (!pom::Application::get()->getMainWindow().isMinimized()) {
-        auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
+    POM_PROFILE_SCOPE("update");
+    {
+        if (!pom::Application::get()->getMainWindow().isMinimized()) {
+            auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-        // TODO: what is a matrix lol
-        auto frame = pom::Application::get()->getFrame();
-        for (u8 i = 0; i < 4; i++) {
-            VERTEX_DATA[i].pos = {
-                (f32)cos(i / 4.f * TAU + frame / 100.f) / 2.f,
-                (f32)sin(i / 4.f * TAU + frame / 100.f) / 2.f,
-                0.f,
-            };
+            // TODO: what is a matrix lol
+            auto frame = pom::Application::get()->getFrame();
+            pom::gfx::Buffer* vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+            Vertex* data = (Vertex*)vertexBuffer->map();
+            memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
+
+            pom::maths::mat3 m = pom::maths::mat3::rotate({ (f32)(TAU / 100.f * (f32)frame) });
+            POM_DEBUG(m);
+            for (u8 i = 0; i < 4; i++) {
+                data[i].pos = m * VERTEX_DATA[i].pos;
+            }
+
+            vertexBuffer->unmap();
+
+            gamestate->commandBuffer->begin();
+            gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
+
+            auto* commandBuffer
+                = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
+
+            // calling this every frame doesn't really matter to my knowledge and is way easier than any other
+            // alternatives
+            gamestate->commandBuffer->setViewport(
+                { context->swapchainViewport.x, context->swapchainViewport.y },
+                { context->swapchainViewport.width, context->swapchainViewport.height },
+                context->swapchainViewport.minDepth,
+                context->swapchainViewport.maxDepth);
+            gamestate->commandBuffer->setScissor({ 0, 0 },
+                                                 { context->swapchainExtent.width, context->swapchainExtent.height });
+
+            gamestate->commandBuffer->bindVertexBuffer(vertexBuffer);
+            gamestate->commandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
+
+            gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
+
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+
+            gamestate->commandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
+
+            gamestate->commandBuffer->endRenderPass();
+            gamestate->commandBuffer->end();
+
+            gamestate->commandBuffer->submit();
+
+            pom::Application::get()->getMainWindow().getContext()->present();
         }
-        void* data = gamestate->vertexBuffer->map(0, sizeof(VERTEX_DATA));
-        memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
-        gamestate->vertexBuffer->unmap();
-
-        gamestate->commandBuffer->begin();
-        gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
-
-        auto* commandBuffer
-            = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
-
-        // calling this every frame doesn't really matter to my knowledge and is way easier than any other
-        // alternatives
-        gamestate->commandBuffer->setViewport({ context->swapchainViewport.x, context->swapchainViewport.y },
-                                              { context->swapchainViewport.width, context->swapchainViewport.height },
-                                              context->swapchainViewport.minDepth,
-                                              context->swapchainViewport.maxDepth);
-        gamestate->commandBuffer->setScissor({ 0, 0 },
-                                             { context->swapchainExtent.width, context->swapchainExtent.height });
-
-        gamestate->commandBuffer->bindVertexBuffer(gamestate->vertexBuffer);
-        gamestate->commandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
-
-        gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
-
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
-
-        gamestate->commandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
-
-        gamestate->commandBuffer->endRenderPass();
-        gamestate->commandBuffer->end();
-
-        gamestate->commandBuffer->submit();
-
-        pom::Application::get()->getMainWindow().getContext()->present();
     }
 
-    if (!gamestate->otherWindow->isMinimized()) {
-        auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
-        gamestate->otherCommandBuffer->begin();
-        gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
+    // if (!gamestate->otherWindow->isMinimized()) {
+    //     auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
+    //     gamestate->otherCommandBuffer->begin();
+    //     gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
 
-        gamestate->otherCommandBuffer->setViewport({ ctx->swapchainViewport.x, ctx->swapchainViewport.y },
-                                                   { ctx->swapchainViewport.width, ctx->swapchainViewport.height },
-                                                   ctx->swapchainViewport.minDepth,
-                                                   ctx->swapchainViewport.maxDepth);
-        gamestate->otherCommandBuffer->setScissor({ 0, 0 },
-                                                  { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
+    //     gamestate->otherCommandBuffer->setViewport({ ctx->swapchainViewport.x, ctx->swapchainViewport.y },
+    //                                                { ctx->swapchainViewport.width, ctx->swapchainViewport.height },
+    //                                                ctx->swapchainViewport.minDepth,
+    //                                                ctx->swapchainViewport.maxDepth);
+    //     gamestate->otherCommandBuffer->setScissor({ 0, 0 },
+    //                                               { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
 
-        auto* commandBuffer
-            = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->otherCommandBuffer)->getCurrentCommandBuffer();
+    //     auto* commandBuffer
+    //         = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->otherCommandBuffer)->getCurrentCommandBuffer();
 
-        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
-        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
+    //     gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
+    //     gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
-        gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
+    //     gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+    //     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
 
-        gamestate->otherCommandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
+    //     gamestate->otherCommandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
 
-        gamestate->otherCommandBuffer->endRenderPass();
-        gamestate->otherCommandBuffer->end();
+    //     gamestate->otherCommandBuffer->endRenderPass();
+    //     gamestate->otherCommandBuffer->end();
 
-        gamestate->otherCommandBuffer->submit();
+    //     gamestate->otherCommandBuffer->submit();
 
-        ctx->present();
-    }
+    //     ctx->present();
+    // }
 
     // POM_DEBUG("dt: ", dt, "ms");
 }
@@ -433,7 +477,9 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
-    delete gamestate->vertexBuffer;
+    for (auto& vb : gamestate->vertexBuffers) {
+        delete vb;
+    }
     delete gamestate->scaleBuffer;
     delete gamestate->commandBuffer;
     delete gamestate->indexBuffer;

@@ -11,8 +11,12 @@ namespace pom::gfx {
         CommandBuffer(specialization), instance(instance),
         pool(specialization == CommandBufferSpecialization::TRANSFER ? instance->transferCommandPool
                                                                      : instance->graphicsCommandPool),
-        commandBuffers(count), recordingFences(count), currentIndex(0)
+        count(count), currentIndex(0)
     {
+        POM_ASSERT(count <= POM_MAX_FRAMES_IN_FLIGHT,
+                   "Command buffers are only meant to hold less than the number of frames in flight, try using "
+                   "multiple command buffers.");
+
         VkFenceCreateInfo fenceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
             .pNext = nullptr,
@@ -31,28 +35,25 @@ namespace pom::gfx {
             POM_ASSERT(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &recordingFences[i]) == VK_SUCCESS,
                        "Failed to create recording fence");
 
-            POM_ASSERT(
-                vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers.data())
-                    == VK_SUCCESS,
-                "Failed to allocate command buffers.");
+            POM_ASSERT(vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers)
+                           == VK_SUCCESS,
+                       "Failed to allocate command buffers.");
         }
     }
 
     CommandBufferVk::~CommandBufferVk()
     {
-        vkWaitForFences(instance->device, recordingFences.size(), recordingFences.data(), VK_TRUE, UINT64_MAX);
+        vkWaitForFences(instance->device, count, recordingFences, VK_TRUE, UINT64_MAX);
         for (auto& recordingFence : recordingFences) {
             vkDestroyFence(instance->device, recordingFence, nullptr);
         }
 
-        vkFreeCommandBuffers(instance->device, pool, commandBuffers.size(), commandBuffers.data());
+        vkFreeCommandBuffers(instance->device, pool, count, commandBuffers);
     }
 
     void CommandBufferVk::begin()
     {
-        // FIXME: vkAcquireNextImageKHR doesn't guarantee images are processed in order so simply incrementing this is
-        // kinda dumb. maybe change it to get the oldest (and therefore most likely to be done) command buffer.
-        currentIndex = (currentIndex + 1) % commandBuffers.size();
+        currentIndex = (currentIndex + 1) % count;
 
         vkWaitForFences(instance->device, 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
         vkResetFences(instance->device, 1, &getCurrentRecordingFence());

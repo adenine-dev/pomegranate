@@ -85,7 +85,7 @@ namespace pom::gfx {
             return memoryAccess;
         }
 
-        [[nodiscard]] virtual void* map(size_t offset, size_t size) = 0;
+        [[nodiscard]] virtual void* map(size_t offset = 0, size_t size = 0) = 0;
         virtual void unmap() = 0;
 
     protected:

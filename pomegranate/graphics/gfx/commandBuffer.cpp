@@ -14,10 +14,9 @@ namespace pom::gfx {
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            auto* ctx = dynamic_cast<ContextVk*>(Application::get()->getMainWindow().getContext());
             return new CommandBufferVk(dynamic_cast<InstanceVk*>(Instance::get()),
                                        specialization,
-                                       count ? count : ctx->getSwapchainImageCount());
+                                       count ? count : POM_MAX_FRAMES_IN_FLIGHT);
         }
         }
     }

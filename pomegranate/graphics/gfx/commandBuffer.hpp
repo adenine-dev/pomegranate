@@ -40,9 +40,8 @@ namespace pom::gfx {
     public:
         /// Creates a command buffer tied to this context.
         /// @arg specialization: Dictates what this command buffer can do.
-        /// @arg countHint: hint for how many internal command buffers should be created. If not passed a number of
-        /// command buffers optimal for graphics rendering to the main window's `Context` will be used (the number of
-        /// swapchain images). Only applicable in api's where that works.
+        /// @arg countHint: hint for how many internal command buffers should be created. If not passed will default to
+        /// the maximum number of frames in flight. It is useful to set this to `1` for one time use command buffers.
         [[nodiscard]] static CommandBuffer* create(CommandBufferSpecialization specialization, u32 countHint = 0);
 
         virtual ~CommandBuffer() = default;

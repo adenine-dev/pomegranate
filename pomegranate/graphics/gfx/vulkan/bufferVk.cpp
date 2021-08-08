@@ -107,7 +107,7 @@ namespace pom::gfx {
     [[nodiscard]] void* BufferVk::map(size_t offset, size_t size)
     {
         void* data = nullptr;
-        vkMapMemory(instance->device, memory, offset, size, 0, &data);
+        vkMapMemory(instance->device, memory, offset, size == 0 ? VK_WHOLE_SIZE : size, 0, &data);
         return data;
     }
 

@@ -532,17 +532,17 @@ namespace pom {
 
     /// Returns true if the passed key is currently pressed.
     /// This will only return true if the window is focused.
-    POM_API bool keyDown(const KeyHid& hid);
+    [[nodiscard]] POM_API bool keyDown(const KeyHid& hid);
 
     /// Returns true if the passed mouse button is currently pressed.
     /// This will only return true if a window is focused, and the mouse is pressing within the
     /// focused window.
-    POM_API bool mouseButtonDown(const MouseButton& button);
+    [[nodiscard]] POM_API bool mouseButtonDown(const MouseButton& button);
 
     /// Returns the position of the mouse relative to the top left corner of the focused window.
     /// @warning If you are working with multiple windows, you need to ensure the window you're
     /// working with is the focused window.
-    POM_API maths::ivec2 getMousePostition();
+    [[nodiscard]] POM_API maths::ivec2 getMousePostition();
 
     /// @}
     /// @}

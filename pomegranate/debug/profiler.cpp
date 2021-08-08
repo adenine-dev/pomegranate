@@ -20,6 +20,6 @@ namespace pom {
                   functionName,
                   "] : ",
                   std::chrono::duration_cast<std::chrono::microseconds>(duration).count(),
-                  "µs");
+                  "us");
     }
 } // namespace pom

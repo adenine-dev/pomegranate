@@ -32,7 +32,7 @@ namespace pom::gfx {
             return buffer;
         }
 
-        [[nodiscard]] void* map(size_t offset, size_t size) final;
+        [[nodiscard]] void* map(size_t offset = 0, size_t size = 0) final;
         void unmap() final;
 
     protected:
