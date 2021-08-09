@@ -10,27 +10,44 @@ struct Vertex {
     pom::Color color;
 };
 
-static Vertex VERTEX_DATA[] = { { { -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-                                { { 0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
-                                { { 0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
-                                { { -0.5f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } } };
+struct UniformMVP {
+    pom::maths::mat4 model;
+    pom::maths::mat4 view;
+    pom::maths::mat4 projection;
+};
+
+static Vertex VERTEX_DATA[] = {
+    { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },  { { 0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
+    { { 0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } },    { { -0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, { { 0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+    { { 0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },   { { -0.5f, 0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+};
 
 static const f32 SCALE_DATA[] = { 2, 1.5, 1, 0.5 };
 
-static const u16 INDEX_DATA[] = { 0, 1, 2, 0, 2, 3 };
+static const u16 INDEX_DATA[]
+    = { 0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1, 7, 6, 5, 5, 4, 7, 4, 0, 3, 3, 7, 4, 4, 5, 1, 1, 0, 4, 3, 2, 6, 6, 7, 3 };
 
 struct GameState {
     // instance
     VkInstance instance;
     VkDevice device;
     pom::gfx::CommandBuffer* commandBuffer;
-    // pipeline
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
     // vertex buffer
     pom::gfx::Buffer* vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
     pom::gfx::Buffer* scaleBuffer;
     pom::gfx::Buffer* indexBuffer;
+
+    // uniform buffers
+    pom::maths::vec3 cameraPos = pom::maths::vec3(2, 2, 2);
+    pom::gfx::Buffer* uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
+
+    // pipeline
+    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorPool descriptorPool;
+    VkDescriptorSet descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
 
     // other context test.
     pom::Window* otherWindow;
@@ -95,6 +112,87 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                             pom::gfx::BufferMemoryAccess::GPU_ONLY,
                                                             sizeof(VERTEX_DATA),
                                                             VERTEX_DATA);
+
+    // descriptor set
+    VkDescriptorSetLayoutBinding uboLayoutBinding = {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .pImmutableSamplers = nullptr,
+    };
+
+    VkDescriptorSetLayoutCreateInfo uboLayoutCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = 1,
+        .pBindings = &uboLayoutBinding,
+    };
+
+    for (auto& ub : gamestate->uniformBuffers) {
+        ub = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
+                                      pom::gfx::BufferMemoryAccess::CPU_WRITE,
+                                      sizeof(UniformMVP));
+    }
+
+    POM_ASSERT(
+        vkCreateDescriptorSetLayout(gamestate->device, &uboLayoutCreateInfo, nullptr, &gamestate->descriptorSetLayout)
+            == VK_SUCCESS,
+        "Failed to create descriptor set layout.");
+
+    VkDescriptorPoolSize poolSize = {
+        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT,
+    };
+
+    VkDescriptorPoolCreateInfo poolCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .maxSets = POM_MAX_FRAMES_IN_FLIGHT,
+        .poolSizeCount = 1,
+        .pPoolSizes = &poolSize,
+    };
+
+    vkCreateDescriptorPool(gamestate->device, &poolCreateInfo, nullptr, &gamestate->descriptorPool);
+
+    VkDescriptorSetLayout descriptorSetLayouts[POM_MAX_FRAMES_IN_FLIGHT]
+        = { gamestate->descriptorSetLayout, gamestate->descriptorSetLayout };
+
+    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .descriptorPool = gamestate->descriptorPool,
+        .descriptorSetCount = POM_MAX_FRAMES_IN_FLIGHT,
+        .pSetLayouts = descriptorSetLayouts,
+    };
+
+    POM_ASSERT(vkAllocateDescriptorSets(gamestate->device, &descriptorSetAllocateInfo, gamestate->descriptorSets)
+                   == VK_SUCCESS,
+               "Failed to allocate descriptor sets");
+
+    for (u8 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorBufferInfo bufferInfo = {
+            .buffer = dynamic_cast<pom::gfx::BufferVk*>(gamestate->uniformBuffers[i])->getBuffer(),
+            .offset = 0,
+            .range = sizeof(UniformMVP),
+        };
+        VkWriteDescriptorSet descriptorSetWrite = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = nullptr,
+            .dstSet = gamestate->descriptorSets[i],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &bufferInfo,
+            .pTexelBufferView = nullptr,
+        };
+
+        vkUpdateDescriptorSets(gamestate->device, 1, &descriptorSetWrite, 0, nullptr);
+    }
 
     // pipeline
     // TODO: as much of this as possible should load from the shaders themselves.
@@ -210,7 +308,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .rasterizerDiscardEnable = VK_FALSE,
         .polygonMode = VK_POLYGON_MODE_FILL,
         .cullMode = VK_CULL_MODE_BACK_BIT,
-        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
         .depthBiasEnable = VK_FALSE,
         .depthBiasConstantFactor = 0.f,
         .depthBiasClamp = 0.f,
@@ -258,8 +356,8 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .setLayoutCount = 0,
-        .pSetLayouts = nullptr,
+        .setLayoutCount = 1,
+        .pSetLayouts = &gamestate->descriptorSetLayout,
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
@@ -332,45 +430,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                       pom::gfx::BufferMemoryAccess::GPU_ONLY,
                                                       sizeof(INDEX_DATA),
                                                       INDEX_DATA);
-
-    //
-
-    pom::maths::mat4 m { {
-        { 1.f, 2.f, 3.f, 4.f },
-        { 5.f, 6.f, 7.f, 8.f },
-        { 9.f, 10.f, 11.f, 12.f },
-        { 13.f, 14.f, 15.f, 16.f },
-    } };
-    pom::maths::mat4 n { {
-        { 1.f, 2.f, 3.f, 4.f },
-        { 5.f, 6.f, 7.f, 8.f },
-        { 9.f, 10.f, 11.f, 12.f },
-        { 13.f, 14.f, 15.f, 16.f },
-    } };
-    POM_DEBUG(m);
-    POM_DEBUG(n);
-    POM_DEBUG(m * n);
-    n *= m;
-    POM_DEBUG(n);
-
-    m = pom::maths::mat4::identity();
-    POM_DEBUG(m);
-    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
-
-    m = pom::maths::mat4::scale({ 1, 2, 3 });
-    POM_DEBUG(m);
-    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
-
-    m = pom::maths::mat4::translate({ 1, 2, 3 });
-    POM_DEBUG(m);
-    POM_DEBUG(m * pom::maths::vec4 { 2.f, 3.f, 4.f, 1.f });
-
-    m = pom::maths::mat4::rotate({ 0, 0, PI / 2 });
-    POM_DEBUG(m);
-    POM_DEBUG(m * pom::maths::vec4 { 1.f, 0.f, 0.f, 1.f });
-
-    auto m5 = pom::maths::Matrix<f32, 6, 6>::rotate(pom::maths::Vector<f32, 10>(PI / 2, 0, 0, 0, 0, 0, 0, PI, 0, 0));
-    POM_DEBUG(m5);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
@@ -384,19 +443,56 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         if (!pom::Application::get()->getMainWindow().isMinimized()) {
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-            // TODO: what is a matrix lol
             auto frame = pom::Application::get()->getFrame();
-            pom::gfx::Buffer* vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
-            Vertex* data = (Vertex*)vertexBuffer->map();
-            memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
 
-            pom::maths::mat3 m = pom::maths::mat3::rotate({ (f32)(TAU / 100.f * (f32)frame) });
-            POM_DEBUG(m);
-            for (u8 i = 0; i < 4; i++) {
-                data[i].pos = m * VERTEX_DATA[i].pos;
+            pom::gfx::Buffer* vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+            {
+                // Vertex* data = (Vertex*)vertexBuffer->map();
+                // memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
+
+                // pom::maths::mat3 m = pom::maths::mat3::rotate({ (f32)(TAU / 100.f * (f32)frame) });
+                // for (u8 i = 0; i < 4; i++) {
+                //     data[i].pos = m * VERTEX_DATA[i].pos;
+                // }
+
+                // vertexBuffer->unmap();
             }
 
-            vertexBuffer->unmap();
+            const f32 cameraSpeed = 0.01f;
+            if (pom::keyDown(pom::KeyHid::KEY_W)) {
+                gamestate->cameraPos.y += cameraSpeed * dt;
+            } else if (pom::keyDown(pom::KeyHid::KEY_S)) {
+                gamestate->cameraPos.y -= cameraSpeed * dt;
+            }
+
+            if (pom::keyDown(pom::KeyHid::KEY_D)) {
+                gamestate->cameraPos.x += cameraSpeed * dt;
+            } else if (pom::keyDown(pom::KeyHid::KEY_A)) {
+                gamestate->cameraPos.x -= cameraSpeed * dt;
+            }
+
+            if (pom::keyDown(pom::KeyHid::KEY_Q)) {
+                gamestate->cameraPos.z += cameraSpeed * dt;
+            } else if (pom::keyDown(pom::KeyHid::KEY_E)) {
+                gamestate->cameraPos.z -= cameraSpeed * dt;
+            }
+
+            {
+                pom::gfx::Buffer* uniformBuffer = gamestate->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+                UniformMVP* data = (UniformMVP*)uniformBuffer->map();
+
+                data->model = pom::maths::mat4::rotate({ TAU / 100.f * (f32)frame, 0, 0 });
+                data->projection = pom::maths::mat4::perspective(TAU / 8.f,
+                                                                 context->swapchainViewport.width
+                                                                     / context->swapchainViewport.height,
+                                                                 0.01f,
+                                                                 1000.f);
+                data->view = pom::maths::mat4::lookAt(gamestate->cameraPos,
+                                                      pom::maths::vec3(0.f, 0.f, 0.f),
+                                                      pom::maths::vec3(0.f, 0.f, 1.f));
+
+                uniformBuffer->unmap();
+            }
 
             gamestate->commandBuffer->begin();
             gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
@@ -414,12 +510,20 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
             gamestate->commandBuffer->setScissor({ 0, 0 },
                                                  { context->swapchainExtent.width, context->swapchainExtent.height });
 
-            gamestate->commandBuffer->bindVertexBuffer(vertexBuffer);
+            gamestate->commandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
             gamestate->commandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
             gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+            vkCmdBindDescriptorSets(commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    gamestate->pipelineLayout,
+                                    0,
+                                    1,
+                                    &gamestate->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT],
+                                    0,
+                                    nullptr);
 
             gamestate->commandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
 
@@ -484,6 +588,12 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
     delete gamestate->commandBuffer;
     delete gamestate->indexBuffer;
 
+    for (auto& ub : gamestate->uniformBuffers) {
+        delete ub;
+    }
+
+    vkDestroyDescriptorPool(gamestate->device, gamestate->descriptorPool, nullptr);
+    vkDestroyDescriptorSetLayout(gamestate->device, gamestate->descriptorSetLayout, nullptr);
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
 

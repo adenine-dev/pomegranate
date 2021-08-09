@@ -140,6 +140,16 @@
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
             n += data[i] * data[i];                                                                                    \
         return sqrt(n);                                                                                                \
+    }                                                                                                                  \
+    constexpr Vector<T, N>& norm() const                                                                               \
+    {                                                                                                                  \
+        return ((Vector<T, N>)*this).div(mag());                                                                       \
+    }                                                                                                                  \
+    template <typename U> constexpr Vector<T, 3> cross(const Vector<U, 3>& other) const requires(N == 3)               \
+    {                                                                                                                  \
+        return Vector<T, 3>(data[1] * other[2] - data[2] * other[1],                                                   \
+                            data[2] * other[0] - data[0] * other[2],                                                   \
+                            data[0] * other[1] - data[1] * other[0]);                                                  \
     }
 
 namespace pom::maths {

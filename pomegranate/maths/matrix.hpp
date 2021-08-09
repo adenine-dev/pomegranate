@@ -10,16 +10,16 @@ namespace pom::maths {
 
     // FIXME: this is garbage tbh, rewrite the entire thing also make tests probably.
 
-    /// @brief Generic matrix type with `M` columns and `N` rows.
+    /// @brief Generic column major matrix type with `N` columns and `M` rows.
     ///
     /// You probably want to use the @ref matrix_specializations "matrix specializations", but this
     /// can be used independently for larger matrices.
     /// The maximum value for `M` and `N` is determined by @ref POM_VECTOR_SIZE_TYPE
-    template <typename T, POM_VECTOR_SIZE_TYPE M, POM_VECTOR_SIZE_TYPE N> struct Matrix {
+    template <typename T, POM_VECTOR_SIZE_TYPE N, POM_VECTOR_SIZE_TYPE M> struct Matrix {
         static_assert(N > 0 && M > 0, "Cannot have a 0 size matrix.");
 
         /// Column vectors for this matrix.
-        Vector<T, N> data[M];
+        Vector<T, M> data[N];
 
         /// Returns a reference to the nth column of the matrix.
         /// @warning No bounds checking is preformed so using this improperly can crash.
@@ -89,6 +89,48 @@ namespace pom::maths {
             return ret;
         }
 
+        constexpr static Matrix<T, 4, 4> perspective(f32 fov, f32 aspectRatio, f32 near, f32 far) requires(N == M
+                                                                                                           && N == 4)
+        {
+            Matrix<T, 4, 4> ret;
+
+            f32 q = tan(fov / 2);
+
+            ret[0][0] = 1 / (aspectRatio * q);
+            ret[1][1] = -1 / q; // TODO: some way to specify if this should be flipped or not
+            ret[2][2] = (near + far) / (near - far);
+            ret[2][3] = -1.f;
+            ret[3][2] = (2.f * near * far) / (near - far);
+
+            return ret;
+        }
+
+        constexpr static Matrix<T, 4, 4> lookAt(const vec3& eye, const vec3& at, const vec3& up) requires(N == M
+                                                                                                          && N == 4)
+        {
+            Matrix<T, 4, 4> ret;
+            vec3 f = (at - eye).norm();
+            vec3 s = f.cross(up).norm();
+            vec3 u = s.cross(f);
+
+            ret[0][0] = s[0];
+            ret[1][0] = s[1];
+            ret[2][0] = s[2];
+            ret[0][1] = u[0];
+            ret[1][1] = u[1];
+            ret[2][1] = u[2];
+            ret[0][2] = -f[0];
+            ret[1][2] = -f[1];
+            ret[2][2] = -f[2];
+            ret[3][0] = -s.dot(eye);
+            ret[3][1] = -u.dot(eye);
+            ret[3][2] = f.dot(eye);
+
+            ret[3][3] = 1.f;
+
+            return ret;
+        }
+
         constexpr Matrix<T, M, N>& operator*=(const Matrix<T, M, N>& other)
         {
             *this = operator*(*this, other);
@@ -110,13 +152,13 @@ namespace pom::maths {
     }
 
     template <typename T, POM_VECTOR_SIZE_TYPE M, POM_VECTOR_SIZE_TYPE N, POM_VECTOR_SIZE_TYPE P>
-    constexpr Matrix<T, N, P> operator*(const Matrix<T, M, N>& lhs, const Matrix<T, N, P>& rhs)
+    constexpr Matrix<T, P, M> operator*(const Matrix<T, N, M>& lhs, const Matrix<T, P, N>& rhs)
     {
-        Matrix<T, N, P> ret { 0 };
-        for (POM_VECTOR_SIZE_TYPE i = 0; i < M; i++) {
-            for (POM_VECTOR_SIZE_TYPE j = 0; j < P; j++) {
+        Matrix<T, P, M> ret;
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < P; i++) {
+            for (POM_VECTOR_SIZE_TYPE j = 0; j < M; j++) {
                 for (POM_VECTOR_SIZE_TYPE k = 0; k < N; k++) {
-                    ret[i][j] += lhs[i][k] * rhs[k][j];
+                    ret[i][j] += lhs[k][j] * rhs[i][k];
                 }
             }
         }
