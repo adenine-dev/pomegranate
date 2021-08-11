@@ -1,5 +1,8 @@
 #include <pomegranate/pomegranate.hpp>
 
+#include <array>
+#include <numeric>
+
 #include "embed/basic_frag_spv.hpp"
 #include "embed/basic_vert_spv.hpp"
 
@@ -19,8 +22,8 @@ struct UniformMVP {
 static Vertex VERTEX_DATA[] = {
     { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },  { { 0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
     { { 0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } },    { { -0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } }, { { 0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
-    { { 0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },   { { -0.5f, 0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f } }, { { 0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+    { { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },   { { -0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f } },
 };
 
 static const f32 SCALE_DATA[] = { 2, 1.5, 1, 0.5 };
@@ -43,9 +46,9 @@ struct GameState {
     pom::gfx::Buffer* uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
 
     // pipeline
-    VkDescriptorSetLayout descriptorSetLayout;
+    std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
     VkDescriptorPool descriptorPool;
-    VkDescriptorSet descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
+    std::unordered_map<u32, VkDescriptorSet[POM_MAX_FRAMES_IN_FLIGHT]> descriptorSets;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
@@ -83,8 +86,8 @@ VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned c
     };
 
     VkShaderModule shaderModule = VK_NULL_HANDLE;
-    POM_ASSERT(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule) == VK_SUCCESS,
-               "Failed to create shader module");
+    POM_CHECK_VK(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule),
+                 "Failed to create shader module");
 
     return shaderModule;
 }
@@ -112,87 +115,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                             pom::gfx::BufferMemoryAccess::GPU_ONLY,
                                                             sizeof(VERTEX_DATA),
                                                             VERTEX_DATA);
-
-    // descriptor set
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        .pImmutableSamplers = nullptr,
-    };
-
-    VkDescriptorSetLayoutCreateInfo uboLayoutCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .bindingCount = 1,
-        .pBindings = &uboLayoutBinding,
-    };
-
-    for (auto& ub : gamestate->uniformBuffers) {
-        ub = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
-                                      pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                      sizeof(UniformMVP));
-    }
-
-    POM_ASSERT(
-        vkCreateDescriptorSetLayout(gamestate->device, &uboLayoutCreateInfo, nullptr, &gamestate->descriptorSetLayout)
-            == VK_SUCCESS,
-        "Failed to create descriptor set layout.");
-
-    VkDescriptorPoolSize poolSize = {
-        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT,
-    };
-
-    VkDescriptorPoolCreateInfo poolCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .maxSets = POM_MAX_FRAMES_IN_FLIGHT,
-        .poolSizeCount = 1,
-        .pPoolSizes = &poolSize,
-    };
-
-    vkCreateDescriptorPool(gamestate->device, &poolCreateInfo, nullptr, &gamestate->descriptorPool);
-
-    VkDescriptorSetLayout descriptorSetLayouts[POM_MAX_FRAMES_IN_FLIGHT]
-        = { gamestate->descriptorSetLayout, gamestate->descriptorSetLayout };
-
-    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-        .pNext = nullptr,
-        .descriptorPool = gamestate->descriptorPool,
-        .descriptorSetCount = POM_MAX_FRAMES_IN_FLIGHT,
-        .pSetLayouts = descriptorSetLayouts,
-    };
-
-    POM_ASSERT(vkAllocateDescriptorSets(gamestate->device, &descriptorSetAllocateInfo, gamestate->descriptorSets)
-                   == VK_SUCCESS,
-               "Failed to allocate descriptor sets");
-
-    for (u8 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorBufferInfo bufferInfo = {
-            .buffer = dynamic_cast<pom::gfx::BufferVk*>(gamestate->uniformBuffers[i])->getBuffer(),
-            .offset = 0,
-            .range = sizeof(UniformMVP),
-        };
-        VkWriteDescriptorSet descriptorSetWrite = {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .pNext = nullptr,
-            .dstSet = gamestate->descriptorSets[i],
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &bufferInfo,
-            .pTexelBufferView = nullptr,
-        };
-
-        vkUpdateDescriptorSets(gamestate->device, 1, &descriptorSetWrite, 0, nullptr);
-    }
 
     // pipeline
     // TODO: as much of this as possible should load from the shaders themselves.
@@ -227,25 +149,155 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     auto inputs = vertShaderResources.stage_inputs;
 
-    // std::vector<VkVertexInputBindingDescription> vertexBindingDescs;
-    // std::vector<VkVertexInputAttributeDescription> vertexAttribDescs;
-
     for (auto& input : inputs) {
         u32 set = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationDescriptorSet);
-        u32 binding = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationBinding);
         u32 location = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationLocation);
         u32 offset = vertShaderModuleReflection.get_decoration(input.id, spv::DecorationOffset);
 
-        POM_DEBUG(input.name, ", ", set, ", ", binding, ", ", location, ", ", offset);
+        POM_DEBUG("vertex attribute: ", input.name, ", ", set, ", ", location, ", ", offset);
+    }
+
+    // descriptor set
+    for (auto& ub : gamestate->uniformBuffers) {
+        ub = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
+                                      pom::gfx::BufferMemoryAccess::CPU_WRITE,
+                                      sizeof(UniformMVP));
+    }
+
+    VkDescriptorPoolSize poolSize = {
+        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT * 3,
+    };
+
+    VkDescriptorPoolCreateInfo poolCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .maxSets = POM_MAX_FRAMES_IN_FLIGHT,
+        .poolSizeCount = 1,
+        .pPoolSizes = &poolSize,
+    };
+
+    vkCreateDescriptorPool(gamestate->device, &poolCreateInfo, nullptr, &gamestate->descriptorPool);
+
+    auto uniformBuffers = vertShaderResources.uniform_buffers;
+
+    std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
+
+    for (auto& resource : uniformBuffers) {
+        u32 set = vertShaderModuleReflection.get_decoration(resource.id, spv::Decoration::DecorationDescriptorSet);
+        if (!descriptorSetBindings.contains(set)) {
+            descriptorSetBindings.emplace(std::make_pair(set, std::vector<VkDescriptorSetLayoutBinding>()));
+        }
+
+        const spirv_cross::SPIRType& type = vertShaderModuleReflection.get_type(resource.type_id);
+        size_t size = vertShaderModuleReflection.get_declared_struct_size(type);
+        POM_DEBUG(resource.name, ": ", std::accumulate(type.array.begin(), type.array.end(), 1u, std::multiplies<>()));
+
+        descriptorSetBindings[set].push_back({
+            .binding = vertShaderModuleReflection.get_decoration(resource.id, spv::Decoration::DecorationBinding),
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            // NOTE: Vulkan doesn't support multi dimensional arrays for uniform buffers.
+            .descriptorCount = type.array.size() == 1 ? type.array[0] : 1,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT, // this will need to be changed, maybe just VK_SHADER_STAGE_ALL?
+            .pImmutableSamplers = nullptr,
+        });
+    }
+
+    gamestate->descriptorSetLayouts.resize(descriptorSetBindings.size());
+    std::vector<VkDescriptorSetLayoutCreateInfo> descSetLayoutCreateInfos(descriptorSetBindings.size());
+    u32 i = 0;
+    for (auto& descSetBinding : descriptorSetBindings) {
+        descSetLayoutCreateInfos[i] = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .bindingCount = static_cast<u32>(descSetBinding.second.size()),
+            .pBindings = descSetBinding.second.data(),
+        };
+
+        POM_CHECK_VK(vkCreateDescriptorSetLayout(gamestate->device,
+                                                 descSetLayoutCreateInfos.data(),
+                                                 nullptr,
+                                                 &gamestate->descriptorSetLayouts[i]),
+                     "Failed to create descriptor set layout.");
+
+        VkDescriptorSetLayout descriptorSetLayouts[POM_MAX_FRAMES_IN_FLIGHT]
+            = { gamestate->descriptorSetLayouts[i], gamestate->descriptorSetLayouts[i] };
+
+        VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .descriptorPool = gamestate->descriptorPool,
+            .descriptorSetCount = POM_MAX_FRAMES_IN_FLIGHT,
+            .pSetLayouts = descriptorSetLayouts,
+        };
+
+        POM_CHECK_VK(
+            vkAllocateDescriptorSets(gamestate->device, &descriptorSetAllocateInfo, gamestate->descriptorSets[i]),
+            "Failed to allocate descriptor sets");
+
+        i++;
+    }
+
+    // for array
+    // for (u8 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
+    //     VkDescriptorBufferInfo bufferInfos[3];
+    //     for (u32 j = 0; j < 3; j++) {
+    //         bufferInfos[j] = {
+    //             .buffer = dynamic_cast<pom::gfx::BufferVk*>(gamestate->uniformBuffers[i])->getBuffer(),
+    //             .offset = j * sizeof(pom::maths::mat4),
+    //             .range = sizeof(pom::maths::mat4),
+    //         };
+    //     }
+
+    //     VkWriteDescriptorSet descriptorSetWrite = {
+    //         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+    //         .pNext = nullptr,
+    //         .dstSet = gamestate->descriptorSets[0][i],
+    //         .dstBinding = 0,
+    //         .dstArrayElement = 0,
+    //         .descriptorCount = 3,
+    //         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+    //         .pImageInfo = nullptr,
+    //         .pBufferInfo = bufferInfos,
+    //         .pTexelBufferView = nullptr,
+    //     };
+
+    //     vkUpdateDescriptorSets(gamestate->device, 1, &descriptorSetWrite, 0, nullptr);
+    // }
+
+    // for struct
+    for (u8 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorBufferInfo bufferInfo = {
+            .buffer = dynamic_cast<pom::gfx::BufferVk*>(gamestate->uniformBuffers[i])->getBuffer(),
+            .offset = 0,
+            .range = sizeof(UniformMVP),
+        };
+
+        VkWriteDescriptorSet descriptorSetWrite = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = nullptr,
+            .dstSet = gamestate->descriptorSets[0][i],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &bufferInfo,
+            .pTexelBufferView = nullptr,
+        };
+
+        vkUpdateDescriptorSets(gamestate->device, 1, &descriptorSetWrite, 0, nullptr);
     }
 
     VkVertexInputBindingDescription vertexBindingDescs[] = { {
-                                                                 .binding = 0, //*
+                                                                 .binding = 0,
                                                                  .stride = sizeof(Vertex), //*
                                                                  .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
                                                              },
                                                              {
-                                                                 .binding = 1, //*
+                                                                 .binding = 1,
                                                                  .stride = sizeof(f32), //*
                                                                  .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
                                                              } };
@@ -278,7 +330,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .flags = 0,
         .vertexBindingDescriptionCount = 2,
         .pVertexBindingDescriptions = vertexBindingDescs,
-        .vertexAttributeDescriptionCount = 3,
+        .vertexAttributeDescriptionCount = 3, //*
         .pVertexAttributeDescriptions = vertexAttribDescs,
     };
 
@@ -357,14 +409,14 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .pNext = nullptr,
         .flags = 0,
         .setLayoutCount = 1,
-        .pSetLayouts = &gamestate->descriptorSetLayout,
+        .pSetLayouts = &gamestate->descriptorSetLayouts[0],
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
 
-    POM_ASSERT(vkCreatePipelineLayout(gamestate->device, &pipelineLayoutCreateInfo, nullptr, &gamestate->pipelineLayout)
-                   == VK_SUCCESS,
-               "failed to create pipeline");
+    POM_CHECK_VK(
+        vkCreatePipelineLayout(gamestate->device, &pipelineLayoutCreateInfo, nullptr, &gamestate->pipelineLayout),
+        "failed to create pipeline");
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -398,14 +450,13 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         .basePipelineIndex = -1,
     };
 
-    POM_ASSERT(vkCreateGraphicsPipelines(gamestate->device,
-                                         VK_NULL_HANDLE,
-                                         1,
-                                         &pipelineCreateInfo,
-                                         nullptr,
-                                         &gamestate->graphicsPipeline)
-                   == VK_SUCCESS,
-               "Failed to create graphics pipeline");
+    POM_CHECK_VK(vkCreateGraphicsPipelines(gamestate->device,
+                                           VK_NULL_HANDLE,
+                                           1,
+                                           &pipelineCreateInfo,
+                                           nullptr,
+                                           &gamestate->graphicsPipeline),
+                 "Failed to create graphics pipeline");
 
     vkDestroyShaderModule(gamestate->device, fragShaderModule, nullptr);
     vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
@@ -521,7 +572,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
                                     gamestate->pipelineLayout,
                                     0,
                                     1,
-                                    &gamestate->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT],
+                                    &gamestate->descriptorSets[0][frame % POM_MAX_FRAMES_IN_FLIGHT],
                                     0,
                                     nullptr);
 
@@ -542,8 +593,8 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
     //     gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
 
     //     gamestate->otherCommandBuffer->setViewport({ ctx->swapchainViewport.x, ctx->swapchainViewport.y },
-    //                                                { ctx->swapchainViewport.width, ctx->swapchainViewport.height },
-    //                                                ctx->swapchainViewport.minDepth,
+    //                                                { ctx->swapchainViewport.width, ctx->swapchainViewport.height
+    //                                                }, ctx->swapchainViewport.minDepth,
     //                                                ctx->swapchainViewport.maxDepth);
     //     gamestate->otherCommandBuffer->setScissor({ 0, 0 },
     //                                               { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
@@ -593,7 +644,9 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
     }
 
     vkDestroyDescriptorPool(gamestate->device, gamestate->descriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(gamestate->device, gamestate->descriptorSetLayout, nullptr);
+    for (auto& layout : gamestate->descriptorSetLayouts) {
+        vkDestroyDescriptorSetLayout(gamestate->device, layout, nullptr);
+    }
     vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
 

@@ -1,6 +1,9 @@
 #include "pch.hpp"
 
 #include "instanceVk.hpp"
+
+#include "gfxVk.hpp"
+
 #include <set>
 
 VkBool32 debugCallbackVk(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -62,12 +65,11 @@ namespace pom::gfx {
 #ifdef _DEBUG
         validationLayers.push_back("VK_LAYER_KHRONOS_validation");
         u32 layerCount = 0;
-        POM_ASSERT(vkEnumerateInstanceLayerProperties(&layerCount, nullptr) == VK_SUCCESS,
-                   "Failed to get validation layers");
+        POM_CHECK_VK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Failed to get validation layers");
 
         std::vector<VkLayerProperties> availableLayers(layerCount);
-        POM_ASSERT(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()) == VK_SUCCESS,
-                   "Failed to get validation layers");
+        POM_CHECK_VK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()),
+                     "Failed to get validation layers");
 
         for (const auto* layer : validationLayers) {
             bool found = false;
@@ -83,15 +85,14 @@ namespace pom::gfx {
 
         // load extensions
         u32 extensionCount = 0;
-        POM_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr) == VK_SUCCESS,
-                   "Failed to get vulkan extensions.");
+        POM_CHECK_VK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr),
+                     "Failed to get vulkan extensions.");
 
         std::vector<VkExtensionProperties> extensionProps(extensionCount);
         std::vector<const char*> extensions;
 
-        POM_ASSERT(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensionProps.data())
-                       == VK_SUCCESS,
-                   "Failed to get vulkan extensions.");
+        POM_CHECK_VK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensionProps.data()),
+                     "Failed to get vulkan extensions.");
 
         // currently we aren't doing headless things so this is always required, do this manually instead of through SDL
         // so we don't mandate window creation first because that's annoying lmao.
@@ -160,8 +161,7 @@ namespace pom::gfx {
             .ppEnabledExtensionNames = extensions.data(),
         };
 
-        POM_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &instance) == VK_SUCCESS,
-                   "Failed to create instance.");
+        POM_CHECK_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance), "Failed to create instance.");
 
         // debug messanger
         auto vkCreateDebugUtilsMessengerEXT
@@ -188,12 +188,11 @@ namespace pom::gfx {
     void InstanceVk::loadPhysicalDevices()
     {
         u32 deviceCount = 0;
-        POM_ASSERT(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr) == VK_SUCCESS,
-                   "Failed to get device count.");
+        POM_CHECK_VK(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr), "Failed to get device count.");
         POM_ASSERT(deviceCount, "No GPU with vulkan support available");
+
         std::vector<VkPhysicalDevice> devices(deviceCount);
-        POM_ASSERT(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()) == VK_SUCCESS,
-                   "Failed to get devices.");
+        POM_CHECK_VK(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()), "Failed to get devices.");
 
         for (auto* device : devices) {
             VkPhysicalDeviceProperties props;
@@ -400,12 +399,12 @@ namespace pom::gfx {
             .queueFamilyIndex = graphicsQueueFamilyIndex,
         };
 
-        POM_ASSERT(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &graphicsCommandPool) == VK_SUCCESS,
-                   "Failed to create graphics command pool.");
+        POM_CHECK_VK(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &graphicsCommandPool),
+                     "Failed to create graphics command pool.");
 
         commandPoolCreateInfo.queueFamilyIndex = transferQueueFamilyIndex;
-        POM_ASSERT(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &transferCommandPool) == VK_SUCCESS,
-                   "Failed to create transfer command pool.");
+        POM_CHECK_VK(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &transferCommandPool),
+                     "Failed to create transfer command pool.");
     }
 
     bool InstanceVk::ready() const

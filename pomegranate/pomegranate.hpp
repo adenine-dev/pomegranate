@@ -101,6 +101,7 @@
 #include "graphics/gfx/vulkan/bufferVk.hpp"
 #include "graphics/gfx/vulkan/commandBufferVk.hpp"
 #include "graphics/gfx/vulkan/contextVk.hpp"
+#include "graphics/gfx/vulkan/gfxVk.hpp"
 #include "graphics/gfx/vulkan/instanceVk.hpp"
 #include "graphics/gfx/vulkan/renderPassVk.hpp"
 #include "graphics/gfx/vulkan/typesVk.hpp"

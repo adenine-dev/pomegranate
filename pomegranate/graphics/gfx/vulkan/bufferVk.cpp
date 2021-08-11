@@ -3,6 +3,7 @@
 #include "bufferVk.hpp"
 
 #include "commandBufferVk.hpp"
+#include "gfxVk.hpp"
 #include "typesVk.hpp"
 
 namespace pom::gfx {
@@ -31,8 +32,8 @@ namespace pom::gfx {
             .pQueueFamilyIndices = nullptr,
         };
 
-        POM_ASSERT(vkCreateBuffer(instance->device, &vertexBufferCreateInfo, nullptr, &buffer) == VK_SUCCESS,
-                   "Failed to create buffer");
+        POM_CHECK_VK(vkCreateBuffer(instance->device, &vertexBufferCreateInfo, nullptr, &buffer),
+                     "Failed to create buffer");
 
         VkMemoryRequirements memoryReqs;
         vkGetBufferMemoryRequirements(instance->device, buffer, &memoryReqs);
@@ -67,8 +68,8 @@ namespace pom::gfx {
             .memoryTypeIndex = memoryTypeIndex,
         };
 
-        POM_ASSERT(vkAllocateMemory(instance->device, &memoryAllocInfo, nullptr, &memory) == VK_SUCCESS,
-                   "Failed to allocate vertex buffer memory.")
+        POM_CHECK_VK(vkAllocateMemory(instance->device, &memoryAllocInfo, nullptr, &memory),
+                     "Failed to allocate buffer memory.")
 
         vkBindBufferMemory(instance->device, buffer, memory, 0);
 

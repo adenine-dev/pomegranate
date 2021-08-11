@@ -3,6 +3,7 @@
 #include "contextVk.hpp"
 
 #include "commandBufferVk.hpp"
+#include "gfxVk.hpp"
 
 namespace pom::gfx {
     ContextVk::ContextVk(InstanceVk* instance, Window* window) :
@@ -11,7 +12,7 @@ namespace pom::gfx {
         if (!instance->ready()) {
             instance->determineGPU(this);
         } else {
-            VkBool32 supported;
+            VkBool32 supported = VK_FALSE;
             vkGetPhysicalDeviceSurfaceSupportKHR(instance->physicalDevice,
                                                  instance->presentQueueFamilyIndex,
                                                  surface,
@@ -36,16 +37,16 @@ namespace pom::gfx {
         };
 
         for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            POM_ASSERT(vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i])
-                           == VK_SUCCESS,
-                       "Failed to create image available semaphore");
+            POM_CHECK_VK(
+                vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i]),
+                "Failed to create image available semaphore");
 
-            POM_ASSERT(vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores[i])
-                           == VK_SUCCESS,
-                       "Failed to create render finish semaphore");
+            POM_CHECK_VK(
+                vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores[i]),
+                "Failed to create render finish semaphore");
 
-            POM_ASSERT(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &inFlightFences[i]) == VK_SUCCESS,
-                       "Failed to create fence");
+            POM_CHECK_VK(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &inFlightFences[i]),
+                         "Failed to create fence");
         }
 
         vkResetFences(instance->device, 1, &inFlightFences[frameIndex]);
@@ -187,8 +188,8 @@ namespace pom::gfx {
             .oldSwapchain = firstTime ? nullptr : swapchain,
         };
 
-        POM_ASSERT(vkCreateSwapchainKHR(instance->device, &swapchainCreateInfo, nullptr, &swapchain) == VK_SUCCESS,
-                   "Failed to create swapchain.");
+        POM_CHECK_VK(vkCreateSwapchainKHR(instance->device, &swapchainCreateInfo, nullptr, &swapchain),
+                     "Failed to create swapchain.");
 
         vkGetSwapchainImagesKHR(instance->device, swapchain, &imageCount, nullptr);
         swapchainImages.resize(imageCount);
@@ -215,9 +216,8 @@ namespace pom::gfx {
                                       .layerCount = 1 },
             };
 
-            POM_ASSERT(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &swapchainImageViews[i])
-                           == VK_SUCCESS,
-                       "Failed to create image view")
+            POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &swapchainImageViews[i]),
+                         "Failed to create image view")
         }
 
         if (firstTime) {
@@ -245,9 +245,9 @@ namespace pom::gfx {
                 .layers = 1,
             };
 
-            POM_ASSERT(vkCreateFramebuffer(instance->device, &framebufferCreateInfo, nullptr, &swapchainFramebuffers[i])
-                           == VK_SUCCESS,
-                       "failed to create framebuffer");
+            POM_CHECK_VK(
+                vkCreateFramebuffer(instance->device, &framebufferCreateInfo, nullptr, &swapchainFramebuffers[i]),
+                "failed to create framebuffer");
         }
     }
 
@@ -278,9 +278,8 @@ namespace pom::gfx {
         };
 
         vkDestroySemaphore(instance->device, imageAvailableSemaphores[frameIndex], nullptr);
-        POM_ASSERT(
-            vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[frameIndex])
-                == VK_SUCCESS,
+        POM_CHECK_VK(
+            vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[frameIndex]),
             "Failed to create image available semaphore");
 
         acquireNextSwapchainImage();
@@ -304,8 +303,8 @@ namespace pom::gfx {
             .pSignalSemaphores = signalSemaphores,
         };
 
-        POM_ASSERT(vkQueueSubmit(instance->graphicsQueue, 1, &submitInfo, inFlightFences[frameIndex]) == VK_SUCCESS,
-                   "Failed to submit to queue");
+        POM_CHECK_VK(vkQueueSubmit(instance->graphicsQueue, 1, &submitInfo, inFlightFences[frameIndex]),
+                     "Failed to submit to queue");
 
         VkPresentInfoKHR presentInfo = {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,

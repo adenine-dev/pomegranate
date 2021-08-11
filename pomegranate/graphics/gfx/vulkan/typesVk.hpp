@@ -39,5 +39,8 @@ namespace pom::gfx {
     /// Converts a `VkIndexType` to a `IndexType`.
     POM_API constexpr IndexType fromVkIndexType(VkIndexType t);
 
+    /// Converts a `VkResult` to a string.
+    POM_API constexpr const char* fromVkResultToString(VkResult r);
+
     /// @}
 } // namespace pom::gfx

@@ -4,6 +4,7 @@
 
 #include "bufferVk.hpp"
 #include "contextVk.hpp"
+#include "gfxVk.hpp"
 #include "instanceVk.hpp"
 
 namespace pom::gfx {
@@ -32,12 +33,11 @@ namespace pom::gfx {
         };
 
         for (u32 i = 0; i < count; i++) {
-            POM_ASSERT(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &recordingFences[i]) == VK_SUCCESS,
-                       "Failed to create recording fence");
+            POM_CHECK_VK(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &recordingFences[i]),
+                         "Failed to create recording fence");
 
-            POM_ASSERT(vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers)
-                           == VK_SUCCESS,
-                       "Failed to allocate command buffers.");
+            POM_CHECK_VK(vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers),
+                         "Failed to allocate command buffers.");
         }
     }
 
@@ -65,8 +65,8 @@ namespace pom::gfx {
             .pInheritanceInfo = nullptr,
         };
 
-        POM_ASSERT(vkBeginCommandBuffer(getCurrentCommandBuffer(), &commandBufferBeginInfo) == VK_SUCCESS,
-                   "Failed to begin recording command buffer.");
+        POM_CHECK_VK(vkBeginCommandBuffer(getCurrentCommandBuffer(), &commandBufferBeginInfo),
+                     "Failed to begin recording command buffer.");
     }
 
     void CommandBufferVk::beginRenderPass(RenderPass* renderPass, Context* context)
@@ -102,8 +102,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::end()
     {
-        POM_ASSERT(vkEndCommandBuffer(getCurrentCommandBuffer()) == VK_SUCCESS,
-                   "Failed to end recording command buffer.");
+        POM_CHECK_VK(vkEndCommandBuffer(getCurrentCommandBuffer()), "Failed to end recording command buffer.");
     }
 
     void CommandBufferVk::submit()
@@ -123,8 +122,7 @@ namespace pom::gfx {
         VkQueue queue = specialization == CommandBufferSpecialization::TRANSFER ? instance->transferQueue
                                                                                 : instance->graphicsQueue;
 
-        POM_ASSERT(vkQueueSubmit(queue, 1, &submitInfo, getCurrentRecordingFence()) == VK_SUCCESS,
-                   "Failed to submit to queue");
+        POM_CHECK_VK(vkQueueSubmit(queue, 1, &submitInfo, getCurrentRecordingFence()), "Failed to submit to queue");
     }
 
     void CommandBufferVk::setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth)

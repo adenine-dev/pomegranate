@@ -16,8 +16,7 @@ namespace pom::gfx {
     // clang-format off
     // all documentation on 1 line even if it overflows 120 characters.
 
-    /// Specifies image format, used for textures, framebuffers, etc. Currently maps directly to vulkan's `VkFormat` however this may
-    /// change in the future.\n
+    /// Specifies image format, used for textures, framebuffers, etc. Currently maps directly to vulkan's `VkFormat` however this may change in the future.\n
     /// Normalized and scaled formats (`_*NORM` and `_*SCALED`) are integers sampled as floats, where values map to [-1, 1] (signed) or [0, 1] (unsigned).\n
     /// Int formats (`_*INT`) are integers sampled as integers.\n
     /// Float formats (`_*FLOAT`) are floats sampled as floats.\n
