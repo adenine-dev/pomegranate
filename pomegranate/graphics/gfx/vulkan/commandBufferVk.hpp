@@ -44,6 +44,8 @@ namespace pom::gfx {
 
         void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) final;
 
+        void bindPipeline(Pipeline* pipeline) final;
+
         void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()

@@ -4,7 +4,7 @@
 #include "instance.hpp"
 
 namespace pom::gfx {
-    POM_API std::ostream& operator<<(std::ostream& os, const Format& format)
+    std::ostream& operator<<(std::ostream& os, const Format& format)
     {
         switch (format) {
         case Format::UNDEFINED: {
@@ -256,6 +256,122 @@ namespace pom::gfx {
         }
 
         return os;
+    }
+
+    size_t sizeofFormat(Format format)
+    {
+        switch (format) {
+        case Format::UNDEFINED: {
+            return 0;
+        } break;
+        case Format::R8_UNORM:
+        case Format::R8_SNORM:
+        case Format::R8_USCALED:
+        case Format::R8_SSCALED:
+        case Format::R8_UINT:
+        case Format::R8_SINT: {
+            return 1;
+        } break;
+        case Format::R8G8_UNORM:
+        case Format::R8G8_SNORM:
+        case Format::R8G8_USCALED:
+        case Format::R8G8_SSCALED:
+        case Format::R8G8_UINT:
+        case Format::R8G8_SINT: {
+            return 2;
+        } break;
+        case Format::R8G8B8_UNORM:
+        case Format::R8G8B8_SNORM:
+        case Format::R8G8B8_USCALED:
+        case Format::R8G8B8_SSCALED:
+        case Format::R8G8B8_UINT:
+        case Format::R8G8B8_SINT:
+        case Format::R8G8B8_SRGB:
+        case Format::B8G8R8_UNORM:
+        case Format::B8G8R8_SNORM:
+        case Format::B8G8R8_USCALED:
+        case Format::B8G8R8_SSCALED:
+        case Format::B8G8R8_UINT:
+        case Format::B8G8R8_SINT:
+        case Format::B8G8R8_SRGB: {
+            return 3;
+        } break;
+        case Format::R8G8B8A8_UNORM:
+        case Format::R8G8B8A8_SNORM:
+        case Format::R8G8B8A8_USCALED:
+        case Format::R8G8B8A8_SSCALED:
+        case Format::R8G8B8A8_UINT:
+        case Format::R8G8B8A8_SINT:
+        case Format::R8G8B8A8_SRGB:
+        case Format::B8G8R8A8_UNORM:
+        case Format::B8G8R8A8_SNORM:
+        case Format::B8G8R8A8_USCALED:
+        case Format::B8G8R8A8_SSCALED:
+        case Format::B8G8R8A8_UINT:
+        case Format::B8G8R8A8_SINT:
+        case Format::B8G8R8A8_SRGB: {
+            return 4;
+        } break;
+        case Format::R16_UNORM:
+        case Format::R16_SNORM:
+        case Format::R16_USCALED:
+        case Format::R16_SSCALED:
+        case Format::R16_UINT:
+        case Format::R16_SINT:
+        case Format::R16_SFLOAT: {
+            return 2;
+        } break;
+        case Format::R16G16_UNORM:
+        case Format::R16G16_SNORM:
+        case Format::R16G16_USCALED:
+        case Format::R16G16_SSCALED:
+        case Format::R16G16_UINT:
+        case Format::R16G16_SINT:
+        case Format::R16G16_SFLOAT: {
+            return 4;
+        } break;
+        case Format::R16G16B16_UNORM:
+        case Format::R16G16B16_SNORM:
+        case Format::R16G16B16_USCALED:
+        case Format::R16G16B16_SSCALED:
+        case Format::R16G16B16_UINT:
+        case Format::R16G16B16_SINT:
+        case Format::R16G16B16_SFLOAT: {
+            return 6;
+        } break;
+        case Format::R16G16B16A16_UNORM:
+        case Format::R16G16B16A16_SNORM:
+        case Format::R16G16B16A16_USCALED:
+        case Format::R16G16B16A16_SSCALED:
+        case Format::R16G16B16A16_UINT:
+        case Format::R16G16B16A16_SINT:
+        case Format::R16G16B16A16_SFLOAT: {
+            return 8;
+        } break;
+        case Format::R32_UINT:
+        case Format::R32_SINT:
+        case Format::R32_SFLOAT: {
+            return 4;
+        } break;
+        case Format::R32G32_UINT:
+        case Format::R32G32_SINT:
+        case Format::R32G32_SFLOAT: {
+            return 8;
+        } break;
+        case Format::R32G32B32_UINT:
+        case Format::R32G32B32_SINT:
+        case Format::R32G32B32_SFLOAT: {
+            return 12;
+        } break;
+        case Format::R32G32B32A32_UINT:
+        case Format::R32G32B32A32_SINT:
+        case Format::R32G32B32A32_SFLOAT: {
+            return 16;
+        } break;
+        default: {
+            return 0;
+        }
+        }
     }
 
     void shutdown()

@@ -10,6 +10,7 @@ namespace pom::gfx {
 
     class RenderPass;
     class Buffer;
+    class Pipeline;
     class Context;
 
     /// @addtogroup gfx
@@ -103,6 +104,8 @@ namespace pom::gfx {
         /// buffer. `offset` is the offset to the first byte from which indicies will be calculated. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
         virtual void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) = 0;
+
+        virtual void bindPipeline(Pipeline* pipeline) = 0;
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;

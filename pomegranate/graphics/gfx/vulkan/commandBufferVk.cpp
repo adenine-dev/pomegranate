@@ -6,6 +6,7 @@
 #include "contextVk.hpp"
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
+#include "pipelineVk.hpp"
 
 namespace pom::gfx {
     CommandBufferVk::CommandBufferVk(InstanceVk* instance, CommandBufferSpecialization specialization, u32 count) :
@@ -183,6 +184,17 @@ namespace pom::gfx {
                              dynamic_cast<BufferVk*>(indexBuffer)->getBuffer(),
                              offset,
                              toVkIndexType(type));
+    }
+
+    void CommandBufferVk::bindPipeline(Pipeline* pipeline)
+    {
+        POM_ASSERT(pipeline->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
+        vkCmdBindPipeline(getCurrentCommandBuffer(),
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          dynamic_cast<PipelineVk*>(pipeline)->getHandle());
     }
 
     void CommandBufferVk::copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)

@@ -228,6 +228,9 @@ namespace pom::gfx {
 
     // clang-format on
 
+    /// Returns the size of a `Format` in bytes.
+    POM_API size_t sizeofFormat(Format f);
+
     POM_API std::ostream& operator<<(std::ostream& os, const Format& format);
 
     /// Shuts down all instance realted things, all Contexts and resources should be destroyed before calling this.

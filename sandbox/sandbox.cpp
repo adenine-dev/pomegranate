@@ -51,6 +51,7 @@ struct GameState {
     std::unordered_map<u32, VkDescriptorSet[POM_MAX_FRAMES_IN_FLIGHT]> descriptorSets;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+    pom::gfx::Pipeline* pipeline;
 
     // other context test.
     pom::Window* otherWindow;
@@ -72,24 +73,6 @@ POM_CLIENT_EXPORT GameState* clientCreateState()
     auto* gc = new GameState;
 
     return gc;
-}
-
-VkShaderModule createShaderModule(VkDevice device, size_t size, const unsigned char* bytes)
-{
-    VkShaderModuleCreateInfo shaderModuleCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .codeSize = size,
-        // FIXME: this won't be safe for general use
-        .pCode = reinterpret_cast<const u32*>(bytes) // NOLINT this code will always be aligned to 4 bytes so it is safe
-    };
-
-    VkShaderModule shaderModule = VK_NULL_HANDLE;
-    POM_CHECK_VK(vkCreateShaderModule(device, &shaderModuleCreateInfo, nullptr, &shaderModule),
-                 "Failed to create shader module");
-
-    return shaderModule;
 }
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
@@ -117,31 +100,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                             VERTEX_DATA);
 
     // pipeline
-    // TODO: as much of this as possible should load from the shaders themselves.
-    VkShaderModule vertShaderModule = createShaderModule(gamestate->device, basic_vert_spv_size, basic_vert_spv_data);
-    VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stage = VK_SHADER_STAGE_VERTEX_BIT,
-        .module = vertShaderModule,
-        .pName = "main",
-        .pSpecializationInfo = nullptr,
-    };
-
-    VkShaderModule fragShaderModule = createShaderModule(gamestate->device, basic_frag_spv_size, basic_frag_spv_data);
-    VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = fragShaderModule,
-        .pName = "main",
-        .pSpecializationInfo = nullptr,
-    };
-
-    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageCreateInfo, fragShaderStageCreateInfo };
-
     spirv_cross::CompilerReflection vertShaderModuleReflection(reinterpret_cast<const u32*>(basic_vert_spv_data),
                                                                basic_vert_spv_size / sizeof(u32));
 
@@ -291,119 +249,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         vkUpdateDescriptorSets(gamestate->device, 1, &descriptorSetWrite, 0, nullptr);
     }
 
-    VkVertexInputBindingDescription vertexBindingDescs[] = { {
-                                                                 .binding = 0,
-                                                                 .stride = sizeof(Vertex), //*
-                                                                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-                                                             },
-                                                             {
-                                                                 .binding = 1,
-                                                                 .stride = sizeof(f32), //*
-                                                                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-                                                             } };
-
-    VkVertexInputAttributeDescription vertexAttribDescs[] = { {
-                                                                  // position
-                                                                  .location = 0, //*
-                                                                  .binding = 0,
-                                                                  .format = VK_FORMAT_R32G32B32_SFLOAT, //*
-                                                                  .offset = offsetof(Vertex, pos),
-                                                              },
-                                                              {
-                                                                  // color
-                                                                  .location = 1, //*
-                                                                  .binding = 0,
-                                                                  .format = VK_FORMAT_R32G32B32A32_SFLOAT, //*
-                                                                  .offset = offsetof(Vertex, color),
-                                                              },
-                                                              {
-                                                                  // scale
-                                                                  .location = 2, //*
-                                                                  .binding = 1,
-                                                                  .format = VK_FORMAT_R32_SFLOAT, //*
-                                                                  .offset = 0,
-                                                              } };
-
-    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .vertexBindingDescriptionCount = 2,
-        .pVertexBindingDescriptions = vertexBindingDescs,
-        .vertexAttributeDescriptionCount = 3, //*
-        .pVertexAttributeDescriptions = vertexAttribDescs,
-    };
-
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-        .primitiveRestartEnable = VK_FALSE,
-    };
-
-    VkPipelineViewportStateCreateInfo viewportCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .viewportCount = 1,
-        .pViewports = nullptr,
-        .scissorCount = 1,
-        .pScissors = nullptr,
-    };
-
-    VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .depthClampEnable = VK_FALSE,
-        .rasterizerDiscardEnable = VK_FALSE,
-        .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_BACK_BIT,
-        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
-        .depthBiasEnable = VK_FALSE,
-        .depthBiasConstantFactor = 0.f,
-        .depthBiasClamp = 0.f,
-        .depthBiasSlopeFactor = 0.f,
-        .lineWidth = 1.f,
-    };
-
-    VkPipelineMultisampleStateCreateInfo multisampleCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-        .sampleShadingEnable = VK_FALSE,
-        .minSampleShading = 1.f,
-        .pSampleMask = nullptr,
-        .alphaToCoverageEnable = VK_FALSE,
-        .alphaToOneEnable = VK_FALSE,
-    };
-
-    // mix based on opacity
-    VkPipelineColorBlendAttachmentState colorBlendAttachment = {
-        .blendEnable = VK_TRUE,
-        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        .colorBlendOp = VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = VK_BLEND_OP_ADD,
-        .colorWriteMask
-        = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    };
-
-    VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .logicOpEnable = VK_FALSE,
-        .logicOp = VK_LOGIC_OP_COPY,
-        .attachmentCount = 1,
-        .pAttachments = &colorBlendAttachment,
-        .blendConstants = { 0.f, 0.f, 0.f, 0.f },
-    };
-
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
@@ -418,48 +263,27 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         vkCreatePipelineLayout(gamestate->device, &pipelineLayoutCreateInfo, nullptr, &gamestate->pipelineLayout),
         "failed to create pipeline");
 
-    VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    pom::gfx::ShaderModule* vertShader
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
+                                         basic_vert_spv_size,
+                                         reinterpret_cast<const u32*>(basic_vert_spv_data));
 
-    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .dynamicStateCount = 2,
-        .pDynamicStates = dynamicStates,
-    };
+    pom::gfx::ShaderModule* fragShader
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::FRAGMENT,
+                                         basic_frag_spv_size,
+                                         reinterpret_cast<const u32*>(basic_frag_spv_data));
 
-    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .stageCount = 2,
-        .pStages = shaderStages,
-        .pVertexInputState = &vertexInputCreateInfo,
-        .pInputAssemblyState = &inputAssemblyCreateInfo,
-        .pTessellationState = nullptr,
-        .pViewportState = &viewportCreateInfo,
-        .pRasterizationState = &rasterizationCreateInfo,
-        .pMultisampleState = &multisampleCreateInfo,
-        .pDepthStencilState = nullptr,
-        .pColorBlendState = &colorBlendCreateInfo,
-        .pDynamicState = &dynamicStateCreateInfo,
-        .layout = gamestate->pipelineLayout,
-        .renderPass = dynamic_cast<const pom::gfx::RenderPassVk*>(contextVk->getSwapchainRenderPass())->getHandle(),
-        .subpass = 0,
-        .basePipelineHandle = VK_NULL_HANDLE,
-        .basePipelineIndex = -1,
-    };
+    pom::gfx::Shader* shader = pom::gfx::Shader::create(true, { vertShader, fragShader });
 
-    POM_CHECK_VK(vkCreateGraphicsPipelines(gamestate->device,
-                                           VK_NULL_HANDLE,
-                                           1,
-                                           &pipelineCreateInfo,
-                                           nullptr,
-                                           &gamestate->graphicsPipeline),
-                 "Failed to create graphics pipeline");
-
-    vkDestroyShaderModule(gamestate->device, fragShaderModule, nullptr);
-    vkDestroyShaderModule(gamestate->device, vertShaderModule, nullptr);
+    gamestate->pipeline = pom::gfx::Pipeline::create(
+        {},
+        shader,
+        contextVk->getSwapchainRenderPass(),
+        { { .binding = 0,
+            .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
+                         { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT } } },
+          { .binding = 1, .attribs = { { .location = 2, .format = pom::gfx::Format::R32_SFLOAT } } } },
+        gamestate->pipelineLayout);
 
     // command buffer
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
@@ -566,7 +390,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 
             gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
-            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+            gamestate->commandBuffer->bindPipeline(gamestate->pipeline);
             vkCmdBindDescriptorSets(commandBuffer,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     gamestate->pipelineLayout,
@@ -647,7 +471,8 @@ POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
     for (auto& layout : gamestate->descriptorSetLayouts) {
         vkDestroyDescriptorSetLayout(gamestate->device, layout, nullptr);
     }
-    vkDestroyPipeline(gamestate->device, gamestate->graphicsPipeline, nullptr);
+
+    delete gamestate->pipeline;
     vkDestroyPipelineLayout(gamestate->device, gamestate->pipelineLayout, nullptr);
 
     delete gamestate->otherCommandBuffer;

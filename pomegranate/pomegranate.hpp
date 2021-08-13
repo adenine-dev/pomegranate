@@ -92,7 +92,9 @@
 #include "graphics/gfx/context.hpp"
 #include "graphics/gfx/gfx.hpp"
 #include "graphics/gfx/instance.hpp"
+#include "graphics/gfx/pipeline.hpp"
 #include "graphics/gfx/renderPass.hpp"
+#include "graphics/gfx/shader.hpp"
 
 // TODO: if vulkan
 /// @defgroup vulkan Vulkan Implementation
@@ -103,7 +105,9 @@
 #include "graphics/gfx/vulkan/contextVk.hpp"
 #include "graphics/gfx/vulkan/gfxVk.hpp"
 #include "graphics/gfx/vulkan/instanceVk.hpp"
+#include "graphics/gfx/vulkan/pipelineVk.hpp"
 #include "graphics/gfx/vulkan/renderPassVk.hpp"
+#include "graphics/gfx/vulkan/shaderVk.hpp"
 #include "graphics/gfx/vulkan/typesVk.hpp"
 
 /// @defgroup core Core

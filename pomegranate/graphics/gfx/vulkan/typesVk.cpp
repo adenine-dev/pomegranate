@@ -646,6 +646,129 @@ namespace pom::gfx {
         }
     }
 
+    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStage s)
+    {
+        switch (s) {
+        case ShaderStage::VERTEX: {
+            return VK_SHADER_STAGE_VERTEX_BIT;
+        } break;
+        case ShaderStage::FRAGMENT: {
+            return VK_SHADER_STAGE_FRAGMENT_BIT;
+        } break;
+        }
+    }
+
+    POM_API constexpr ShaderStage fromVkShaderStageFlagBits(VkShaderStageFlagBits s)
+    {
+        switch (s) {
+        case VK_SHADER_STAGE_VERTEX_BIT: {
+            return ShaderStage::VERTEX;
+        } break;
+        case VK_SHADER_STAGE_FRAGMENT_BIT: {
+            return ShaderStage::FRAGMENT;
+        } break;
+        default: {
+            // FIXME: there has to be a better way to do this.
+#ifdef _DEBUG
+            POM_ERROR("Bad vk Shader stage flags.");
+#endif
+            return ShaderStage::VERTEX;
+        }
+        }
+    }
+
+    constexpr VkPrimitiveTopology toVkPrimitiveTopology(PrimitiveTopology t)
+    {
+        switch (t) {
+        case PrimitiveTopology::POINTS: {
+            return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        } break;
+        case PrimitiveTopology::LINES: {
+            return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+        } break;
+        case PrimitiveTopology::LINE_STRIP: {
+            return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+        } break;
+        case PrimitiveTopology::TRIANGLES: {
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        } break;
+        case PrimitiveTopology::TRIANGLE_STRIP: {
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+        } break;
+        case PrimitiveTopology::TRIANGLE_FAN: {
+            return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+        } break;
+        };
+    }
+
+    constexpr PrimitiveTopology fromVkPrimitiveTopology(VkPrimitiveTopology t)
+    {
+        switch (t) {
+        case VK_PRIMITIVE_TOPOLOGY_POINT_LIST: {
+            return PrimitiveTopology::POINTS;
+        } break;
+        case VK_PRIMITIVE_TOPOLOGY_LINE_LIST: {
+            return PrimitiveTopology::LINES;
+        } break;
+        case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP: {
+            return PrimitiveTopology::LINE_STRIP;
+        } break;
+        case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST: {
+            return PrimitiveTopology::TRIANGLES;
+        } break;
+        case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP: {
+            return PrimitiveTopology::TRIANGLE_STRIP;
+        } break;
+        case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN: {
+            return PrimitiveTopology::TRIANGLE_FAN;
+        } break;
+        default: {
+            POM_ERROR("Bad vk primitive topology.");
+            return PrimitiveTopology::POINTS;
+        }
+        };
+    }
+
+    POM_API constexpr VkCullModeFlags toVkCullMode(CullMode c)
+    {
+        switch (c) {
+        case CullMode::NONE: {
+            return VK_CULL_MODE_NONE;
+        } break;
+        case CullMode::FRONT: {
+            return VK_CULL_MODE_FRONT_BIT;
+        } break;
+        case CullMode::BACK: {
+            return VK_CULL_MODE_BACK_BIT;
+        } break;
+        case CullMode::BOTH: {
+            return VK_CULL_MODE_FRONT_AND_BACK;
+        } break;
+        }
+    }
+
+    POM_API constexpr CullMode fromVkCullMode(VkCullModeFlagBits c)
+    {
+        switch (c) {
+        case VK_CULL_MODE_NONE: {
+            return CullMode::NONE;
+        } break;
+        case VK_CULL_MODE_FRONT_BIT: {
+            return CullMode::FRONT;
+        } break;
+        case VK_CULL_MODE_BACK_BIT: {
+            return CullMode::BACK;
+        } break;
+        case VK_CULL_MODE_FRONT_AND_BACK: {
+            return CullMode::BOTH;
+        } break;
+        default: {
+            POM_ERROR("Bad vk cull mode.");
+            return CullMode::BOTH;
+        }
+        }
+    }
+
     POM_API constexpr const char* fromVkResultToString(VkResult r)
     {
         switch (r) {

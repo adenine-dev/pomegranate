@@ -3,7 +3,9 @@
 #include "../buffer.hpp"
 #include "../commandBuffer.hpp"
 #include "../gfx.hpp"
+#include "../pipeline.hpp"
 #include "../renderPass.hpp"
+#include "../shader.hpp"
 
 namespace pom::gfx {
     /// @addtogroup vulkan
@@ -38,6 +40,22 @@ namespace pom::gfx {
 
     /// Converts a `VkIndexType` to a `IndexType`.
     POM_API constexpr IndexType fromVkIndexType(VkIndexType t);
+
+    /// Converts a `ShaderStage` to a `VkShaderStageFlagBits`.
+    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStage s);
+
+    /// Converts a `VkShaderStageFlagBits` to a `ShaderStage`.
+    POM_API constexpr ShaderStage fromVkShaderStageFlagBits(VkShaderStageFlagBits s);
+
+    /// Converts a `PrimitiveTopology` to a `VkPrimitiveTopology`.
+    POM_API constexpr VkPrimitiveTopology toVkPrimitiveTopology(PrimitiveTopology t);
+
+    /// Converts a `VkPrimitiveTopology` to a `PrimitiveTopology`.
+    POM_API constexpr PrimitiveTopology fromVkPrimitiveTopology(VkPrimitiveTopology t);
+
+    POM_API constexpr VkCullModeFlags toVkCullMode(CullMode c);
+
+    POM_API constexpr CullMode fromVkCullMode(VkCullModeFlags c);
 
     /// Converts a `VkResult` to a string.
     POM_API constexpr const char* fromVkResultToString(VkResult r);
