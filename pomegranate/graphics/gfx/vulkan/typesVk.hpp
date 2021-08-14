@@ -53,9 +53,17 @@ namespace pom::gfx {
     /// Converts a `VkPrimitiveTopology` to a `PrimitiveTopology`.
     POM_API constexpr PrimitiveTopology fromVkPrimitiveTopology(VkPrimitiveTopology t);
 
+    /// Converts a `CullMode` to a `VkCullModeFlags`.
     POM_API constexpr VkCullModeFlags toVkCullMode(CullMode c);
 
+    /// Converts a `VkCullModeFlags` to a `CullMode`.
     POM_API constexpr CullMode fromVkCullMode(VkCullModeFlags c);
+
+    /// Converts a `Viewport` to a `VkViewport`.
+    POM_API constexpr VkViewport toVkViewport(const Viewport& v);
+
+    /// Converts a `VkViewport` to a `Viewport`.
+    POM_API constexpr Viewport fromVkViewport(const VkViewport& v);
 
     /// Converts a `VkResult` to a string.
     POM_API constexpr const char* fromVkResultToString(VkResult r);

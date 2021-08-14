@@ -31,10 +31,13 @@ namespace pom {
             [[nodiscard]] inline virtual GraphicsAPI getAPI() const = 0;
 
             /// Returns the format of the swapchain images.
-            [[nodiscard]] virtual Format getSwapchainFormat() const = 0;
+            [[nodiscard]] inline virtual Format getSwapchainFormat() const = 0;
+
+            /// Returns the viewport of the swapchain images.
+            [[nodiscard]] virtual Viewport getSwapchainViewport() const = 0;
 
             /// Returns the swapchain renderpass.
-            [[nodiscard]] virtual RenderPass* getSwapchainRenderPass() = 0;
+            [[nodiscard]] inline virtual RenderPass* getSwapchainRenderPass() = 0;
 
             /// Recreates the swapchain at a given size, this should be called whenever the window is resized.
             virtual void recreateSwapchain(const maths::vec2& extent) = 0;

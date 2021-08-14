@@ -30,12 +30,17 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        [[nodiscard]] Format getSwapchainFormat() const final
+        [[nodiscard]] inline Format getSwapchainFormat() const final
         {
             return fromVkFormat(swapchainImageFormat);
         }
 
-        [[nodiscard]] u32 getSwapchainImageIndex() const
+        [[nodiscard]] Viewport getSwapchainViewport() const final
+        {
+            return fromVkViewport(swapchainViewport);
+        }
+
+        [[nodiscard]] inline u32 getSwapchainImageIndex() const
         {
             return swapchainImageIndex;
         }
@@ -84,11 +89,9 @@ namespace pom::gfx {
         VkViewport swapchainViewport;
         u32 swapchainImageIndex = 0;
 
-        static const u32 MAX_FRAMES_IN_FLIGHT = 3;
-
-        VkSemaphore imageAvailableSemaphores[MAX_FRAMES_IN_FLIGHT];
-        VkSemaphore renderFinishedSemaphores[MAX_FRAMES_IN_FLIGHT];
-        VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
+        VkSemaphore imageAvailableSemaphores[POM_MAX_FRAMES_IN_FLIGHT];
+        VkSemaphore renderFinishedSemaphores[POM_MAX_FRAMES_IN_FLIGHT];
+        VkFence inFlightFences[POM_MAX_FRAMES_IN_FLIGHT];
         std::vector<VkFence> imagesInFlight;
         u32 frameIndex = 0;
     };

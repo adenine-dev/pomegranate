@@ -78,8 +78,7 @@ namespace pom::gfx {
 
         /// Submits a set viewport command to the command buffer. Requires the command buffer to have been created with
         /// `CommandBufferSpecialization::GRAPHICS`
-        // TODO: AABB struct
-        virtual void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) = 0;
+        virtual void setViewport(const Viewport& viewport) = 0;
 
         /// Submits a set scissor command to the command buffer. Requires the command buffer to have been created with
         /// `CommandBufferSpecialization::GRAPHICS`

@@ -32,7 +32,7 @@ namespace pom::gfx {
 
         void submit() final;
 
-        void setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth) final;
+        void setViewport(const Viewport& viewport) final;
 
         void setScissor(const maths::ivec2& offset, const maths::uvec2& extent) final;
 

@@ -377,11 +377,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 
             // calling this every frame doesn't really matter to my knowledge and is way easier than any other
             // alternatives
-            gamestate->commandBuffer->setViewport(
-                { context->swapchainViewport.x, context->swapchainViewport.y },
-                { context->swapchainViewport.width, context->swapchainViewport.height },
-                context->swapchainViewport.minDepth,
-                context->swapchainViewport.maxDepth);
+            gamestate->commandBuffer->setViewport(context->getSwapchainViewport());
             gamestate->commandBuffer->setScissor({ 0, 0 },
                                                  { context->swapchainExtent.width, context->swapchainExtent.height });
 

@@ -13,6 +13,12 @@ namespace pom::gfx {
     /// Determines the low level graphics api. Currently only supports vulkan.
     enum class GraphicsAPI { VULKAN };
 
+    struct Viewport {
+        f32 x, y;
+        f32 width, height;
+        f32 near, far;
+    };
+
     // clang-format off
     // all documentation on 1 line even if it overflows 120 characters.
 

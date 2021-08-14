@@ -36,7 +36,7 @@ namespace pom::gfx {
             .flags = VK_FENCE_CREATE_SIGNALED_BIT,
         };
 
-        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
             POM_CHECK_VK(
                 vkCreateSemaphore(instance->device, &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i]),
                 "Failed to create image available semaphore");
@@ -58,7 +58,7 @@ namespace pom::gfx {
     {
         vkDeviceWaitIdle(instance->device);
 
-        for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(instance->device, renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(instance->device, imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(instance->device, inFlightFences[i], nullptr);
@@ -326,7 +326,7 @@ namespace pom::gfx {
             POM_FATAL("Failed to get next swapchain image");
         }
 
-        frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+        frameIndex = (frameIndex + 1) % POM_MAX_FRAMES_IN_FLIGHT;
 
         acquireNextSwapchainImage();
 

@@ -126,13 +126,13 @@ namespace pom::gfx {
         POM_CHECK_VK(vkQueueSubmit(queue, 1, &submitInfo, getCurrentRecordingFence()), "Failed to submit to queue");
     }
 
-    void CommandBufferVk::setViewport(const maths::vec2& offset, const maths::vec2& extent, f32 mindepth, f32 maxdepth)
+    void CommandBufferVk::setViewport(const Viewport& viewport)
     {
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
-        VkViewport viewport { offset.x, offset.y, extent.x, extent.y, mindepth, maxdepth };
-        vkCmdSetViewport(getCurrentCommandBuffer(), 0, 1, &viewport);
+        const VkViewport v = toVkViewport(viewport);
+        vkCmdSetViewport(getCurrentCommandBuffer(), 0, 1, &v);
     }
 
     void CommandBufferVk::setScissor(const maths::ivec2& offset, const maths::uvec2& extent)

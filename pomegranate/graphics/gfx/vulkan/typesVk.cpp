@@ -769,6 +769,16 @@ namespace pom::gfx {
         }
     }
 
+    POM_API constexpr VkViewport toVkViewport(const Viewport& v)
+    {
+        return { v.x, v.y, v.width, v.height, v.near, v.far };
+    }
+
+    POM_API constexpr Viewport fromVkViewport(const VkViewport& v)
+    {
+        return { v.x, v.y, v.width, v.height, v.minDepth, v.maxDepth };
+    }
+
     POM_API constexpr const char* fromVkResultToString(VkResult r)
     {
         switch (r) {
