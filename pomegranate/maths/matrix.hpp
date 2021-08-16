@@ -35,6 +35,7 @@ namespace pom::maths {
             return data[n];
         }
 
+        /// Returns an new identity matrix.
         constexpr static Matrix<T, M, N> identity()
         {
             Matrix<T, M, N> ret { 0 };
@@ -44,6 +45,7 @@ namespace pom::maths {
             return ret;
         }
 
+        /// Returns a new translation matrix, that translates by the members of `v`.
         constexpr static Matrix<T, M, N> translate(const Vector<T, N - 1>& v)
         {
             Matrix<T, M, N> ret = identity();
@@ -53,6 +55,7 @@ namespace pom::maths {
             return ret;
         }
 
+        /// Returns a new scale matrix, that scales by the members of `v`
         constexpr static Matrix<T, M, N> scale(const Vector<T, N - 1>& v)
         {
             Matrix<T, M, N> ret { 0 };
@@ -65,6 +68,7 @@ namespace pom::maths {
 
         // FIXME: try doing a half way decent 2d/3d one...
         // NOTE: rotation non-linear (able to be translated) matrix
+        /// Returns a new rotation matrix.
         constexpr static Matrix<T, M, N> rotate(const Vector<T, (((N - 1) * (N - 1 - 1)) / 2)>& v) requires(N == M)
         {
             Matrix<T, M, N> ret = identity();
@@ -89,6 +93,7 @@ namespace pom::maths {
             return ret;
         }
 
+        /// Returns a new perspective matrix.
         constexpr static Matrix<T, 4, 4> perspective(f32 fov, f32 aspectRatio, f32 near, f32 far) requires(N == M
                                                                                                            && N == 4)
         {
@@ -105,6 +110,7 @@ namespace pom::maths {
             return ret;
         }
 
+        /// Returns a new view matrix looking at `at`.
         constexpr static Matrix<T, 4, 4> lookAt(const vec3& eye, const vec3& at, const vec3& up) requires(N == M
                                                                                                           && N == 4)
         {
@@ -164,6 +170,9 @@ namespace pom::maths {
         }
         return ret;
     }
+
+    /// @addtogroup types
+    /// @{
 
     /// @anchoredname{Matrix Specializations, matrix_specializations}
     /// Matrix specialization, used mostly for convenience.

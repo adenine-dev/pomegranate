@@ -8,7 +8,8 @@ namespace pom::gfx {
 
     class InstanceVk;
 
-    /// Vulkan Shader, should be created implicitly through `ShaderModule::create`.
+    /// Vulkan Shader Module, should be created implicitly through `ShaderModule::create`. Contains the vulkan shader
+    /// module.
     class ShaderModuleVk final : public ShaderModule {
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
@@ -24,13 +25,22 @@ namespace pom::gfx {
             return module;
         }
 
+        [[nodiscard]] inline const std::vector<u32>& getSpirv() const
+        {
+            return spirv;
+        }
+
     private:
         POM_NOCOPY(ShaderModuleVk);
 
         InstanceVk* instance;
         VkShaderModule module;
+
+        std::vector<u32> spirv;
     };
 
+    /// Vulkan Shader, should be created implicitly through `Shader::create`. Contains a collection of vulkan shader
+    /// modules and information on how to construct them into a pipeline.
     class ShaderVk final : public Shader {
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final

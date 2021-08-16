@@ -8,9 +8,8 @@
 
 namespace pom::gfx {
     ShaderModuleVk::ShaderModuleVk(InstanceVk* instance, ShaderStage stage, size_t size, const u32* spirvCode) :
-        ShaderModule(stage), instance(instance)
+        ShaderModule(stage), instance(instance), spirv(spirvCode, spirvCode + size)
     {
-
         VkShaderModuleCreateInfo shaderModuleCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .pNext = nullptr,

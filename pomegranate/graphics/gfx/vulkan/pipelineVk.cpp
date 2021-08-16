@@ -11,7 +11,7 @@ namespace pom::gfx {
     PipelineVk::PipelineVk(InstanceVk* instance,
                            RenderPassVk* renderPass,
                            ShaderVk* shader,
-                           PipelineState state,
+                           GraphicsPipelineState state,
                            std::initializer_list<VertexBinding> vertexBindings,
                            VkPipelineLayout pipelineLayout) :
         instance(instance)

@@ -9,6 +9,7 @@ namespace pom::gfx {
     class RenderPassVk;
     class ShaderVk;
 
+    /// Vulkan pipeline, should be created implicitly through `Pipeline::create`. Contains the vulkan pipeline handle.
     class POM_API PipelineVk final : public Pipeline {
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
@@ -19,7 +20,7 @@ namespace pom::gfx {
         PipelineVk(InstanceVk* instance,
                    RenderPassVk* renderPass,
                    ShaderVk* shader,
-                   PipelineState state,
+                   GraphicsPipelineState state,
                    std::initializer_list<VertexBinding> vertexBindings,
                    VkPipelineLayout pipelineLayout);
 

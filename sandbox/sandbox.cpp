@@ -375,8 +375,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
             auto* commandBuffer
                 = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
 
-            // calling this every frame doesn't really matter to my knowledge and is way easier than any other
-            // alternatives
             gamestate->commandBuffer->setViewport(context->getSwapchainViewport());
             gamestate->commandBuffer->setScissor({ 0, 0 },
                                                  { context->swapchainExtent.width, context->swapchainExtent.height });

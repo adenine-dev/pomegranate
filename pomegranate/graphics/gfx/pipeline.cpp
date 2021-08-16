@@ -13,7 +13,7 @@
 #include "vulkan/shaderVk.hpp"
 
 namespace pom::gfx {
-    Pipeline* Pipeline::create(PipelineState state,
+    Pipeline* Pipeline::create(GraphicsPipelineState state,
                                Shader* shader,
                                RenderPass* renderPass,
                                std::initializer_list<VertexBinding> vertexBindings,

@@ -13,15 +13,20 @@ namespace pom::gfx {
     /// Determines the low level graphics api. Currently only supports vulkan.
     enum class GraphicsAPI { VULKAN };
 
+    /// Specifies a viewport for a Context.
     struct Viewport {
+        /// The upper left corner of the viewport.
         f32 x, y;
+        /// The extent of the viewport.
         f32 width, height;
+        /// The depth range of the viewport.
         f32 near, far;
     };
 
     // clang-format off
     // all documentation on 1 line even if it overflows 120 characters.
 
+    /// @brief Specifies the format or type of various graphics procedures.
     /// Specifies image format, used for textures, framebuffers, etc. Currently maps directly to vulkan's `VkFormat` however this may change in the future.\n
     /// Normalized and scaled formats (`_*NORM` and `_*SCALED`) are integers sampled as floats, where values map to [-1, 1] (signed) or [0, 1] (unsigned).\n
     /// Int formats (`_*INT`) are integers sampled as integers.\n
