@@ -10,7 +10,9 @@ target_include_directories(pomegranate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/SDL2/include)
 target_include_directories(pomegranate PUBLIC Vulkan_INCLUDE_DIR)
-target_include_directories(pomegranate PUBLIC vendor/SPIRV-Cross)
+target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/SPIRV-Cross)
+target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/stb)
+
 target_link_libraries(pomegranate PUBLIC Vulkan::Vulkan SDL2-static)
 target_link_libraries(pomegranate PUBLIC
         spirv-cross-glsl

@@ -18,6 +18,8 @@
 #include "SDL_vulkan.h"
 #include <vulkan/vulkan.h>
 
+#include <stb_image.h>
+
 // pomegranate
 #include "base.hpp"
 

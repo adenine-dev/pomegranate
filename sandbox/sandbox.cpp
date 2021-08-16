@@ -3,10 +3,15 @@
 #include <array>
 #include <numeric>
 
-#include "embed/basic_frag_spv.hpp"
-#include "embed/basic_vert_spv.hpp"
+#include "embed/shader/basic_frag_spv.hpp"
+#include "embed/shader/basic_vert_spv.hpp"
+
+#include "embed/img/empty_png.hpp"
 
 #include <spirv_reflect.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 struct Vertex {
     pom::maths::vec3 pos;
@@ -309,6 +314,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 {
+    i32 x, y, channels;
+    stbi_load_from_memory(empty_png_data, static_cast<int>(empty_png_size), &x, &y, &channels, STBI_rgb_alpha);
+    POM_FATAL(x, ", ", y, ", ", channels);
 }
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)

@@ -28,5 +28,6 @@ If you are lazy (like me) the vscode
 
 
 ## Third Party
-- [SDL2](https://www.libsdl.org/) [licence](https://www.libsdl.org/license.php)
-- [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) [licence](https://github.com/KhronosGroup/SPIRV-Cross/blob/master/LICENSE)
+- [SDL2](https://www.libsdl.org/) ([licence](https://www.libsdl.org/license.php))
+- [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) ([licence](https://github.com/KhronosGroup/SPIRV-Cross/blob/master/LICENSE))
+- [STB](https://github.com/nothings/stb) ([licence](https://github.com/nothings/stb/blob/master/LICENSE))

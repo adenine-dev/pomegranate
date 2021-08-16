@@ -6,15 +6,21 @@ add_library(sandbox SHARED ${SOURCES})
 
 file(GLOB_RECURSE SHADER_MODULES
     # valid glslc extensions
-    ./embed/*.vert
-    ./embed/*.frag
-    ./embed/*.comp
-    ./embed/*.geom
-    ./embed/*.tesc
-    ./embed/*.tese
+    ./embed/shader/*.vert
+    ./embed/shader/*.frag
+    ./embed/shader/*.comp
+    ./embed/shader/*.geom
+    ./embed/shader/*.tesc
+    ./embed/shader/*.tese
 )
 
 add_shader_modules(sandbox ${SHADER_MODULES})
+
+file(GLOB_RECURSE EMBED_FILES
+    ./embed/img/empty.png
+)
+
+add_embed_files(sandbox ${EMBED_FILES})
 
 target_link_libraries(sandbox pomegranate)
 target_compile_definitions(sandbox PRIVATE POM_CLIENT)

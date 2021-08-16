@@ -14,6 +14,7 @@ include("target_add_binary_embed")
 include("add_shader_module")
 include("assign_source_group")
 include("define_filename_macro")
+include("add_embed_files")
 
 set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>$<$<CONFIG:RelWithDebInfo>:RelWithDebInfo>$<$<CONFIG:RelWithDebInfo>:MinSizeRel>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
