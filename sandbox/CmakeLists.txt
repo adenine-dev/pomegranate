@@ -17,7 +17,7 @@ file(GLOB_RECURSE SHADER_MODULES
 add_shader_modules(sandbox ${SHADER_MODULES})
 
 file(GLOB_RECURSE EMBED_FILES
-    ./embed/img/empty.png
+    ./embed/img/*.png
 )
 
 add_embed_files(sandbox ${EMBED_FILES})
