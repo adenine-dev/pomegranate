@@ -59,7 +59,7 @@
 
 /// @defgroup util Utilities
 /// @brief Little utility things that don't fit anywhere else.
-#include "util/util.hpp"
+#include "util/bitflags.hpp"
 
 /// @defgroup maths Maths
 /// @brief All mathematical functionality.
@@ -98,6 +98,7 @@
 #include "graphics/gfx/pipeline.hpp"
 #include "graphics/gfx/renderPass.hpp"
 #include "graphics/gfx/shader.hpp"
+#include "graphics/gfx/texture.hpp"
 
 // TODO: if vulkan
 /// @defgroup vulkan Vulkan Implementation
@@ -111,6 +112,7 @@
 #include "graphics/gfx/vulkan/pipelineVk.hpp"
 #include "graphics/gfx/vulkan/renderPassVk.hpp"
 #include "graphics/gfx/vulkan/shaderVk.hpp"
+#include "graphics/gfx/vulkan/textureVk.hpp"
 #include "graphics/gfx/vulkan/typesVk.hpp"
 
 /// @defgroup core Core

@@ -6,6 +6,7 @@
 
 namespace pom::gfx {
     class InstanceVk;
+    class TextureVk;
 
     /// @addtogroup vulkan
     /// @{
@@ -47,6 +48,15 @@ namespace pom::gfx {
         void bindPipeline(Pipeline* pipeline) final;
 
         void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
+
+        void copyBufferToTexture(Buffer* src,
+                                 Texture* dst,
+                                 size_t size,
+                                 size_t srcOffset,
+                                 maths::ivec3 dstOffset,
+                                 maths::uvec3 dstExtent) final;
+
+        void transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout);
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {

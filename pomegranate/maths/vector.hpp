@@ -127,7 +127,7 @@
     {                                                                                                                  \
         return !(operator==(other));                                                                                   \
     }                                                                                                                  \
-    constexpr T dot(const Vector<T, N>& other) const                                                                   \
+    template <typename U> constexpr T dot(const Vector<U, N>& other) const                                             \
     {                                                                                                                  \
         T ret = 0;                                                                                                     \
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \

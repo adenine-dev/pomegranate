@@ -7,6 +7,7 @@
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
 #include "pipelineVk.hpp"
+#include "textureVk.hpp"
 
 namespace pom::gfx {
     CommandBufferVk::CommandBufferVk(InstanceVk* instance, CommandBufferSpecialization specialization, u32 count) :
@@ -214,6 +215,162 @@ namespace pom::gfx {
         };
 
         vkCmdCopyBuffer(getCurrentCommandBuffer(), srcBuffer, dstBuffer, 1, &region);
+    }
+
+    void CommandBufferVk::copyBufferToTexture(Buffer* src,
+                                              Texture* dst,
+                                              size_t size,
+                                              size_t srcOffset,
+                                              maths::ivec3 dstOffset,
+                                              maths::uvec3 dstExtent)
+    {
+        POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
+        POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
+        POM_ASSERT(src->getSize() - srcOffset >= size, "Attempting to copy from a buffer of insufficient size.");
+        POM_ASSERT(dst->getUsage() & TextureUsage::TRANSFER_DST,
+                   "Attempting to copy into a texture that was created without the usage TextureUsage::TRANSFER_DST.");
+
+        auto* buffer = dynamic_cast<BufferVk*>(src);
+        auto* texture = dynamic_cast<TextureVk*>(dst);
+
+        transitionImageLayoutVk(texture, texture->getVkImageLayout(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        VkBufferImageCopy region = {
+            .bufferOffset = srcOffset,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+            .imageOffset = { dstOffset.x, dstOffset.y, dstOffset.z },
+            .imageExtent = { dstExtent.x, dstExtent.y, dstExtent.z },
+        };
+
+        vkCmdCopyBufferToImage(getCurrentCommandBuffer(),
+                               buffer->getBuffer(),
+                               texture->getVkImage(),
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               1,
+                               &region);
+
+        VkImageLayout l = getTheoreticallyIdealImageLayout(TextureUsage::TRANSFER_DST ^ texture->getUsage());
+
+        transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, l);
+    }
+
+    void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout)
+    {
+        VkImageMemoryBarrier barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = 0,
+            .dstAccessMask = 0,
+            .oldLayout = oldLayout,
+            .newLayout = newLayout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = texture->getVkImage(),
+            .subresourceRange = { //FIXME: whenever this is implemented
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+        };
+
+        VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_NONE_KHR;
+        VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_NONE_KHR;
+
+        // NOTE: there are probably errors in here..
+        switch (oldLayout) {
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+        case VK_IMAGE_LAYOUT_PREINITIALIZED: {
+            barrier.srcAccessMask = 0;
+
+            srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: {
+            barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+            srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: {
+            barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; // last time depth stencil attachments are stored
+        } break;
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: {
+            barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+                           | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; // NOTE: there may be an better stage for this
+        } break;
+        default: {
+        }
+        }
+
+        switch (newLayout) {
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: {
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: {
+            barrier.srcAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: {
+            barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+            dstStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: {
+            barrier.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT; // before depth stencil load
+        } break;
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: {
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+        } break;
+        case VK_IMAGE_LAYOUT_UNDEFINED:
+        case VK_IMAGE_LAYOUT_PREINITIALIZED: {
+            POM_FATAL("bad new image layout, cannot transition into undefined or preinitialized.");
+        } break;
+        default: {
+        }
+        }
+
+        vkCmdPipelineBarrier(getCurrentCommandBuffer(),
+                             srcStageMask,
+                             dstStageMask,
+                             0,
+                             0,
+                             nullptr,
+                             0,
+                             nullptr,
+                             1,
+                             &barrier);
+
+        texture->imageLayout = newLayout;
     }
 
 } // namespace pom::gfx

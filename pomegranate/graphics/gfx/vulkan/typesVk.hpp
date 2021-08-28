@@ -6,6 +6,7 @@
 #include "../pipeline.hpp"
 #include "../renderPass.hpp"
 #include "../shader.hpp"
+#include "../texture.hpp"
 
 namespace pom::gfx {
     /// @addtogroup vulkan
@@ -29,7 +30,7 @@ namespace pom::gfx {
     /// Converts a `VkAttachmentStoreOp` to a `StoreOperation`.
     POM_API constexpr StoreOperation fromVkAttachmentStoreOp(VkAttachmentStoreOp o);
 
-    /// Converts a `BufferUsage` to a `VkAttachmentStoreOp`.
+    /// Converts a `BufferUsage` to a `VkBufferUsageFlags`.
     POM_API constexpr VkBufferUsageFlags toVkBufferUsageFlags(BufferUsage u);
 
     /// Converts a `VkBufferUsageFlags` to a `BufferUsage`.
@@ -64,6 +65,30 @@ namespace pom::gfx {
 
     /// Converts a `VkViewport` to a `Viewport`.
     POM_API constexpr Viewport fromVkViewport(const VkViewport& v);
+
+    /// Converts a `TextureType` to a `VkImageType`.
+    POM_API constexpr VkImageType toVkImageType(TextureType t);
+
+    /// Converts a `VkImageType` to a `TextureType`.
+    POM_API constexpr TextureType fromVkImageType(VkImageType t);
+
+    /// Converts a `TextureType` to a `VkImageViewType`.
+    POM_API constexpr VkImageViewType toVkImageViewType(TextureType t);
+
+    /// Converts a `VkImageViewType` to a `TextureType`.
+    POM_API constexpr TextureType fromVkImageViewType(VkImageViewType t);
+
+    // FIXME: This is probably dumb because it can toVkImageUsageFlags(fromVkImageUsageFlags(t)) != t
+
+    /// Converts a `TextureUsage` to a `VkImageUsageFlags`.
+    POM_API constexpr VkImageUsageFlags toVkImageUsageFlags(TextureUsage u);
+
+    /// Converts a `VkImageUsageFlags` to a `TextureUsage`.
+    POM_API constexpr TextureUsage fromVkImageUsageFlags(VkImageUsageFlags u);
+
+    /// Returns the theoretically ideal image layout from a `TextureUsage`. This may vary from the actual best layout
+    /// for a given image at a given time but its good enough.
+    POM_API constexpr VkImageLayout getTheoreticallyIdealImageLayout(TextureUsage u);
 
     /// Converts a `VkResult` to a string.
     POM_API constexpr const char* fromVkResultToString(VkResult r);

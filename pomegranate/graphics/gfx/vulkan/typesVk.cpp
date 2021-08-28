@@ -779,6 +779,132 @@ namespace pom::gfx {
         return { v.x, v.y, v.width, v.height, v.minDepth, v.maxDepth };
     }
 
+    POM_API constexpr VkImageType toVkImageType(TextureType t)
+    {
+        switch (t) {
+        case TextureType::IMAGE_1D: {
+            return VK_IMAGE_TYPE_1D;
+        } break;
+        case TextureType::IMAGE_2D: {
+            return VK_IMAGE_TYPE_2D;
+        } break;
+        case TextureType::IMAGE_3D: {
+            return VK_IMAGE_TYPE_3D;
+        } break;
+        }
+    }
+
+    POM_API constexpr TextureType fromVkImageType(VkImageType t)
+    {
+        switch (t) {
+        case VK_IMAGE_TYPE_1D: {
+            return TextureType::IMAGE_1D;
+        } break;
+        case VK_IMAGE_TYPE_2D: {
+            return TextureType::IMAGE_2D;
+        } break;
+        case VK_IMAGE_TYPE_3D: {
+            return TextureType::IMAGE_3D;
+        } break;
+        default: {
+            POM_FATAL("bad vkImageType");
+            return TextureType::IMAGE_2D;
+        }
+        }
+    }
+
+    POM_API constexpr VkImageViewType toVkImageViewType(TextureType t)
+    {
+        switch (t) {
+        case TextureType::IMAGE_1D: {
+            return VK_IMAGE_VIEW_TYPE_1D;
+        } break;
+        case TextureType::IMAGE_2D: {
+            return VK_IMAGE_VIEW_TYPE_2D;
+        } break;
+        case TextureType::IMAGE_3D: {
+            return VK_IMAGE_VIEW_TYPE_3D;
+        } break;
+        }
+    }
+
+    POM_API constexpr TextureType fromVkImageViewType(VkImageViewType t)
+    {
+        switch (t) {
+        case VK_IMAGE_VIEW_TYPE_1D: {
+            return TextureType::IMAGE_1D;
+        } break;
+        case VK_IMAGE_VIEW_TYPE_2D: {
+            return TextureType::IMAGE_2D;
+        } break;
+        case VK_IMAGE_VIEW_TYPE_3D: {
+            return TextureType::IMAGE_3D;
+        } break;
+        default: {
+            POM_FATAL("bad vk image view type");
+            return TextureType::IMAGE_2D;
+        }
+        }
+    }
+
+    POM_API constexpr VkImageUsageFlags toVkImageUsageFlags(TextureUsage u)
+    {
+        auto ret = static_cast<VkImageUsageFlags>(0);
+
+        if (u & TextureUsage::SAMPLED) {
+            ret |= VK_IMAGE_USAGE_SAMPLED_BIT;
+        }
+        if (u & TextureUsage::STORAGE) {
+            ret |= VK_IMAGE_USAGE_STORAGE_BIT;
+        }
+        if (u & TextureUsage::TRANSFER_SRC) {
+            ret |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (u & TextureUsage::TRANSFER_DST) {
+            ret |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        }
+
+        return ret;
+    }
+
+    POM_API constexpr TextureUsage fromVkImageUsageFlags(VkImageUsageFlags u)
+    {
+        auto ret = static_cast<TextureUsage>(0);
+
+        if (u & VK_IMAGE_USAGE_SAMPLED_BIT) {
+            ret |= TextureUsage::SAMPLED;
+        }
+        if (u & VK_IMAGE_USAGE_STORAGE_BIT) {
+            ret |= TextureUsage::STORAGE;
+        }
+        if (u & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
+            ret |= TextureUsage::TRANSFER_SRC;
+        }
+        if (u & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
+            ret |= TextureUsage::TRANSFER_DST;
+        }
+
+        return ret;
+    }
+
+    POM_API constexpr VkImageLayout getTheoreticallyIdealImageLayout(TextureUsage u)
+    {
+        if (u == TextureUsage::SAMPLED) {
+            return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
+        if (u & TextureUsage::STORAGE) { // All textures used as storage images must be general
+            return VK_IMAGE_LAYOUT_GENERAL;
+        }
+        if (u == TextureUsage::TRANSFER_SRC) {
+            return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        }
+        if (u == TextureUsage::TRANSFER_DST) {
+            return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        }
+
+        return VK_IMAGE_LAYOUT_GENERAL;
+    }
+
     POM_API constexpr const char* fromVkResultToString(VkResult r)
     {
         switch (r) {

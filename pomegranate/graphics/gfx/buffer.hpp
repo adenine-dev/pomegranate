@@ -4,7 +4,7 @@
 
 #include "gfx.hpp"
 
-#include "util/util.hpp"
+#include "util/bitflags.hpp"
 
 namespace pom::gfx {
 
@@ -30,8 +30,6 @@ namespace pom::gfx {
     } // namespace BufferUsageNamespace
 
     using BufferUsage = BufferUsageNamespace::BufferUsage;
-
-    POM_MAKE_FLAGS(BufferUsage);
 #endif
 
     /// Dictates how a `Buffer`'s memory can be accessed.

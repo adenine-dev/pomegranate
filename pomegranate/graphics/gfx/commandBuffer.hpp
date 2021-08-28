@@ -12,6 +12,7 @@ namespace pom::gfx {
     class Buffer;
     class Pipeline;
     class Context;
+    class Texture;
 
     /// @addtogroup gfx
     /// @{
@@ -24,9 +25,11 @@ namespace pom::gfx {
                   ///< commands.
         // TODO: compute
         // COMPUTE, ///< Command buffer should be constructed by the compute queue.
-        TRANSFER ///< Command buffer should be constructed by the transfer queue. Regardless of what queue this command
-                 ///< buffer is constructed from this limits the commands that can be used by this command buffer to
-                 ///< only transfer commands.
+        TRANSFER, ///< Command buffer should be constructed by the transfer queue. Regardless of what queue this command
+                  ///< buffer is constructed from this limits the commands that can be used by this command buffer to
+                  ///< only transfer commands.
+
+        GENERAL = GRAPHICS, ///< Equivelent to CommandBufferSpecialization::GRAPHICS
     };
 
     /// The type of a member in an index Buffer. @see CommandBuffer::bindIndexBuffer
@@ -108,6 +111,15 @@ namespace pom::gfx {
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
+
+        /// Copies the contents of `src` to `dst`.
+        virtual void copyBufferToTexture(Buffer* src,
+                                         Texture* dst,
+                                         size_t size,
+                                         size_t srcOffset,
+                                         maths::ivec3 dstOffset,
+                                         maths::uvec3 dstExtent)
+            = 0;
 
     protected:
         CommandBuffer(CommandBufferSpecialization specialization);
