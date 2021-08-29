@@ -2,13 +2,27 @@
 
 #include "textureVk.hpp"
 
+#include "bufferVk.hpp"
+#include "commandBufferVk.hpp"
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
 
 namespace pom::gfx {
-    TextureVk::TextureVk(InstanceVk* instance, TextureCreateInfo createInfo, u32 width, u32 height, u32 depth) :
-        Texture(createInfo, width, height, depth), instance(instance), imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    TextureVk::TextureVk(InstanceVk* instance,
+                         TextureCreateInfo createInfo,
+                         u32 width,
+                         u32 height,
+                         u32 depth,
+                         const void* initialData,
+                         size_t initialDataOffset,
+                         size_t initialDataSize) :
+        Texture(createInfo, width, height, depth),
+        instance(instance), imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     {
+        if (initialData) {
+            createInfo.usage |= TextureUsage::TRANSFER_DST;
+        }
+
         VkImageCreateInfo imageCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
@@ -19,12 +33,12 @@ namespace pom::gfx {
             .mipLevels = 1, // TODO
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT, // TODO
-            .tiling = VK_IMAGE_TILING_OPTIMAL, // TODO: is there any reason to not do this?
+            .tiling = VK_IMAGE_TILING_OPTIMAL, // TODO: don't do this on CPU visible memory
             .usage = toVkImageUsageFlags(createInfo.usage),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE, // FIXME: probably an error here
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED, // FIXME: layout transitions
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
 
         POM_CHECK_VK(vkCreateImage(instance->device, &imageCreateInfo, nullptr, &image), "failed to create image.");
@@ -105,6 +119,30 @@ namespace pom::gfx {
 
         POM_CHECK_VK(vkCreateSampler(instance->device, &samplerCreateInfo, nullptr, &sampler),
                      "failed to create sampler.");
+
+        if (initialData) {
+            auto* transferBuffer = new BufferVk(instance,
+                                                BufferUsage::TRANSFER_SRC,
+                                                BufferMemoryAccess::CPU_WRITE,
+                                                getSize(),
+                                                initialData,
+                                                initialDataOffset,
+                                                initialDataSize);
+
+            auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
+            commandBuffer->begin();
+            commandBuffer->copyBufferToTexture(transferBuffer,
+                                               this,
+                                               initialDataSize,
+                                               initialDataOffset,
+                                               { 0, 0, 0 },
+                                               getExtent());
+            commandBuffer->end();
+            commandBuffer->submit();
+
+            delete commandBuffer;
+            delete transferBuffer;
+        }
     }
 
     TextureVk::~TextureVk()
@@ -113,17 +151,5 @@ namespace pom::gfx {
         vkDestroyImageView(instance->device, view, nullptr);
         vkDestroyImage(instance->device, image, nullptr);
         vkFreeMemory(instance->device, memory, nullptr);
-    }
-
-    void* TextureVk::map()
-    {
-        void* data = nullptr;
-        vkMapMemory(instance->device, memory, 0, VK_WHOLE_SIZE, 0, &data);
-        return data;
-    }
-
-    void TextureVk::unmap()
-    {
-        vkUnmapMemory(instance->device, memory);
     }
 } // namespace pom::gfx

@@ -70,10 +70,6 @@ struct GameState {
 
     // texture
     pom::gfx::Texture* texture;
-    // VkImage textureImage;
-    // VkDeviceMemory textureMemory;
-    // VkImageView textureView;
-    // VkSampler textureSampler;
 };
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
@@ -93,58 +89,6 @@ POM_CLIENT_EXPORT GameState* clientCreateState()
 }
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
-
-void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
-{
-    // FIXME: should prob be transfer...somehow
-    auto* commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
-    commandBuffer->begin();
-    VkCommandBuffer cmd = dynamic_cast<pom::gfx::CommandBufferVk*>(commandBuffer)->getCurrentCommandBuffer();
-
-    VkImageMemoryBarrier barrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = nullptr,
-        .srcAccessMask = 0,
-        .dstAccessMask = 0,
-        .oldLayout = oldLayout,
-        .newLayout = newLayout,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = image,
-        .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        },
-    };
-
-    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_NONE_KHR;
-    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_NONE_KHR;
-
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-        srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-               && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-        srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    } else {
-        POM_FATAL("oof");
-    }
-
-    vkCmdPipelineBarrier(cmd, srcStageMask, dstStageMask, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-    commandBuffer->end();
-    commandBuffer->submit();
-}
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
@@ -176,7 +120,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                         &height,
                                                         &channels,
                                                         STBI_rgb_alpha);
-    POM_ASSERT(pixels, "oof");
 
     size_t textureSize = width * height * 4;
 
@@ -188,163 +131,11 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
             .viewFormat = pom::gfx::Format::R8G8B8A8_SRGB,
         },
         width,
-        height);
-    auto* textureTransferBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::TRANSFER_SRC,
-                                                           pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                           textureSize);
-    void* data = textureTransferBuffer->map();
-    memcpy(data, pixels, textureSize);
-    textureTransferBuffer->unmap();
-
-    {
-        auto* transferCmdBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GENERAL);
-        transferCmdBuffer->begin();
-        const u32 col = 4;
-        transferCmdBuffer->copyBufferToTexture(textureTransferBuffer,
-                                               gamestate->texture,
-                                               textureSize - (col * width * 4),
-                                               0,
-                                               { 0, col, 0 },
-                                               gamestate->texture->getExtent() - pom::maths::ivec3 { 0, col, 0 });
-        transferCmdBuffer->end();
-        transferCmdBuffer->submit();
-        delete transferCmdBuffer;
-    }
-
-    POM_DEBUG(dynamic_cast<pom::gfx::TextureVk*>(gamestate->texture)->getVkImageLayout());
-
-    // VkImageCreateInfo imageCreateInfo = {
-    //     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-    //     .pNext = nullptr,
-    //     .flags = 0,
-    //     .imageType = VK_IMAGE_TYPE_2D,
-    //     .format = VK_FORMAT_R8G8B8A8_SRGB,
-    //     .extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1u },
-    //     .mipLevels = 1,
-    //     .arrayLayers = 1,
-    //     .samples = VK_SAMPLE_COUNT_1_BIT,
-    //     .tiling = VK_IMAGE_TILING_OPTIMAL,
-    //     .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-    //     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-    //     .queueFamilyIndexCount = 0,
-    //     .pQueueFamilyIndices = nullptr,
-    //     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    // };
-
-    // POM_CHECK_VK(vkCreateImage(gamestate->device, &imageCreateInfo, nullptr, &gamestate->textureImage),
-    //              "failed to create image.");
-
-    // VkMemoryRequirements memoryReqs;
-    // vkGetImageMemoryRequirements(gamestate->device, gamestate->textureImage, &memoryReqs);
-    // VkPhysicalDeviceMemoryProperties physicalMemoryProps;
-    // vkGetPhysicalDeviceMemoryProperties(instanceVk->physicalDevice, &physicalMemoryProps);
-
-    // u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
-
-    // for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
-    //     if (memoryReqs.memoryTypeBits & (1 << i)
-    //         && (physicalMemoryProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
-    //                == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    //         memoryTypeIndex = i;
-    //         break;
-    //     }
-    // }
-
-    // POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
-
-    // VkMemoryAllocateInfo imageAllocInfo = {
-    //     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-    //     .pNext = nullptr,
-    //     .allocationSize = memoryReqs.size,
-    //     .memoryTypeIndex = memoryTypeIndex,
-    // };
-
-    // POM_CHECK_VK(vkAllocateMemory(gamestate->device, &imageAllocInfo, nullptr, &gamestate->textureMemory),
-    //              "failed to allocate memory");
-
-    // vkBindImageMemory(gamestate->device, gamestate->textureImage, gamestate->textureMemory, 0);
-
-    // auto* transferCmdBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::TRANSFER);
-    // transferCmdBuffer->begin();
-    // VkCommandBuffer cmd = dynamic_cast<pom::gfx::CommandBufferVk*>(transferCmdBuffer)->getCurrentCommandBuffer();
-
-    // transitionImageLayout(gamestate->textureImage,
-    //                       VK_FORMAT_R8G8B8A8_SRGB,
-    //                       VK_IMAGE_LAYOUT_UNDEFINED,
-    //                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    // VkBufferImageCopy region = {
-    //     .bufferOffset = 0,
-    //     .bufferRowLength = 0,
-    //     .bufferImageHeight = 0,
-    //     .imageSubresource = {
-    //         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-    //         .mipLevel = 0,
-    //         .baseArrayLayer = 0,
-    //         .layerCount = 1,
-    //     },
-    //     .imageOffset = { 0, 0, 0 },
-    //     .imageExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 },
-    // };
-
-    // vkCmdCopyBufferToImage(cmd,
-    //                        dynamic_cast<pom::gfx::BufferVk*>(textureTransferBuffer)->getBuffer(),
-    //                        gamestate->textureImage,
-    //                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    //                        1,
-    //                        &region);
-
-    // transferCmdBuffer->end();
-    // transferCmdBuffer->submit();
-
-    // transitionImageLayout(gamestate->textureImage,
-    //                       VK_FORMAT_R8G8B8A8_SRGB,
-    //                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-    //                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    // VkImageViewCreateInfo imageViewCreateInfo = {
-    //     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-    //     .pNext = nullptr,
-    //     .flags = 0,
-    //     .image = gamestate->textureImage,
-    //     .viewType = VK_IMAGE_VIEW_TYPE_2D,
-    //     .format = VK_FORMAT_R8G8B8A8_SRGB,
-    //     .components = VK_COMPONENT_SWIZZLE_IDENTITY,
-    //     .subresourceRange = {
-    //         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-    //         .baseMipLevel = 0,
-    //         .levelCount = 1,
-    //         .baseArrayLayer = 0,
-    //         .layerCount = 1,
-    //     },
-    // };
-
-    // POM_CHECK_VK(vkCreateImageView(gamestate->device, &imageViewCreateInfo, nullptr, &gamestate->textureView),
-    //              "failed to create image view");
-
-    // VkSamplerCreateInfo samplerCreateInfo = {
-    //     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-    //     .pNext = nullptr,
-    //     .flags = 0,
-    //     .magFilter = VK_FILTER_NEAREST,
-    //     .minFilter = VK_FILTER_NEAREST,
-    //     .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-    //     .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-    //     .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-    //     .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-    //     .mipLodBias = 0.f,
-    //     .anisotropyEnable = VK_FALSE, // FIXME: request this from physical device features
-    //     .maxAnisotropy = 1.f, // FIXME: should be acquired from physical device caps
-    //     .compareEnable = VK_FALSE,
-    //     .compareOp = VK_COMPARE_OP_ALWAYS,
-    //     .minLod = 0.f,
-    //     .maxLod = 0.f,
-    //     .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-    //     .unnormalizedCoordinates = VK_FALSE,
-    // };
-
-    // POM_CHECK_VK(vkCreateSampler(gamestate->device, &samplerCreateInfo, nullptr, &gamestate->textureSampler),
-    //              "failed to create sampler.");
+        height,
+        1,
+        pixels,
+        0,
+        textureSize);
 
     // pipeline
     spirv_cross::CompilerReflection vertShaderModuleReflection(reinterpret_cast<const u32*>(basic_vert_spv_data),
@@ -497,8 +288,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         VkDescriptorImageInfo imageInfo = {
             .sampler = dynamic_cast<pom::gfx::TextureVk*>(gamestate->texture)->getVkSampler(),
             .imageView = dynamic_cast<pom::gfx::TextureVk*>(gamestate->texture)->getVkImageView(),
-            // .sampler = gamestate->textureSampler,
-            // .imageView = gamestate->textureView,
             .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         };
 
@@ -739,10 +528,7 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
-    // vkDestroySampler(gamestate->device, gamestate->textureSampler, nullptr);
-    // vkDestroyImageView(gamestate->device, gamestate->textureView, nullptr);
-    // vkDestroyImage(gamestate->device, gamestate->textureImage, nullptr);
-    // vkFreeMemory(gamestate->device, gamestate->textureMemory, nullptr);
+    delete gamestate->texture;
 
     for (auto& vb : gamestate->vertexBuffers) {
         delete vb;

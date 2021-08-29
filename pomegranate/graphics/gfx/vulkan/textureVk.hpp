@@ -14,16 +14,20 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        TextureVk(InstanceVk* instance, TextureCreateInfo createInfo, u32 width, u32 height, u32 depth);
-        ~TextureVk();
+        TextureVk(InstanceVk* instance,
+                  TextureCreateInfo createInfo,
+                  u32 width,
+                  u32 height,
+                  u32 depth,
+                  const void* initialData,
+                  size_t initialDataOffset,
+                  size_t initialDataSize);
+        ~TextureVk() final;
 
         [[nodiscard]] inline size_t getSize() const final
         {
             return memorySize;
         }
-
-        [[nodiscard]] void* map() final;
-        void unmap() final;
 
         [[nodiscard]] VkImage getVkImage()
         {
@@ -49,7 +53,7 @@ namespace pom::gfx {
         POM_NOCOPY(TextureVk);
 
         friend class CommandBufferVk;
-        
+
         InstanceVk* instance;
 
         VkImageLayout imageLayout;

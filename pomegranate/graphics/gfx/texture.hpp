@@ -49,7 +49,13 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this texture.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Texture* create(TextureCreateInfo createInfo, u32 width, u32 height = 1u, u32 depth = 1u);
+        [[nodiscard]] static Texture* create(TextureCreateInfo createInfo,
+                                             u32 width,
+                                             u32 height = 1u,
+                                             u32 depth = 1u,
+                                             const void* initialData = nullptr,
+                                             size_t initialDataOffset = 0,
+                                             size_t initialDataSize = 0);
 
         [[nodiscard]] inline TextureUsage getUsage() const
         {
@@ -76,8 +82,7 @@ namespace pom::gfx {
 
         [[nodiscard]] virtual inline size_t getSize() const = 0;
 
-        [[nodiscard]] virtual void* map() = 0;
-        virtual void unmap() = 0;
+        virtual ~Texture() = default;
 
     protected:
         POM_NOCOPY(Texture);
