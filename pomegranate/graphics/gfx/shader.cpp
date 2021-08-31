@@ -21,11 +21,11 @@ namespace pom::gfx {
     {
     }
 
-    Shader* Shader::create(bool takeOwnership, std::initializer_list<ShaderModule*> modules)
+    Shader* Shader::create(std::initializer_list<ShaderModule*> modules)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new ShaderVk(takeOwnership, modules);
+            return new ShaderVk(modules);
         }
         }
     }

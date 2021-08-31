@@ -154,13 +154,17 @@ namespace pom::gfx {
             .basePipelineIndex = -1,
         };
 
-        POM_CHECK_VK(
-            vkCreateGraphicsPipelines(instance->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline),
-            "Failed to create graphics pipeline");
+        POM_CHECK_VK(vkCreateGraphicsPipelines(instance->getVkDevice(),
+                                               VK_NULL_HANDLE,
+                                               1,
+                                               &pipelineCreateInfo,
+                                               nullptr,
+                                               &pipeline),
+                     "Failed to create graphics pipeline");
     }
 
     PipelineVk::~PipelineVk()
     {
-        vkDestroyPipeline(instance->device, pipeline, nullptr);
+        vkDestroyPipeline(instance->getVkDevice(), pipeline, nullptr);
     }
 } // namespace pom::gfx

@@ -18,17 +18,17 @@ namespace pom::gfx {
             .pCode = spirvCode,
         };
 
-        POM_CHECK_VK(vkCreateShaderModule(instance->getDevice(), &shaderModuleCreateInfo, nullptr, &module),
+        POM_CHECK_VK(vkCreateShaderModule(instance->getVkDevice(), &shaderModuleCreateInfo, nullptr, &module),
                      "Failed to create shader module");
     }
 
     ShaderModuleVk::~ShaderModuleVk()
     {
-        vkDestroyShaderModule(instance->getDevice(), module, nullptr);
+        vkDestroyShaderModule(instance->getVkDevice(), module, nullptr);
     }
 
-    ShaderVk::ShaderVk(bool takeOwnership, std::initializer_list<ShaderModule*> shaderModules) :
-        ownsModules(takeOwnership), modules(shaderModules.size()), shaderStageCreateInfos(shaderModules.size())
+    ShaderVk::ShaderVk(std::initializer_list<ShaderModule*> shaderModules) :
+        modules(shaderModules.size()), shaderStageCreateInfos(shaderModules.size())
     {
         u32 i = 0;
         for (const auto& shaderModule : shaderModules) {
@@ -46,15 +46,6 @@ namespace pom::gfx {
             };
 
             i++;
-        }
-    }
-
-    ShaderVk::~ShaderVk()
-    {
-        if (ownsModules) {
-            for (auto& module : modules) {
-                delete module;
-            }
         }
     }
 

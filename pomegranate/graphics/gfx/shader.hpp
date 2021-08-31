@@ -45,11 +45,11 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this shader program.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Shader* create(bool takeOwnership, std::initializer_list<ShaderModule*> modules);
+        [[nodiscard]] static Shader* create(std::initializer_list<ShaderModule*> modules);
 
         [[nodiscard]] inline virtual size_t getNumModules() const = 0;
 
-    protected:
+        virtual ~Shader() = default;
     };
 
     /// @}

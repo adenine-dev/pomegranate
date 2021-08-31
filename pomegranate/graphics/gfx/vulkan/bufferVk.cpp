@@ -32,17 +32,17 @@ namespace pom::gfx {
             .pQueueFamilyIndices = nullptr,
         };
 
-        POM_CHECK_VK(vkCreateBuffer(instance->device, &vertexBufferCreateInfo, nullptr, &buffer),
+        POM_CHECK_VK(vkCreateBuffer(instance->getVkDevice(), &vertexBufferCreateInfo, nullptr, &buffer),
                      "Failed to create buffer");
 
         VkMemoryRequirements memoryReqs;
-        vkGetBufferMemoryRequirements(instance->device, buffer, &memoryReqs);
+        vkGetBufferMemoryRequirements(instance->getVkDevice(), buffer, &memoryReqs);
 
         // TODO: currently a block of memory is allocated per buffer. This is bad and I definitely need to write a
         // custom memory allocator for this prob the CPU side too tbh
 
         VkPhysicalDeviceMemoryProperties physicalMemoryProps;
-        vkGetPhysicalDeviceMemoryProperties(instance->physicalDevice, &physicalMemoryProps);
+        vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
 
         VkMemoryPropertyFlags props = access == BufferMemoryAccess::CPU_WRITE
                                           ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -68,10 +68,10 @@ namespace pom::gfx {
             .memoryTypeIndex = memoryTypeIndex,
         };
 
-        POM_CHECK_VK(vkAllocateMemory(instance->device, &memoryAllocInfo, nullptr, &memory),
+        POM_CHECK_VK(vkAllocateMemory(instance->getVkDevice(), &memoryAllocInfo, nullptr, &memory),
                      "Failed to allocate buffer memory.")
 
-        vkBindBufferMemory(instance->device, buffer, memory, 0);
+        vkBindBufferMemory(instance->getVkDevice(), buffer, memory, 0);
 
         if (access == BufferMemoryAccess::GPU_ONLY) {
             auto* transferBuffer = new BufferVk(instance,
@@ -101,20 +101,20 @@ namespace pom::gfx {
 
     BufferVk::~BufferVk()
     {
-        vkDestroyBuffer(instance->device, buffer, nullptr);
-        vkFreeMemory(instance->device, memory, nullptr);
+        vkDestroyBuffer(instance->getVkDevice(), buffer, nullptr);
+        vkFreeMemory(instance->getVkDevice(), memory, nullptr);
     }
 
     [[nodiscard]] void* BufferVk::map(size_t offset, size_t size)
     {
         void* data = nullptr;
-        vkMapMemory(instance->device, memory, offset, size == 0 ? VK_WHOLE_SIZE : size, 0, &data);
+        vkMapMemory(instance->getVkDevice(), memory, offset, size == 0 ? VK_WHOLE_SIZE : size, 0, &data);
         return data;
     }
 
     void BufferVk::unmap()
     {
-        vkUnmapMemory(instance->device, memory);
+        vkUnmapMemory(instance->getVkDevice(), memory);
     }
 
 } // namespace pom::gfx

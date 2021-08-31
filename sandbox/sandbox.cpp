@@ -1,8 +1,5 @@
 #include <pomegranate/pomegranate.hpp>
 
-#include <array>
-#include <numeric>
-
 #include "embed/shader/basic_frag_spv.hpp"
 #include "embed/shader/basic_vert_spv.hpp"
 
@@ -43,8 +40,6 @@ static const u16 INDEX_DATA[]
 
 struct GameState {
     // instance
-    VkInstance instance;
-    VkDevice device;
     pom::gfx::CommandBuffer* commandBuffer;
     // vertex buffer
     pom::gfx::Buffer* vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
@@ -56,11 +51,6 @@ struct GameState {
     pom::gfx::Buffer* uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
 
     // pipeline
-    // std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-    // VkDescriptorPool descriptorPool;
-    // std::unordered_map<u32, VkDescriptorSet[POM_MAX_FRAMES_IN_FLIGHT]> descriptorSets;
-    // VkPipelineLayout pipelineLayout;
-    // VkPipeline graphicsPipeline;
     pom::gfx::PipelineLayout* pipelineLayout;
     pom::gfx::DescriptorSet* descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::gfx::Pipeline* pipeline;
@@ -94,19 +84,14 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
-    // super hacky test stuff
-    auto* instanceVk = dynamic_cast<pom::gfx::InstanceVk*>(pom::Application::get()->getGraphicsInstance());
     auto* contextVk = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-    gamestate->device = instanceVk->device;
-    // end super hacky test stuff
-
-    // gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
-    // gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
-    //     if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
-    //         clientUpdate(gamestate, {});
-    //     }
-    // });
+    gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
+    gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
+        if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
+            clientUpdate(gamestate, {});
+        }
+    });
 
     gamestate->otherCommandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
     gamestate->otherVertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
@@ -165,17 +150,21 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                          basic_frag_spv_size,
                                          reinterpret_cast<const u32*>(basic_frag_spv_data));
 
-    pom::gfx::Shader* shader = pom::gfx::Shader::create(true, { vertShader, fragShader });
+    pom::gfx::Shader* shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
     gamestate->pipelineLayout = pom::gfx::PipelineLayout::create({
-        { .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-          .set = 0,
-          .binding = 0,
-          .stages = pom::gfx::ShaderStageFlags::VERTEX },
-        { .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
-          .set = 0,
-          .binding = 1,
-          .stages = pom::gfx::ShaderStageFlags::FRAGMENT },
+        {
+            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+            .set = 0,
+            .binding = 0,
+            .stages = pom::gfx::ShaderStageFlags::VERTEX,
+        },
+        {
+            .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+            .set = 0,
+            .binding = 1,
+            .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+        },
     });
 
     // descriptor set
@@ -205,6 +194,10 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
           } },
         gamestate->pipelineLayout);
 
+    delete shader;
+    delete vertShader;
+    delete fragShader;
+
     // command buffer
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
@@ -233,12 +226,11 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
 {
+    auto frame = pom::Application::get()->getFrame();
     POM_PROFILE_SCOPE("update");
     {
         if (!pom::Application::get()->getMainWindow().isMinimized()) {
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
-
-            auto frame = pom::Application::get()->getFrame();
 
             pom::gfx::Buffer* vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
             {
@@ -321,37 +313,38 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         }
     }
 
-    // if (!gamestate->otherWindow->isMinimized()) {
-    //     auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
-    //     gamestate->otherCommandBuffer->begin();
-    //     gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
+    if (!gamestate->otherWindow->isMinimized()) {
+        auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
+        gamestate->otherCommandBuffer->begin();
+        gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
 
-    //     gamestate->otherCommandBuffer->setViewport({ ctx->swapchainViewport.x, ctx->swapchainViewport.y },
-    //                                                { ctx->swapchainViewport.width, ctx->swapchainViewport.height
-    //                                                }, ctx->swapchainViewport.minDepth,
-    //                                                ctx->swapchainViewport.maxDepth);
-    //     gamestate->otherCommandBuffer->setScissor({ 0, 0 },
-    //                                               { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
+        gamestate->otherCommandBuffer->setViewport(ctx->getSwapchainViewport());
+        gamestate->otherCommandBuffer->setScissor({ 0, 0 },
+                                                  { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
 
-    //     auto* commandBuffer
-    //         = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->otherCommandBuffer)->getCurrentCommandBuffer();
+        auto* commandBuffer
+            = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->otherCommandBuffer)->getCurrentCommandBuffer();
 
-    //     gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
-    //     gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
+        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
+        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
-    //     gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
+        gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
-    //     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gamestate->graphicsPipeline);
+        gamestate->otherCommandBuffer->bindPipeline(gamestate->pipeline);
 
-    //     gamestate->otherCommandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
+        gamestate->otherCommandBuffer->bindDescriptorSet(gamestate->pipelineLayout,
+                                                         0,
+                                                         gamestate->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-    //     gamestate->otherCommandBuffer->endRenderPass();
-    //     gamestate->otherCommandBuffer->end();
+        gamestate->otherCommandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
 
-    //     gamestate->otherCommandBuffer->submit();
+        gamestate->otherCommandBuffer->endRenderPass();
+        gamestate->otherCommandBuffer->end();
 
-    //     ctx->present();
-    // }
+        gamestate->otherCommandBuffer->submit();
+
+        ctx->present();
+    }
 
     // POM_DEBUG("dt: ", dt, "ms");
 }

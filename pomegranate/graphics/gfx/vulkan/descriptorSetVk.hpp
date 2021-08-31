@@ -35,6 +35,6 @@ namespace pom::gfx {
         PipelineLayoutVk* layout;
 
         // VkDescriptorSet descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
-        VkDescriptorSet descriptorSet;
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
     };
 } // namespace pom::gfx

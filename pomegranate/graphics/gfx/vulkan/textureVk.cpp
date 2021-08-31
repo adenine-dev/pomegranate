@@ -41,12 +41,13 @@ namespace pom::gfx {
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         };
 
-        POM_CHECK_VK(vkCreateImage(instance->device, &imageCreateInfo, nullptr, &image), "failed to create image.");
+        POM_CHECK_VK(vkCreateImage(instance->getVkDevice(), &imageCreateInfo, nullptr, &image),
+                     "failed to create image.");
 
         VkMemoryRequirements memoryReqs;
-        vkGetImageMemoryRequirements(instance->device, image, &memoryReqs);
+        vkGetImageMemoryRequirements(instance->getVkDevice(), image, &memoryReqs);
         VkPhysicalDeviceMemoryProperties physicalMemoryProps;
-        vkGetPhysicalDeviceMemoryProperties(instance->physicalDevice, &physicalMemoryProps);
+        vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
 
         // FIXME: props should be gpu only
         VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -71,10 +72,10 @@ namespace pom::gfx {
             .memoryTypeIndex = memoryTypeIndex,
         };
 
-        POM_CHECK_VK(vkAllocateMemory(instance->device, &imageAllocInfo, nullptr, &memory),
+        POM_CHECK_VK(vkAllocateMemory(instance->getVkDevice(), &imageAllocInfo, nullptr, &memory),
                      "failed to allocate texture memory");
 
-        POM_CHECK_VK(vkBindImageMemory(instance->device, image, memory, 0), "Failed to bind image memory");
+        POM_CHECK_VK(vkBindImageMemory(instance->getVkDevice(), image, memory, 0), "Failed to bind image memory");
 
         VkImageViewCreateInfo imageViewCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -93,7 +94,7 @@ namespace pom::gfx {
             },
         };
 
-        POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &view),
+        POM_CHECK_VK(vkCreateImageView(instance->getVkDevice(), &imageViewCreateInfo, nullptr, &view),
                      "failed to create image view");
 
         VkSamplerCreateInfo samplerCreateInfo = {
@@ -117,7 +118,7 @@ namespace pom::gfx {
             .unnormalizedCoordinates = VK_FALSE,
         };
 
-        POM_CHECK_VK(vkCreateSampler(instance->device, &samplerCreateInfo, nullptr, &sampler),
+        POM_CHECK_VK(vkCreateSampler(instance->getVkDevice(), &samplerCreateInfo, nullptr, &sampler),
                      "failed to create sampler.");
 
         if (initialData) {
@@ -147,9 +148,9 @@ namespace pom::gfx {
 
     TextureVk::~TextureVk()
     {
-        vkDestroySampler(instance->device, sampler, nullptr);
-        vkDestroyImageView(instance->device, view, nullptr);
-        vkDestroyImage(instance->device, image, nullptr);
-        vkFreeMemory(instance->device, memory, nullptr);
+        vkDestroySampler(instance->getVkDevice(), sampler, nullptr);
+        vkDestroyImageView(instance->getVkDevice(), view, nullptr);
+        vkDestroyImage(instance->getVkDevice(), image, nullptr);
+        vkFreeMemory(instance->getVkDevice(), memory, nullptr);
     }
 } // namespace pom::gfx

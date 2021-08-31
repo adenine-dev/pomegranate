@@ -37,30 +37,31 @@ namespace pom::gfx {
         };
 
         for (u32 i = 0; i < count; i++) {
-            POM_CHECK_VK(vkCreateFence(instance->device, &fenceCreateInfo, nullptr, &recordingFences[i]),
+            POM_CHECK_VK(vkCreateFence(instance->getVkDevice(), &fenceCreateInfo, nullptr, &recordingFences[i]),
                          "Failed to create recording fence");
 
-            POM_CHECK_VK(vkAllocateCommandBuffers(instance->device, &commandBufferAllocateCreateInfo, commandBuffers),
-                         "Failed to allocate command buffers.");
+            POM_CHECK_VK(
+                vkAllocateCommandBuffers(instance->getVkDevice(), &commandBufferAllocateCreateInfo, commandBuffers),
+                "Failed to allocate command buffers.");
         }
     }
 
     CommandBufferVk::~CommandBufferVk()
     {
-        vkWaitForFences(instance->device, count, recordingFences, VK_TRUE, UINT64_MAX);
+        vkWaitForFences(instance->getVkDevice(), count, recordingFences, VK_TRUE, UINT64_MAX);
         for (auto& recordingFence : recordingFences) {
-            vkDestroyFence(instance->device, recordingFence, nullptr);
+            vkDestroyFence(instance->getVkDevice(), recordingFence, nullptr);
         }
 
-        vkFreeCommandBuffers(instance->device, pool, count, commandBuffers);
+        vkFreeCommandBuffers(instance->getVkDevice(), pool, count, commandBuffers);
     }
 
     void CommandBufferVk::begin()
     {
         currentIndex = (currentIndex + 1) % count;
 
-        vkWaitForFences(instance->device, 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
-        vkResetFences(instance->device, 1, &getCurrentRecordingFence());
+        vkWaitForFences(instance->getVkDevice(), 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
+        vkResetFences(instance->getVkDevice(), 1, &getCurrentRecordingFence());
 
         VkCommandBufferBeginInfo commandBufferBeginInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

@@ -20,7 +20,7 @@ namespace pom::gfx {
 
         ~PipelineLayoutVk() final;
 
-        inline VkPipelineLayout getVkPipelineLayout()
+        [[nodiscard]] inline VkPipelineLayout getVkPipelineLayout()
         {
             return pipelineLayout;
         }
@@ -30,11 +30,11 @@ namespace pom::gfx {
 
         POM_NOCOPY(PipelineLayoutVk);
 
-        VkDescriptorPool pool; // TODO: global pools.
+        VkDescriptorPool pool = VK_NULL_HANDLE; // TODO: global pools.
 
         std::unordered_map<u32, VkDescriptorSetLayout> descriptorSetLayouts;
 
-        VkPipelineLayout pipelineLayout;
+        VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 
         InstanceVk* instance;
     };

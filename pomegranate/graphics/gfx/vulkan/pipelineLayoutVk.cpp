@@ -16,7 +16,6 @@ namespace pom::gfx {
 
         for (const auto& descriptor : descriptors) {
             descriptorTypes[descriptor.type] += descriptor.count;
-            POM_DEBUG(toVkShaderStageFlags(descriptor.stages));
             descriptorSetBindings[descriptor.set].push_back({
                 .binding = descriptor.binding,
                 .descriptorType = toVkDescriptorType(descriptor.type),
@@ -48,7 +47,7 @@ namespace pom::gfx {
             .pPoolSizes = poolSizes,
         };
 
-        POM_CHECK_VK(vkCreateDescriptorPool(instance->device, &poolCreateInfo, nullptr, &pool),
+        POM_CHECK_VK(vkCreateDescriptorPool(instance->getVkDevice(), &poolCreateInfo, nullptr, &pool),
                      "could not create descriptor pool.");
 
         std::vector<VkDescriptorSetLayout> descSetLayouts(descriptorSetBindings.size());
@@ -61,7 +60,7 @@ namespace pom::gfx {
                 .pBindings = descriptorSetBindings[i].data(),
             };
 
-            POM_CHECK_VK(vkCreateDescriptorSetLayout(instance->device,
+            POM_CHECK_VK(vkCreateDescriptorSetLayout(instance->getVkDevice(),
                                                      &descSetLayoutCreateInfo,
                                                      nullptr,
                                                      &descriptorSetLayouts[i]),
@@ -80,16 +79,17 @@ namespace pom::gfx {
             .pPushConstantRanges = nullptr,
         };
 
-        POM_CHECK_VK(vkCreatePipelineLayout(instance->device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout),
-                     "failed to create pipeline");
+        POM_CHECK_VK(
+            vkCreatePipelineLayout(instance->getVkDevice(), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout),
+            "failed to create pipeline");
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()
     {
-        vkDestroyPipelineLayout(instance->device, pipelineLayout, nullptr);
-        vkDestroyDescriptorPool(instance->device, pool, nullptr);
+        vkDestroyPipelineLayout(instance->getVkDevice(), pipelineLayout, nullptr);
+        vkDestroyDescriptorPool(instance->getVkDevice(), pool, nullptr);
         for (auto& layout : descriptorSetLayouts) {
-            vkDestroyDescriptorSetLayout(instance->device, layout.second, nullptr);
+            vkDestroyDescriptorSetLayout(instance->getVkDevice(), layout.second, nullptr);
         }
     }
 

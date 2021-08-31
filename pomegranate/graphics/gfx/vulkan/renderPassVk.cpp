@@ -5,7 +5,6 @@
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
 
-
 namespace pom::gfx {
     RenderPassVk::RenderPassVk(InstanceVk* instance, std::initializer_list<RenderPassAttachment> attachments) :
         instance(instance), renderPass(VK_NULL_HANDLE), clearColors(attachments.size())
@@ -76,12 +75,12 @@ namespace pom::gfx {
             .pDependencies = &subpassDependency,
         };
 
-        POM_CHECK_VK(vkCreateRenderPass(instance->getDevice(), &renderPassCreateInfo, nullptr, &renderPass),
+        POM_CHECK_VK(vkCreateRenderPass(instance->getVkDevice(), &renderPassCreateInfo, nullptr, &renderPass),
                      "failed to create swapchain renderpass");
     }
 
     RenderPassVk::~RenderPassVk()
     {
-        vkDestroyRenderPass(instance->getDevice(), renderPass, nullptr);
+        vkDestroyRenderPass(instance->getVkDevice(), renderPass, nullptr);
     }
 } // namespace pom::gfx

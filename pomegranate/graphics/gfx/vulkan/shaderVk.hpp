@@ -34,7 +34,7 @@ namespace pom::gfx {
         POM_NOCOPY(ShaderModuleVk);
 
         InstanceVk* instance;
-        VkShaderModule module;
+        VkShaderModule module = VK_NULL_HANDLE;
 
         std::vector<u32> spirv;
     };
@@ -48,8 +48,7 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        ShaderVk(bool takeOwnership, std::initializer_list<ShaderModule*> modules);
-        ~ShaderVk();
+        ShaderVk(std::initializer_list<ShaderModule*> modules);
 
         [[nodiscard]] inline size_t getNumModules() const final
         {
@@ -65,7 +64,6 @@ namespace pom::gfx {
         POM_NOCOPY(ShaderVk);
 
         // InstanceVk* instance;
-        bool ownsModules;
         std::vector<ShaderModuleVk*> modules;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
     };

@@ -224,10 +224,6 @@ namespace pom::gfx {
         vkDestroyInstance(instance, nullptr);
     }
 
-    // Theoretically this is completely wrong, queue family indices can be any valid u32 including u32max.
-    // Practically no device will have more than a few queue families, much less 2^32-1 of them.
-    const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
-
     const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
     const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
 

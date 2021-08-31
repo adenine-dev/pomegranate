@@ -58,10 +58,10 @@ namespace pom::gfx {
 
         VkImageLayout imageLayout;
 
-        VkImage image;
-        VkDeviceMemory memory;
-        VkImageView view;
-        VkSampler sampler;
-        size_t memorySize;
+        VkImage image = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        VkImageView view = VK_NULL_HANDLE;
+        VkSampler sampler = VK_NULL_HANDLE;
+        size_t memorySize = 0;
     };
 } // namespace pom::gfx

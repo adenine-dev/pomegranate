@@ -36,8 +36,10 @@ namespace pom::gfx {
         void unmap() final;
 
     protected:
+        POM_NOCOPY(BufferVk);
+
         InstanceVk* instance;
-        VkBuffer buffer;
-        VkDeviceMemory memory;
+        VkBuffer buffer = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
     };
 } // namespace pom::gfx

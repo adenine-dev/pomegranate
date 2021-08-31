@@ -39,6 +39,6 @@ namespace pom::gfx {
 
         InstanceVk* instance;
 
-        VkPipeline pipeline;
+        VkPipeline pipeline = VK_NULL_HANDLE;
     };
 } // namespace pom::gfx

@@ -11,6 +11,11 @@ namespace pom::gfx {
     /// Vulkan Instance, should be created implicitly through `Instance::create`. Contains the instance, physical and
     /// logical devices, and queues.
     class POM_API InstanceVk final : public Instance {
+    private:
+        // Theoretically this is completely wrong, queue family indices can be any valid u32 including u32max.
+        // Practically no device will have more than a few queue families, much less 2^32-1 of them.
+        static const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
+
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
         {
@@ -21,14 +26,20 @@ namespace pom::gfx {
 
         [[nodiscard]] bool ready() const final;
 
-        [[nodiscard]] VkDevice getDevice() const
+        [[nodiscard]] inline VkDevice getVkDevice()
         {
             return device;
         }
 
-    public:
+        [[nodiscard]] inline VkPhysicalDevice getVkPhysicalDevice()
+        {
+            return physicalDevice;
+        }
+
+    private:
         friend class Instance;
         friend class ContextVk;
+        friend class CommandBufferVk;
 
         POM_NOCOPY(InstanceVk);
         InstanceVk(const char* appname);
@@ -49,17 +60,17 @@ namespace pom::gfx {
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
         // TODO: compute stuffs
-        u32 graphicsQueueFamilyIndex;
-        u32 presentQueueFamilyIndex;
-        u32 transferQueueFamilyIndex;
-        VkDevice device;
-        VkQueue graphicsQueue;
-        VkQueue presentQueue;
-        VkQueue transferQueue;
+        u32 graphicsQueueFamilyIndex = INVALID_QUEUE_FAMILY_INDEX;
+        u32 presentQueueFamilyIndex = INVALID_QUEUE_FAMILY_INDEX;
+        u32 transferQueueFamilyIndex = INVALID_QUEUE_FAMILY_INDEX;
+        VkDevice device = VK_NULL_HANDLE;
+        VkQueue graphicsQueue = VK_NULL_HANDLE;
+        VkQueue presentQueue = VK_NULL_HANDLE;
+        VkQueue transferQueue = VK_NULL_HANDLE;
 
         // FIXME: this is extremely not threadsafe, there should be at least 1 pool per thread.
-        VkCommandPool graphicsCommandPool;
-        VkCommandPool transferCommandPool;
+        VkCommandPool graphicsCommandPool = VK_NULL_HANDLE;
+        VkCommandPool transferCommandPool = VK_NULL_HANDLE;
     };
 
     ///@}

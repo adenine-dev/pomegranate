@@ -20,13 +20,13 @@ namespace pom::gfx {
             .pSetLayouts = &layout->descriptorSetLayouts[set],
         };
 
-        POM_CHECK_VK(vkAllocateDescriptorSets(instance->device, &descriptorSetAllocateInfo, &descriptorSet),
+        POM_CHECK_VK(vkAllocateDescriptorSets(instance->getVkDevice(), &descriptorSetAllocateInfo, &descriptorSet),
                      "Failed to allocate descriptor sets");
     }
 
     DescriptorSetVk::~DescriptorSetVk()
     {
-        vkFreeDescriptorSets(instance->device, layout->pool, 1, &descriptorSet);
+        vkFreeDescriptorSets(instance->getVkDevice(), layout->pool, 1, &descriptorSet);
     }
 
     void DescriptorSetVk::setBuffer(u32 binding, Buffer* buffer, u32 offset, u32 size)
@@ -50,7 +50,7 @@ namespace pom::gfx {
             .pTexelBufferView = nullptr,
         };
 
-        vkUpdateDescriptorSets(instance->device, 1, &descriptorSetWrite, 0, nullptr);
+        vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
     }
 
     void DescriptorSetVk::setTexture(u32 binding, Texture* texture)
@@ -76,6 +76,6 @@ namespace pom::gfx {
             .pTexelBufferView = nullptr,
         };
 
-        vkUpdateDescriptorSets(instance->device, 1, &descriptorSetWrite, 0, nullptr);
+        vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
     }
 } // namespace pom::gfx
