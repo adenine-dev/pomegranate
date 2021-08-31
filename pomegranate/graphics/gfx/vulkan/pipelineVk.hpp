@@ -8,6 +8,7 @@ namespace pom::gfx {
     class InstanceVk;
     class RenderPassVk;
     class ShaderVk;
+    class PipelineLayoutVk;
 
     /// Vulkan pipeline, should be created implicitly through `Pipeline::create`. Contains the vulkan pipeline handle.
     class POM_API PipelineVk final : public Pipeline {
@@ -22,7 +23,7 @@ namespace pom::gfx {
                    ShaderVk* shader,
                    GraphicsPipelineState state,
                    std::initializer_list<VertexBinding> vertexBindings,
-                   VkPipelineLayout pipelineLayout);
+                   PipelineLayoutVk* pipelineLayout);
 
         ~PipelineVk() final;
 
@@ -32,6 +33,8 @@ namespace pom::gfx {
         }
 
     private:
+        friend class DescriptorSetVk;
+
         POM_NOCOPY(PipelineVk);
 
         InstanceVk* instance;

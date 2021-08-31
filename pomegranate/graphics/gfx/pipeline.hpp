@@ -8,6 +8,7 @@ namespace pom::gfx {
 
     class RenderPass;
     class Shader;
+    class PipelineLayout;
 
     /// @addtogroup gfx
     /// @{
@@ -80,10 +81,12 @@ namespace pom::gfx {
                                               Shader* shader,
                                               RenderPass* renderPass,
                                               std::initializer_list<VertexBinding> vertexBindings,
-                                              VkPipelineLayout pipelineLayout); // FIXME: api independence
+                                              PipelineLayout* pipelineLayout); // FIXME: api independence
+        Pipeline() = default;
         virtual ~Pipeline() = default;
 
     protected:
+        POM_NOCOPY(Pipeline);
     };
 
     ///@}

@@ -4,8 +4,10 @@
 
 #include "bufferVk.hpp"
 #include "contextVk.hpp"
+#include "descriptorSetVk.hpp"
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
+#include "pipelineLayoutVk.hpp"
 #include "pipelineVk.hpp"
 #include "textureVk.hpp"
 
@@ -215,6 +217,27 @@ namespace pom::gfx {
         };
 
         vkCmdCopyBuffer(getCurrentCommandBuffer(), srcBuffer, dstBuffer, 1, &region);
+    }
+
+    void CommandBufferVk::bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet)
+    {
+        POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN,
+                   "attempting to use mismatched pipeline layout api.");
+        POM_ASSERT(descriptorSet->getAPI() == GraphicsAPI::VULKAN, "attempting to use mismatched descriptor set api.");
+
+        auto* layout = dynamic_cast<PipelineLayoutVk*>(pipelineLayout);
+        auto* descSet = dynamic_cast<DescriptorSetVk*>(descriptorSet);
+
+        VkDescriptorSet descSetVk = descSet->getVkDescriptorSet();
+
+        vkCmdBindDescriptorSets(getCurrentCommandBuffer(),
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                layout->getVkPipelineLayout(),
+                                set,
+                                1,
+                                &descSetVk,
+                                0,
+                                nullptr);
     }
 
     void CommandBufferVk::copyBufferToTexture(Buffer* src,

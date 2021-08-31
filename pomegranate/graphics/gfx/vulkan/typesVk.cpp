@@ -1028,4 +1028,62 @@ namespace pom::gfx {
         }
     }
 
+    POM_API constexpr VkDescriptorType toVkDescriptorType(DescriptorType t)
+    {
+        switch (t) {
+        case DescriptorType::COMBINED_TEXTURE_SAMPLER: {
+            return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        } break;
+        case DescriptorType::UNIFORM_BUFFER: {
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        } break;
+        }
+    }
+
+    POM_API constexpr DescriptorType fromVkDescriptorType(VkDescriptorType t)
+    {
+        switch (t) {
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
+            return DescriptorType::COMBINED_TEXTURE_SAMPLER;
+        } break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
+            return DescriptorType::UNIFORM_BUFFER;
+        } break;
+        default: {
+            POM_FATAL("unknown vk descriptor type.");
+            return DescriptorType::UNIFORM_BUFFER;
+        }
+        }
+    }
+
+    POM_API constexpr VkShaderStageFlags toVkShaderStageFlags(ShaderStageFlags f)
+    {
+        VkShaderStageFlags ret = 0;
+
+        if (f & ShaderStageFlags::VERTEX) {
+            ret |= VK_SHADER_STAGE_VERTEX_BIT;
+        }
+
+        if (f & ShaderStageFlags::FRAGMENT) {
+            ret |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+
+        return ret;
+    }
+
+    POM_API constexpr ShaderStageFlags fromVkShaderStageFlags(VkShaderStageFlags f)
+    {
+        auto ret = static_cast<ShaderStageFlags>(0);
+
+        if (f & VK_SHADER_STAGE_VERTEX_BIT) {
+            ret |= ShaderStageFlags::VERTEX;
+        }
+
+        if (f & VK_SHADER_STAGE_FRAGMENT_BIT) {
+            ret |= ShaderStageFlags::FRAGMENT;
+        }
+
+        return ret;
+    }
+
 } // namespace pom::gfx

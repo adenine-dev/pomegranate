@@ -13,6 +13,8 @@ namespace pom::gfx {
     class Pipeline;
     class Context;
     class Texture;
+    class PipelineLayout;
+    class DescriptorSet;
 
     /// @addtogroup gfx
     /// @{
@@ -29,7 +31,7 @@ namespace pom::gfx {
                   ///< buffer is constructed from this limits the commands that can be used by this command buffer to
                   ///< only transfer commands.
 
-        GENERAL = GRAPHICS, ///< Equivelent to CommandBufferSpecialization::GRAPHICS
+        GENERAL = GRAPHICS, ///< Equivelent to `CommandBufferSpecialization::GRAPHICS`.
     };
 
     /// The type of a member in an index Buffer. @see CommandBuffer::bindIndexBuffer
@@ -108,6 +110,8 @@ namespace pom::gfx {
         virtual void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) = 0;
 
         virtual void bindPipeline(Pipeline* pipeline) = 0;
+
+        virtual void bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet) = 0;
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;

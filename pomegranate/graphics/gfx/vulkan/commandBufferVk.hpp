@@ -47,6 +47,8 @@ namespace pom::gfx {
 
         void bindPipeline(Pipeline* pipeline) final;
 
+        void bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet) final;
+
         void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
 
         void copyBufferToTexture(Buffer* src,

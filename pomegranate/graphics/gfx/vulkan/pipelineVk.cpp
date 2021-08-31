@@ -4,6 +4,7 @@
 
 #include "gfxVk.hpp"
 #include "instanceVk.hpp"
+#include "pipelineLayoutVk.hpp"
 #include "renderPassVk.hpp"
 #include "shaderVk.hpp"
 
@@ -13,7 +14,7 @@ namespace pom::gfx {
                            ShaderVk* shader,
                            GraphicsPipelineState state,
                            std::initializer_list<VertexBinding> vertexBindings,
-                           VkPipelineLayout pipelineLayout) :
+                           PipelineLayoutVk* pipelineLayout) :
         instance(instance)
     {
         std::vector<VkVertexInputBindingDescription> vertexBindingDescs;
@@ -146,7 +147,7 @@ namespace pom::gfx {
             .pDepthStencilState = nullptr,
             .pColorBlendState = &colorBlendCreateInfo,
             .pDynamicState = &dynamicStateCreateInfo,
-            .layout = pipelineLayout,
+            .layout = pipelineLayout->getVkPipelineLayout(),
             .renderPass = renderPass->getHandle(),
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,

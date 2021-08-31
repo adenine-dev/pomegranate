@@ -4,6 +4,7 @@
 #include "../commandBuffer.hpp"
 #include "../gfx.hpp"
 #include "../pipeline.hpp"
+#include "../pipelineLayout.hpp"
 #include "../renderPass.hpp"
 #include "../shader.hpp"
 #include "../texture.hpp"
@@ -85,6 +86,18 @@ namespace pom::gfx {
 
     /// Converts a `VkImageUsageFlags` to a `TextureUsage`.
     POM_API constexpr TextureUsage fromVkImageUsageFlags(VkImageUsageFlags u);
+
+    /// Converts a `DescriptorType` to a `VkDescriptorType`.
+    POM_API constexpr VkDescriptorType toVkDescriptorType(DescriptorType t);
+
+    /// Converts a `VkDescriptorType` to a `DescriptorType`.
+    POM_API constexpr DescriptorType fromVkDescriptorType(VkDescriptorType t);
+
+    /// Converts a `ShaderStageFlags` to a `VkShaderStageFlags`.
+    POM_API constexpr VkShaderStageFlags toVkShaderStageFlags(ShaderStageFlags f);
+
+    /// Converts a `VkShaderStageFlags` to a `ShaderStageFlags`.
+    POM_API constexpr ShaderStageFlags fromVkShaderStageFlags(VkShaderStageFlags f);
 
     /// Returns the theoretically ideal image layout from a `TextureUsage`. This may vary from the actual best layout
     /// for a given image at a given time but its good enough.
