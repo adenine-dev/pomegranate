@@ -20,9 +20,13 @@ namespace pom {
     /// ```cpp
     /// #include <pomegranate/pomegranate.hpp>
     ///
-    /// POM_EXPORT pom::AppCreateInfo clientGetAppCreateInfo(int argc, char** argv)
+    /// POM_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int argc, char** argv)
     /// {
-    ///     return { .name = "app name" };
+    ///     static const pom::AppCreateInfo aci = {
+    ///         .name = "App Name",
+    ///     };
+    ///
+    ///     return &aci;
     /// }
     ///
     /// POM_EXPORT void clientUpdate(GameState* gameState, f32 dt)
@@ -48,7 +52,7 @@ namespace pom {
         /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
         /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
         /// set to `true`.
-        u16 targetUPS = 60; // NOLINT
+        u16 targetUPS = 60;
 
         /// Desired graphics API for the application's rendering systems.
         gfx::GraphicsAPI graphicsAPI = gfx::GraphicsAPI::VULKAN;
@@ -105,6 +109,8 @@ namespace pom {
         void onEvent(const pom::InputEvent* ev);
         void reload();
 
+        void setSOFile(std::string filename);
+
     private:
         platform::SharedObject clientSO;
 
@@ -113,6 +119,7 @@ namespace pom {
         POM_NOCOPY(Client);
 
         friend class Application;
+
         platform::SharedObject::SOFunction<ClientGetCreateInfoFunction> clientGetAppCreateInfo
             = clientSO.getFunction<ClientGetCreateInfoFunction>("clientGetAppCreateInfo");
         platform::SharedObject::SOFunction<ClientCreateStateFunction> clientCreateState

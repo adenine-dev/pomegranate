@@ -74,7 +74,6 @@ namespace pom::platform {
             std::filesystem::remove(loadedFilename);
         }
 #endif
-
         // TODO: in release mode this should be disabled in some way because release code shouldn't be hot reloaded,
         // thus there is no need to duplicate it for writing.
         std::filesystem::copy_file(filename, loadedFilename, std::filesystem::copy_options::overwrite_existing);
@@ -85,6 +84,17 @@ namespace pom::platform {
         for (auto [name, funcptr] : functions) {
             *funcptr = SDL_LoadFunction(handle, name.c_str());
         }
+    }
+
+    void SharedObject::setSOFilename(std::string SOFile)
+    {
+        SDL_UnloadObject(handle);
+        if (std::filesystem::exists(loadedFilename)) {
+            std::filesystem::remove(loadedFilename);
+        }
+
+        filename = std::move(SOFile);
+        reload();
     }
 
 } // namespace pom::platform

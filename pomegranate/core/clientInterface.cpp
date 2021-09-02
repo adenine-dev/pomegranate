@@ -10,10 +10,7 @@ namespace pom {
     {
         POM_ASSERT(clientGetAppCreateInfo, "clientGetAppCreateInfo not properly loaded from client code.");
         POM_ASSERT(clientCreateState, "clientCreateState not properly loaded from client code.");
-        POM_ASSERT(clientBegin, "clientBegin not properly loaded from client code.");
-        POM_ASSERT(clientEnd, "clientEnd not properly loaded from client code.");
         POM_ASSERT(clientUpdate, "clientUpdate not properly loaded from client code.");
-        POM_ASSERT(clientOnInputEvent, "clientOnInputEvent not properly loaded from client code.");
     }
 
     Client::~Client()
@@ -21,15 +18,17 @@ namespace pom {
         if (clientUnmount) {
             clientUnmount(gamestate);
         }
-
-        clientEnd(gamestate);
+        if (clientEnd) {
+            clientEnd(gamestate);
+        }
     }
 
     void Client::begin()
     {
         gamestate = clientCreateState();
-
-        clientBegin(gamestate);
+        if (clientBegin) {
+            clientBegin(gamestate);
+        }
         if (clientMount) {
             clientMount(gamestate);
         }
@@ -55,10 +54,41 @@ namespace pom {
 
         clientSO.reload();
 
-        POM_ASSERT(clientEnd, "clientEnd not properly loaded from client code.");
         POM_ASSERT(clientUpdate, "clientUpdate not properly loaded from client code.");
-        POM_ASSERT(clientOnInputEvent, "clientOnInputEvent not properly loaded from client code.");
 
+        if (clientMount) {
+            clientMount(gamestate);
+        }
+    }
+
+    void Client::setSOFile(std::string filename)
+    {
+        if (clientUnmount) {
+            clientUnmount(gamestate);
+        }
+        if (clientEnd) {
+            clientEnd(gamestate);
+        }
+
+        clientSO.setSOFilename(std::move(filename));
+
+        // clientGetAppCreateInfo = clientSO.getFunction<ClientGetCreateInfoFunction>("clientGetAppCreateInfo");
+        // clientCreateState = clientSO.getFunction<ClientCreateStateFunction>("clientCreateState");
+        // clientBegin = clientSO.getFunction<ClientBeginFunction>("clientBegin");
+        // clientEnd = clientSO.getFunction<ClientEndFunction>("clientEnd");
+        // clientUpdate = clientSO.getFunction<ClientUpdateFunction>("clientUpdate");
+        // clientOnInputEvent = clientSO.getFunction<ClientOnInputEventFunction>("clientOnInputEvent");
+        // clientMount = clientSO.getFunction<ClientMountFunction>("clientMount");
+        // clientUnmount = clientSO.getFunction<ClientUnmountFunction>("clientUnmount");
+
+        POM_ASSERT(clientGetAppCreateInfo, "clientGetAppCreateInfo not properly loaded from client code.");
+        POM_ASSERT(clientCreateState, "clientCreateState not properly loaded from client code.");
+        POM_ASSERT(clientUpdate, "clientUpdate not properly loaded from client code.");
+
+        gamestate = clientCreateState();
+        if (clientBegin) {
+            clientBegin(gamestate);
+        }
         if (clientMount) {
             clientMount(gamestate);
         }

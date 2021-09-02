@@ -72,4 +72,9 @@ namespace pom {
         }
     }
 
+    void Application::setClientSO(std::string clientSOFile)
+    {
+        client.setSOFile(std::move(clientSOFile));
+    }
+
 } // namespace pom

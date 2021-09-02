@@ -81,7 +81,7 @@ namespace pom::gfx {
                                               Shader* shader,
                                               RenderPass* renderPass,
                                               std::initializer_list<VertexBinding> vertexBindings,
-                                              PipelineLayout* pipelineLayout); // FIXME: api independence
+                                              PipelineLayout* pipelineLayout);
         Pipeline() = default;
         virtual ~Pipeline() = default;
 

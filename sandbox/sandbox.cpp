@@ -284,9 +284,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
             gamestate->commandBuffer->begin();
             gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
 
-            auto* commandBuffer
-                = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->commandBuffer)->getCurrentCommandBuffer();
-
             gamestate->commandBuffer->setViewport(context->getSwapchainViewport());
             gamestate->commandBuffer->setScissor({ 0, 0 },
                                                  { context->swapchainExtent.width, context->swapchainExtent.height });

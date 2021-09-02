@@ -62,6 +62,9 @@ add_subdirectory(pomegranate)
 add_subdirectory(runtime)
 add_subdirectory(sandbox)
 
+# examples
+add_subdirectory(examples)
+
 
 # =========================================== IDE things ===========================================
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

@@ -90,6 +90,8 @@ namespace pom::platform {
         /// idea to recheck `SOFunction.valid`
         void reload();
 
+        void setSOFilename(std::string SOFile);
+
     private:
         POM_NOCOPY(SharedObject);
 

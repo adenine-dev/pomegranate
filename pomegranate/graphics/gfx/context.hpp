@@ -36,6 +36,9 @@ namespace pom {
             /// Returns the viewport of the swapchain images.
             [[nodiscard]] virtual Viewport getSwapchainViewport() const = 0;
 
+            /// Returns the extent of the swapchain images.
+            [[nodiscard]] virtual maths::uvec2 getSwapchainExtent() const = 0;
+
             /// Returns the swapchain renderpass.
             [[nodiscard]] inline virtual RenderPass* getSwapchainRenderPass() = 0;
 

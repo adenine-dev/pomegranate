@@ -45,6 +45,12 @@ namespace pom::gfx {
             return swapchainImageIndex;
         }
 
+        /// Returns the extent of the swapchain images.
+        [[nodiscard]] inline maths::uvec2 getSwapchainExtent() const final
+        {
+            return { swapchainExtent.width, swapchainExtent.height };
+        }
+
         [[nodiscard]] u32 getSwapchainImageCount() const
         {
             return swapchainImages.size();

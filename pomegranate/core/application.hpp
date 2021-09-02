@@ -57,6 +57,8 @@ namespace pom {
         void update();
         void limitFPS(DeltaTime dt);
 
+        void setClientSO(std::string clientSOFile);
+
         Client client;
 
         const AppCreateInfo* createInfo;

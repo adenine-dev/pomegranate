@@ -147,7 +147,7 @@ namespace pom::gfx {
             .pDepthStencilState = nullptr,
             .pColorBlendState = &colorBlendCreateInfo,
             .pDynamicState = &dynamicStateCreateInfo,
-            .layout = pipelineLayout->getVkPipelineLayout(),
+            .layout = pipelineLayout ? pipelineLayout->getVkPipelineLayout() : VK_NULL_HANDLE,
             .renderPass = renderPass->getHandle(),
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,
