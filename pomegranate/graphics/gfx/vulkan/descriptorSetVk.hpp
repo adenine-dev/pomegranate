@@ -15,12 +15,12 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        DescriptorSetVk(InstanceVk* instance, PipelineLayoutVk* layout, u32 set);
+        DescriptorSetVk(InstanceVk* instance, Ref<PipelineLayoutVk> pipelineLayout, u32 set);
 
         ~DescriptorSetVk() final;
 
-        void setBuffer(u32 binding, Buffer* buffer, u32 offset = 0, u32 size = 0) final;
-        void setTexture(u32 binding, Texture* texture) final;
+        void setBuffer(u32 binding, const Ref<Buffer>& buffer, u32 offset = 0, u32 size = 0) final;
+        void setTexture(u32 binding, const Ref<Texture>& texture) final;
 
         inline VkDescriptorSet getVkDescriptorSet()
         {
@@ -32,7 +32,7 @@ namespace pom::gfx {
 
         InstanceVk* instance;
 
-        PipelineLayoutVk* layout;
+        Ref<PipelineLayoutVk> layout;
 
         // VkDescriptorSet descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;

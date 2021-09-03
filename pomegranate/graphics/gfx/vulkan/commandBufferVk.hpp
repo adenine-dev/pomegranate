@@ -25,7 +25,7 @@ namespace pom::gfx {
 
         void begin() final;
 
-        void beginRenderPass(RenderPass* renderPass, Context* context) final;
+        void beginRenderPass(Ref<RenderPass> renderPass, Context* context) final;
 
         void endRenderPass() final;
 
@@ -41,13 +41,13 @@ namespace pom::gfx {
 
         void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) final;
 
-        void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) final;
+        void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, size_t offset = 0) final;
 
-        void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) final;
+        void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset = 0) final;
 
-        void bindPipeline(Pipeline* pipeline) final;
+        void bindPipeline(Ref<Pipeline> pipeline) final;
 
-        void bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet) final;
+        void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet) final;
 
         void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
 
@@ -55,8 +55,8 @@ namespace pom::gfx {
                                  Texture* dst,
                                  size_t size,
                                  size_t srcOffset,
-                                 maths::ivec3 dstOffset,
-                                 maths::uvec3 dstExtent) final;
+                                 const maths::ivec3& dstOffset,
+                                 const maths::uvec3& dstExtent) final;
 
         void transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout);
 

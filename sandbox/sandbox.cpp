@@ -40,28 +40,28 @@ static const u16 INDEX_DATA[]
 
 struct GameState {
     // instance
-    pom::gfx::CommandBuffer* commandBuffer;
+    pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
     // vertex buffer
-    pom::gfx::Buffer* vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
-    pom::gfx::Buffer* scaleBuffer;
-    pom::gfx::Buffer* indexBuffer;
+    pom::Ref<pom::gfx::Buffer> vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
+    pom::Ref<pom::gfx::Buffer> scaleBuffer;
+    pom::Ref<pom::gfx::Buffer> indexBuffer;
 
     // uniform buffers
     pom::maths::vec3 cameraPos = pom::maths::vec3(2, 2, 2);
-    pom::gfx::Buffer* uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
+    pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
 
     // pipeline
-    pom::gfx::PipelineLayout* pipelineLayout;
-    pom::gfx::DescriptorSet* descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
-    pom::gfx::Pipeline* pipeline;
+    pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
+    pom::Ref<pom::gfx::DescriptorSet> descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
+    pom::Ref<pom::gfx::Pipeline> pipeline;
 
     // other context test.
     pom::Window* otherWindow;
-    pom::gfx::CommandBuffer* otherCommandBuffer;
-    pom::gfx::Buffer* otherVertexBuffer;
+    pom::Ref<pom::gfx::CommandBuffer> otherCommandBuffer;
+    pom::Ref<pom::gfx::Buffer> otherVertexBuffer;
 
     // texture
-    pom::gfx::Texture* texture;
+    pom::Ref<pom::gfx::Texture> texture;
 };
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
@@ -140,17 +140,17 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         POM_DEBUG("vertex attribute: ", input.name, ", ", set, ", ", location, ", ", offset);
     }
 
-    pom::gfx::ShaderModule* vertShader
+    pom::Ref<pom::gfx::ShaderModule> vertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
                                          basic_vert_spv_size,
                                          reinterpret_cast<const u32*>(basic_vert_spv_data));
 
-    pom::gfx::ShaderModule* fragShader
+    pom::Ref<pom::gfx::ShaderModule> fragShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::FRAGMENT,
                                          basic_frag_spv_size,
                                          reinterpret_cast<const u32*>(basic_frag_spv_data));
 
-    pom::gfx::Shader* shader = pom::gfx::Shader::create({ vertShader, fragShader });
+    pom::Ref<pom::gfx::Shader> shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
     gamestate->pipelineLayout = pom::gfx::PipelineLayout::create({
         {
@@ -194,10 +194,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
           } },
         gamestate->pipelineLayout);
 
-    delete shader;
-    delete vertShader;
-    delete fragShader;
-
     // command buffer
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
@@ -232,7 +228,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         if (!pom::Application::get()->getMainWindow().isMinimized()) {
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-            pom::gfx::Buffer* vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+            pom::Ref<pom::gfx::Buffer> vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
             {
                 // Vertex* data = (Vertex*)vertexBuffer->map();
                 // memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
@@ -265,7 +261,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
             }
 
             {
-                pom::gfx::Buffer* uniformBuffer = gamestate->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+                pom::Ref<pom::gfx::Buffer> uniformBuffer = gamestate->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 UniformMVP* data = (UniformMVP*)uniformBuffer->map();
 
                 data->model = pom::maths::mat4::rotate({ TAU / 100.f * 0, 0, 0 });
@@ -319,9 +315,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         gamestate->otherCommandBuffer->setScissor({ 0, 0 },
                                                   { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
 
-        auto* commandBuffer
-            = dynamic_cast<pom::gfx::CommandBufferVk*>(gamestate->otherCommandBuffer)->getCurrentCommandBuffer();
-
         gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
         gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
@@ -356,25 +349,6 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
-    delete gamestate->texture;
-
-    for (auto& vb : gamestate->vertexBuffers) {
-        delete vb;
-    }
-    delete gamestate->scaleBuffer;
-    delete gamestate->commandBuffer;
-    delete gamestate->indexBuffer;
-
-    for (int i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
-        delete gamestate->uniformBuffers[i];
-        delete gamestate->descriptorSets[i];
-    }
-
-    delete gamestate->pipeline;
-    delete gamestate->pipelineLayout;
-
-    delete gamestate->otherCommandBuffer;
-    delete gamestate->otherVertexBuffer;
     delete gamestate->otherWindow;
 
     delete gamestate;

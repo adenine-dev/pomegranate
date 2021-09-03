@@ -64,8 +64,6 @@ namespace pom::gfx {
             vkDestroyFence(instance->device, inFlightFences[i], nullptr);
         }
 
-        delete swapchainRenderPass;
-
         for (auto* imageView : swapchainImageViews) {
             vkDestroyImageView(instance->device, imageView, nullptr);
         }
@@ -221,12 +219,13 @@ namespace pom::gfx {
         }
 
         if (firstTime) {
-            swapchainRenderPass = dynamic_cast<RenderPassVk*>(RenderPass::create({ {
-                .format = fromVkFormat(swapchainImageFormat),
-                .loadOperation = LoadOperation::CLEAR,
-                .storeOperation = StoreOperation::STORE,
-                .clearColor = Color::BLACK,
-            } }));
+            swapchainRenderPass = RenderPass::create({ {
+                                                         .format = fromVkFormat(swapchainImageFormat),
+                                                         .loadOperation = LoadOperation::CLEAR,
+                                                         .storeOperation = StoreOperation::STORE,
+                                                         .clearColor = Color::BLACK,
+                                                     } })
+                                      .dynCast<RenderPassVk>();
         }
 
         // framebuffers

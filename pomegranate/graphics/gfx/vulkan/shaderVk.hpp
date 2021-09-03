@@ -48,7 +48,7 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        ShaderVk(std::initializer_list<ShaderModule*> modules);
+        ShaderVk(std::initializer_list<Ref<ShaderModule>> modules);
 
         [[nodiscard]] inline size_t getNumModules() const final
         {
@@ -64,7 +64,7 @@ namespace pom::gfx {
         POM_NOCOPY(ShaderVk);
 
         // InstanceVk* instance;
-        std::vector<ShaderModuleVk*> modules;
+        std::vector<Ref<ShaderModuleVk>> modules;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
     };
 

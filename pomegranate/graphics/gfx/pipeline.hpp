@@ -77,11 +77,11 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this pipeline.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Pipeline* create(GraphicsPipelineState state,
-                                              Shader* shader,
-                                              RenderPass* renderPass,
-                                              std::initializer_list<VertexBinding> vertexBindings,
-                                              PipelineLayout* pipelineLayout);
+        [[nodiscard]] static Ref<Pipeline> create(GraphicsPipelineState state,
+                                                  const Ref<Shader>& shader,
+                                                  const Ref<RenderPass>& renderPass,
+                                                  std::initializer_list<VertexBinding> vertexBindings,
+                                                  const Ref<PipelineLayout>& pipelineLayouto);
         Pipeline() = default;
         virtual ~Pipeline() = default;
 

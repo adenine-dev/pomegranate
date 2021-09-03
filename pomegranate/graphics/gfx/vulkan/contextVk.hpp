@@ -56,9 +56,9 @@ namespace pom::gfx {
             return swapchainImages.size();
         }
 
-        [[nodiscard]] RenderPass* getSwapchainRenderPass() final
+        [[nodiscard]] Ref<RenderPass> getSwapchainRenderPass() final
         {
-            return swapchainRenderPass;
+            return swapchainRenderPass.dynCast<RenderPass>();
         }
 
         ~ContextVk() final;
@@ -84,7 +84,7 @@ namespace pom::gfx {
         InstanceVk* instance;
         VkSurfaceKHR surface;
 
-        RenderPassVk* swapchainRenderPass;
+        Ref<RenderPassVk> swapchainRenderPass;
 
         VkSwapchainKHR swapchain;
         VkFormat swapchainImageFormat;

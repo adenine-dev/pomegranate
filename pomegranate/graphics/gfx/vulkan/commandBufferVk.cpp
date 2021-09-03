@@ -74,14 +74,14 @@ namespace pom::gfx {
                      "Failed to begin recording command buffer.");
     }
 
-    void CommandBufferVk::beginRenderPass(RenderPass* renderPass, Context* context)
+    void CommandBufferVk::beginRenderPass(Ref<RenderPass> renderPass, Context* context)
     {
         POM_ASSERT(renderPass->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched render pass api.");
         POM_ASSERT(context->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched context api.");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
-        auto* rp = dynamic_cast<RenderPassVk*>(renderPass);
+        auto* rp = dynamic_cast<RenderPassVk*>(renderPass.get());
         auto* ctx = dynamic_cast<ContextVk*>(context);
 
         VkRenderPassBeginInfo renderPassBeginInfo = {
@@ -164,7 +164,7 @@ namespace pom::gfx {
         vkCmdDrawIndexed(getCurrentCommandBuffer(), indexCount, 1, firstIndex, vertexOffset, 0);
     }
 
-    void CommandBufferVk::bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint, size_t offset)
+    void CommandBufferVk::bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint, size_t offset)
     {
         POM_ASSERT(vertexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched vertex buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
@@ -172,11 +172,11 @@ namespace pom::gfx {
         POM_ASSERT(vertexBuffer->getUsage() & BufferUsage::VERTEX,
                    "Attempting to use a buffer created without the vertex BufferUsage.")
 
-        VkBuffer buffer = dynamic_cast<BufferVk*>(vertexBuffer)->getBuffer();
+        VkBuffer buffer = dynamic_cast<BufferVk*>(vertexBuffer.get())->getBuffer();
         vkCmdBindVertexBuffers(getCurrentCommandBuffer(), bindPoint, 1, &buffer, &offset);
     }
 
-    void CommandBufferVk::bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset)
+    void CommandBufferVk::bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset)
     {
         POM_ASSERT(indexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
@@ -185,12 +185,12 @@ namespace pom::gfx {
                    "Attempting to use a buffer created without the index BufferUsage.")
 
         vkCmdBindIndexBuffer(getCurrentCommandBuffer(),
-                             dynamic_cast<BufferVk*>(indexBuffer)->getBuffer(),
+                             dynamic_cast<BufferVk*>(indexBuffer.get())->getBuffer(),
                              offset,
                              toVkIndexType(type));
     }
 
-    void CommandBufferVk::bindPipeline(Pipeline* pipeline)
+    void CommandBufferVk::bindPipeline(Ref<Pipeline> pipeline)
     {
         POM_ASSERT(pipeline->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
@@ -198,7 +198,7 @@ namespace pom::gfx {
 
         vkCmdBindPipeline(getCurrentCommandBuffer(),
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          dynamic_cast<PipelineVk*>(pipeline)->getHandle());
+                          dynamic_cast<PipelineVk*>(pipeline.get())->getHandle());
     }
 
     void CommandBufferVk::copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
@@ -220,14 +220,15 @@ namespace pom::gfx {
         vkCmdCopyBuffer(getCurrentCommandBuffer(), srcBuffer, dstBuffer, 1, &region);
     }
 
-    void CommandBufferVk::bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet)
+    void
+    CommandBufferVk::bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
     {
         POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN,
                    "attempting to use mismatched pipeline layout api.");
         POM_ASSERT(descriptorSet->getAPI() == GraphicsAPI::VULKAN, "attempting to use mismatched descriptor set api.");
 
-        auto* layout = dynamic_cast<PipelineLayoutVk*>(pipelineLayout);
-        auto* descSet = dynamic_cast<DescriptorSetVk*>(descriptorSet);
+        auto* layout = dynamic_cast<PipelineLayoutVk*>(pipelineLayout.get());
+        auto* descSet = dynamic_cast<DescriptorSetVk*>(descriptorSet.get());
 
         VkDescriptorSet descSetVk = descSet->getVkDescriptorSet();
 
@@ -245,8 +246,8 @@ namespace pom::gfx {
                                               Texture* dst,
                                               size_t size,
                                               size_t srcOffset,
-                                              maths::ivec3 dstOffset,
-                                              maths::uvec3 dstExtent)
+                                              const maths::ivec3& dstOffset,
+                                              const maths::uvec3& dstExtent)
     {
         POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");

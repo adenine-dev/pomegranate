@@ -81,8 +81,8 @@ namespace pom::gfx {
                                                 initialData,
                                                 initialDataOffset,
                                                 initialDataSize);
-
             auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::TRANSFER, 1);
+
             commandBuffer->begin();
             commandBuffer->copyBuffer(transferBuffer, this, size, 0, 0);
             commandBuffer->end();

@@ -10,13 +10,13 @@
 #include "core/application.hpp"
 
 namespace pom::gfx {
-    CommandBuffer* CommandBuffer::create(CommandBufferSpecialization specialization, u32 count)
+    Ref<CommandBuffer> CommandBuffer::create(CommandBufferSpecialization specialization, u32 count)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new CommandBufferVk(dynamic_cast<InstanceVk*>(Instance::get()),
-                                       specialization,
-                                       count ? count : POM_MAX_FRAMES_IN_FLIGHT);
+            return Ref<CommandBuffer>(new CommandBufferVk(dynamic_cast<InstanceVk*>(Instance::get()),
+                                                          specialization,
+                                                          count ? count : POM_MAX_FRAMES_IN_FLIGHT));
         }
         }
     }

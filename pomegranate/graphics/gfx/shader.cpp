@@ -8,11 +8,12 @@
 #include "vulkan/shaderVk.hpp"
 
 namespace pom::gfx {
-    ShaderModule* ShaderModule::create(ShaderStage stage, size_t size, const u32* spirvCode)
+    Ref<ShaderModule> ShaderModule::create(ShaderStage stage, size_t size, const u32* spirvCode)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new ShaderModuleVk(dynamic_cast<InstanceVk*>(Instance::get()), stage, size, spirvCode);
+            return Ref<ShaderModule>(
+                new ShaderModuleVk(dynamic_cast<InstanceVk*>(Instance::get()), stage, size, spirvCode));
         }
         }
     }
@@ -21,11 +22,11 @@ namespace pom::gfx {
     {
     }
 
-    Shader* Shader::create(std::initializer_list<ShaderModule*> modules)
+    Ref<Shader> Shader::create(std::initializer_list<Ref<ShaderModule>> modules)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new ShaderVk(modules);
+            return Ref<Shader>(new ShaderVk(modules));
         }
         }
     }

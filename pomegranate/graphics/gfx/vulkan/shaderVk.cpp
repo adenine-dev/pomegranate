@@ -27,14 +27,14 @@ namespace pom::gfx {
         vkDestroyShaderModule(instance->getVkDevice(), module, nullptr);
     }
 
-    ShaderVk::ShaderVk(std::initializer_list<ShaderModule*> shaderModules) :
+    ShaderVk::ShaderVk(std::initializer_list<Ref<ShaderModule>> shaderModules) :
         modules(shaderModules.size()), shaderStageCreateInfos(shaderModules.size())
     {
         u32 i = 0;
-        for (const auto& shaderModule : shaderModules) {
+        for (auto& shaderModule : shaderModules) {
             POM_ASSERT(shaderModule->getAPI() == GraphicsAPI::VULKAN,
                        "Attempting to use ShaderModule with non-matching api.");
-            modules[i] = dynamic_cast<ShaderModuleVk*>(shaderModule);
+            modules[i] = shaderModule.dynCast<ShaderModuleVk>();
             shaderStageCreateInfos[i] = {
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,

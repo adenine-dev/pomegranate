@@ -40,7 +40,7 @@ namespace pom {
             [[nodiscard]] virtual maths::uvec2 getSwapchainExtent() const = 0;
 
             /// Returns the swapchain renderpass.
-            [[nodiscard]] inline virtual RenderPass* getSwapchainRenderPass() = 0;
+            [[nodiscard]] inline virtual Ref<RenderPass> getSwapchainRenderPass() = 0;
 
             /// Recreates the swapchain at a given size, this should be called whenever the window is resized.
             virtual void recreateSwapchain(const maths::vec2& extent) = 0;

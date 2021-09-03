@@ -2,6 +2,8 @@
 
 #include "base.hpp"
 
+#include "util/ref.hpp"
+
 #ifndef POM_MAX_FRAMES_IN_FLIGHT
 #    define POM_MAX_FRAMES_IN_FLIGHT 2
 #endif

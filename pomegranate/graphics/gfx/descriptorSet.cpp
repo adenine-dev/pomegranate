@@ -11,15 +11,15 @@
 #include "vulkan/pipelineLayoutVk.hpp"
 
 namespace pom::gfx {
-    DescriptorSet* DescriptorSet::create(PipelineLayout* layout, u32 set)
+    Ref<DescriptorSet> DescriptorSet::create(const Ref<PipelineLayout>& layout, u32 set)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             POM_ASSERT(layout->getAPI() == GraphicsAPI::VULKAN,
                        "attempting to create descriptor set with mismatched api");
-            return new DescriptorSetVk(dynamic_cast<InstanceVk*>(Instance::get()),
-                                       dynamic_cast<PipelineLayoutVk*>(layout),
-                                       set);
+            return Ref<DescriptorSet>(new DescriptorSetVk(dynamic_cast<InstanceVk*>(Instance::get()),
+                                                          layout.dynCast<PipelineLayoutVk>(),
+                                                          set));
         }
         }
     }

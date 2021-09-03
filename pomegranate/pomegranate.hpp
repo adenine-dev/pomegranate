@@ -60,6 +60,7 @@
 /// @defgroup util Utilities
 /// @brief Little utility things that don't fit anywhere else.
 #include "util/bitflags.hpp"
+#include "util/ref.hpp"
 
 /// @defgroup maths Maths
 /// @brief All mathematical functionality.
@@ -97,6 +98,7 @@
 #include "graphics/gfx/gfx.hpp"
 #include "graphics/gfx/instance.hpp"
 #include "graphics/gfx/pipeline.hpp"
+#include "graphics/gfx/pipelineLayout.hpp"
 #include "graphics/gfx/renderPass.hpp"
 #include "graphics/gfx/shader.hpp"
 #include "graphics/gfx/texture.hpp"
@@ -111,6 +113,7 @@
 #include "graphics/gfx/vulkan/descriptorSetVk.hpp"
 #include "graphics/gfx/vulkan/gfxVk.hpp"
 #include "graphics/gfx/vulkan/instanceVk.hpp"
+#include "graphics/gfx/vulkan/pipelineLayoutVk.hpp"
 #include "graphics/gfx/vulkan/pipelineVk.hpp"
 #include "graphics/gfx/vulkan/renderPassVk.hpp"
 #include "graphics/gfx/vulkan/shaderVk.hpp"

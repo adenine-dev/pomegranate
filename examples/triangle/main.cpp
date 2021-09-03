@@ -9,10 +9,10 @@ struct Vertex {
 };
 
 struct State {
-    pom::gfx::CommandBuffer* commandBuffer;
-    pom::gfx::Buffer* vertexBuffer;
-    pom::gfx::Pipeline* pipeline;
-    pom::gfx::PipelineLayout* pipelineLayout;
+    pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
+    pom::Ref<pom::gfx::Buffer> vertexBuffer;
+    pom::Ref<pom::gfx::Pipeline> pipeline;
+    pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
 };
 
 static Vertex VERTEX_DATA[] = {
@@ -44,17 +44,17 @@ POM_CLIENT_EXPORT void clientMount(State* state)
                                                    sizeof(VERTEX_DATA),
                                                    VERTEX_DATA);
 
-    pom::gfx::ShaderModule* vertShader
+    pom::Ref<pom::gfx::ShaderModule> vertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
                                          triangle_vert_spv_size,
                                          reinterpret_cast<const u32*>(triangle_vert_spv_data));
 
-    pom::gfx::ShaderModule* fragShader
+    pom::Ref<pom::gfx::ShaderModule> fragShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::FRAGMENT,
                                          triangle_frag_spv_size,
                                          reinterpret_cast<const u32*>(triangle_frag_spv_data));
 
-    pom::gfx::Shader* shader = pom::gfx::Shader::create({ vertShader, fragShader });
+    pom::Ref<pom::gfx::Shader> shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
     state->pipelineLayout = pom::gfx::PipelineLayout::create({});
 
@@ -70,10 +70,6 @@ POM_CLIENT_EXPORT void clientMount(State* state)
             },
         },
         state->pipelineLayout);
-
-    delete shader;
-    delete vertShader;
-    delete fragShader;
 }
 
 POM_CLIENT_EXPORT void clientUpdate(State* state, pom::DeltaTime dt)
@@ -98,14 +94,6 @@ POM_CLIENT_EXPORT void clientUpdate(State* state, pom::DeltaTime dt)
 
         context->present();
     }
-}
-
-POM_CLIENT_EXPORT void clientUnmount(State* state)
-{
-    delete state->commandBuffer;
-    delete state->vertexBuffer;
-    delete state->pipeline;
-    delete state->pipelineLayout;
 }
 
 POM_CLIENT_EXPORT void clientEnd(State* state)

@@ -48,7 +48,7 @@ namespace pom::gfx {
         /// @arg specialization: Dictates what this command buffer can do.
         /// @arg countHint: hint for how many internal command buffers should be created. If not passed will default to
         /// the maximum number of frames in flight. It is useful to set this to `1` for one time use command buffers.
-        [[nodiscard]] static CommandBuffer* create(CommandBufferSpecialization specialization, u32 countHint = 0);
+        [[nodiscard]] static Ref<CommandBuffer> create(CommandBufferSpecialization specialization, u32 countHint = 0);
 
         virtual ~CommandBuffer() = default;
 
@@ -75,7 +75,7 @@ namespace pom::gfx {
         /// Begin the first subpass of a RenderPass. Should be called **after** `begin`. Requires the command buffer to
         /// have been created with `CommandBufferSpecialization::GRAPHICS`.
         // TODO: different frame buffers, currently only renders to swapchain framebuffer
-        virtual void beginRenderPass(RenderPass* renderPass, Context* context) = 0;
+        virtual void beginRenderPass(Ref<RenderPass> renderPass, Context* context) = 0;
 
         /// End the previously begun `RenderPass` should only be called after `beginRenderPass`. Requires the command
         /// buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
@@ -101,17 +101,18 @@ namespace pom::gfx {
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
         /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
-        virtual void bindVertexBuffer(Buffer* vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
+        virtual void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
 
         /// Binds an index buffer, the Buffer **must** have been initialize with `BufferUsage::INDEX`. `type` is how the
         /// data in the buffer will be read, this is independent from the type of whatever data was written into the
         /// buffer. `offset` is the offset to the first byte from which indicies will be calculated. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
-        virtual void bindIndexBuffer(Buffer* indexBuffer, IndexType type, size_t offset = 0) = 0;
+        virtual void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset = 0) = 0;
 
-        virtual void bindPipeline(Pipeline* pipeline) = 0;
+        virtual void bindPipeline(Ref<Pipeline> pipeline) = 0;
 
-        virtual void bindDescriptorSet(PipelineLayout* pipelineLayout, u32 set, DescriptorSet* descriptorSet) = 0;
+        virtual void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
+            = 0;
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
@@ -121,8 +122,8 @@ namespace pom::gfx {
                                          Texture* dst,
                                          size_t size,
                                          size_t srcOffset,
-                                         maths::ivec3 dstOffset,
-                                         maths::uvec3 dstExtent)
+                                         const maths::ivec3& dstOffset,
+                                         const maths::uvec3& dstExtent)
             = 0;
 
     protected:

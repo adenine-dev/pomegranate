@@ -19,11 +19,11 @@ namespace pom::gfx {
         }
 
         PipelineVk(InstanceVk* instance,
-                   RenderPassVk* renderPass,
-                   ShaderVk* shader,
+                   Ref<RenderPassVk> renderPass,
+                   Ref<ShaderVk> shader,
                    GraphicsPipelineState state,
                    std::initializer_list<VertexBinding> vertexBindings,
-                   PipelineLayoutVk* pipelineLayout);
+                   Ref<PipelineLayoutVk> pipelineLayout);
 
         ~PipelineVk() final;
 
@@ -38,6 +38,10 @@ namespace pom::gfx {
         POM_NOCOPY(PipelineVk);
 
         InstanceVk* instance;
+
+        Ref<RenderPassVk> renderPass;
+        Ref<ShaderVk> shader;
+        Ref<PipelineLayoutVk> pipelineLayout;
 
         VkPipeline pipeline = VK_NULL_HANDLE;
     };

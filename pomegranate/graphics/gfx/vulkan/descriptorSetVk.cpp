@@ -8,8 +8,8 @@
 #include "textureVk.hpp"
 
 namespace pom::gfx {
-    DescriptorSetVk::DescriptorSetVk(InstanceVk* instance, PipelineLayoutVk* layout, u32 set) :
-        instance(instance), layout(layout)
+    DescriptorSetVk::DescriptorSetVk(InstanceVk* instance, Ref<PipelineLayoutVk> pipelineLayout, u32 set) :
+        instance(instance), layout(std::move(pipelineLayout))
     {
         // VkDescriptorSetLayout layouts[] = { layout->descriptorSetLayouts[set], layout->descriptorSetLayouts[set] };
         VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
@@ -29,10 +29,10 @@ namespace pom::gfx {
         vkFreeDescriptorSets(instance->getVkDevice(), layout->pool, 1, &descriptorSet);
     }
 
-    void DescriptorSetVk::setBuffer(u32 binding, Buffer* buffer, u32 offset, u32 size)
+    void DescriptorSetVk::setBuffer(u32 binding, const Ref<Buffer>& buffer, u32 offset, u32 size)
     {
         VkDescriptorBufferInfo bufferInfo = {
-            .buffer = dynamic_cast<pom::gfx::BufferVk*>(buffer)->getBuffer(),
+            .buffer = buffer.dynCast<BufferVk>()->getBuffer(),
             .offset = offset,
             .range = size == 0 ? buffer->getSize() : size,
         };
@@ -53,9 +53,9 @@ namespace pom::gfx {
         vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
     }
 
-    void DescriptorSetVk::setTexture(u32 binding, Texture* texture)
+    void DescriptorSetVk::setTexture(u32 binding, const Ref<Texture>& texture)
     {
-        auto* tex = dynamic_cast<pom::gfx::TextureVk*>(texture);
+        Ref<TextureVk> tex = texture.dynCast<TextureVk>();
 
         VkDescriptorImageInfo imageInfo = {
             .sampler = tex->getVkSampler(),

@@ -15,11 +15,11 @@
 #include "vulkan/shaderVk.hpp"
 
 namespace pom::gfx {
-    Pipeline* Pipeline::create(GraphicsPipelineState state,
-                               Shader* shader,
-                               RenderPass* renderPass,
-                               std::initializer_list<VertexBinding> vertexBindings,
-                               PipelineLayout* pipelineLayout)
+    Ref<Pipeline> Pipeline::create(GraphicsPipelineState state,
+                                   const Ref<Shader>& shader,
+                                   const Ref<RenderPass>& renderPass,
+                                   std::initializer_list<VertexBinding> vertexBindings,
+                                   const Ref<PipelineLayout>& pipelineLayout)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
@@ -27,12 +27,12 @@ namespace pom::gfx {
             POM_ASSERT(shader->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
             POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
 
-            return new PipelineVk(dynamic_cast<InstanceVk*>(Instance::get()),
-                                  dynamic_cast<RenderPassVk*>(renderPass),
-                                  dynamic_cast<ShaderVk*>(shader),
-                                  state,
-                                  vertexBindings,
-                                  dynamic_cast<PipelineLayoutVk*>(pipelineLayout));
+            return Ref<Pipeline>(new PipelineVk(dynamic_cast<InstanceVk*>(Instance::get()),
+                                                renderPass.dynCast<RenderPassVk>(),
+                                                shader.dynCast<ShaderVk>(),
+                                                state,
+                                                vertexBindings,
+                                                pipelineLayout.dynCast<PipelineLayoutVk>()));
         }
         }
     }

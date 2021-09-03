@@ -8,22 +8,22 @@
 #include "vulkan/instanceVk.hpp"
 
 namespace pom::gfx {
-    Buffer* Buffer::create(BufferUsage usage,
-                           BufferMemoryAccess access,
-                           size_t size,
-                           const void* initialData,
-                           size_t initialDataOffset,
-                           size_t initialDataSize)
+    Ref<Buffer> Buffer::create(BufferUsage usage,
+                               BufferMemoryAccess access,
+                               size_t size,
+                               const void* initialData,
+                               size_t initialDataOffset,
+                               size_t initialDataSize)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new BufferVk(dynamic_cast<InstanceVk*>(Instance::get()),
-                                usage,
-                                access,
-                                size,
-                                initialData,
-                                initialDataOffset,
-                                initialDataSize);
+            return Ref<Buffer>(new BufferVk(dynamic_cast<InstanceVk*>(Instance::get()),
+                                            usage,
+                                            access,
+                                            size,
+                                            initialData,
+                                            initialDataOffset,
+                                            initialDataSize));
         }
         }
     }

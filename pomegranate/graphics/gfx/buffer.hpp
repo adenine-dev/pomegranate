@@ -53,12 +53,12 @@ namespace pom::gfx {
         /// @arg initialDataOffset: If passed the buffer will be created with the `initialData` at the specified offset.
         /// @arg initialDataSize: If passed the size of `initialData`. If not passed `initialData` is assumed to be of
         /// size `size`, and `initialDataOffset` should be 0.
-        [[nodiscard]] static Buffer* create(BufferUsage usage,
-                                            BufferMemoryAccess access,
-                                            size_t size,
-                                            const void* initialData = nullptr,
-                                            size_t initialDataOffset = 0,
-                                            size_t initialDataSize = 0);
+        [[nodiscard]] static Ref<Buffer> create(BufferUsage usage,
+                                                BufferMemoryAccess access,
+                                                size_t size,
+                                                const void* initialData = nullptr,
+                                                size_t initialDataOffset = 0,
+                                                size_t initialDataSize = 0);
 
         virtual ~Buffer() = default;
 
@@ -87,7 +87,7 @@ namespace pom::gfx {
         virtual void unmap() = 0;
 
     protected:
-        Buffer(BufferUsage usage, BufferMemoryAccess memoryUsage, size_t size);
+        Buffer(BufferUsage usage, BufferMemoryAccess access, size_t size);
 
         BufferUsage usage;
         BufferMemoryAccess memoryAccess;

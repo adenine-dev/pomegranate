@@ -122,6 +122,7 @@ namespace pom::gfx {
                      "failed to create sampler.");
 
         if (initialData) {
+
             auto* transferBuffer = new BufferVk(instance,
                                                 BufferUsage::TRANSFER_SRC,
                                                 BufferMemoryAccess::CPU_WRITE,
@@ -129,7 +130,6 @@ namespace pom::gfx {
                                                 initialData,
                                                 initialDataOffset,
                                                 initialDataSize);
-
             auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
             commandBuffer->begin();
             commandBuffer->copyBufferToTexture(transferBuffer,

@@ -50,7 +50,7 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this pipeline layout.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static PipelineLayout* create(std::initializer_list<Descriptor> descriptors);
+        [[nodiscard]] static Ref<PipelineLayout> create(std::initializer_list<Descriptor> descriptors);
 
         // [[nodiscard]] virtual u32 getDescriptorSets() const = 0;
 

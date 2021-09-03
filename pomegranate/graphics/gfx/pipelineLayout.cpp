@@ -9,11 +9,11 @@
 #include "vulkan/instanceVk.hpp"
 
 namespace pom::gfx {
-    PipelineLayout* PipelineLayout::create(std::initializer_list<Descriptor> descriptors)
+    Ref<PipelineLayout> PipelineLayout::create(std::initializer_list<Descriptor> descriptors)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return new PipelineLayoutVk(dynamic_cast<InstanceVk*>(Instance::get()), descriptors);
+            return Ref<PipelineLayout>(new PipelineLayoutVk(dynamic_cast<InstanceVk*>(Instance::get()), descriptors));
         }
         }
     }

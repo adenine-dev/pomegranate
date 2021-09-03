@@ -10,12 +10,13 @@
 
 namespace pom::gfx {
     PipelineVk::PipelineVk(InstanceVk* instance,
-                           RenderPassVk* renderPass,
-                           ShaderVk* shader,
+                           Ref<RenderPassVk> r,
+                           Ref<ShaderVk> s,
                            GraphicsPipelineState state,
                            std::initializer_list<VertexBinding> vertexBindings,
-                           PipelineLayoutVk* pipelineLayout) :
-        instance(instance)
+                           Ref<PipelineLayoutVk> layout) :
+        instance(instance),
+        renderPass(std::move(r)), shader(std::move(s)), pipelineLayout(std::move(layout))
     {
         std::vector<VkVertexInputBindingDescription> vertexBindingDescs;
         vertexBindingDescs.reserve(vertexBindings.size());
@@ -147,7 +148,7 @@ namespace pom::gfx {
             .pDepthStencilState = nullptr,
             .pColorBlendState = &colorBlendCreateInfo,
             .pDynamicState = &dynamicStateCreateInfo,
-            .layout = pipelineLayout ? pipelineLayout->getVkPipelineLayout() : VK_NULL_HANDLE,
+            .layout = pipelineLayout->getVkPipelineLayout(),
             .renderPass = renderPass->getHandle(),
             .subpass = 0,
             .basePipelineHandle = VK_NULL_HANDLE,
