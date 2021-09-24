@@ -24,6 +24,8 @@ namespace pom::gfx {
 
         void determineGPU(Context* ctx) final;
 
+        void update() final;
+
         [[nodiscard]] bool ready() const final;
 
         [[nodiscard]] inline VkDevice getVkDevice()
@@ -34,6 +36,11 @@ namespace pom::gfx {
         [[nodiscard]] inline VkPhysicalDevice getVkPhysicalDevice()
         {
             return physicalDevice;
+        }
+
+        [[nodiscard]] inline u32 getCurrentFrameIndex() const
+        {
+            return currentFrame;
         }
 
     private:
@@ -50,6 +57,8 @@ namespace pom::gfx {
         u32 rateGPU(const GPU& gpu, VkSurfaceKHR surface);
 
         std::vector<const char*> validationLayers;
+
+        u32 currentFrame = 0;
 
         VkInstance instance = VK_NULL_HANDLE;
 

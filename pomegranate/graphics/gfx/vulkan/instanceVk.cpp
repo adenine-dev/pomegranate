@@ -403,6 +403,11 @@ namespace pom::gfx {
                      "Failed to create transfer command pool.");
     }
 
+    void InstanceVk::update()
+    {
+        currentFrame = currentFrame + 1 % POM_MAX_FRAMES_IN_FLIGHT;
+    }
+
     bool InstanceVk::ready() const
     {
         return physicalDevice != VK_NULL_HANDLE;

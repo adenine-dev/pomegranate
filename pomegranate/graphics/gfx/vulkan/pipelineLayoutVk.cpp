@@ -11,10 +11,6 @@ namespace pom::gfx {
     PipelineLayoutVk::PipelineLayoutVk(InstanceVk* instance, std::initializer_list<Descriptor> descriptors) :
         instance(instance)
     {
-        if (descriptors.size() == 0) {
-
-        } else {
-        }
         std::unordered_map<DescriptorType, u32> descriptorTypes;
         std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
 
@@ -30,7 +26,6 @@ namespace pom::gfx {
         }
 
         if (!descriptorTypes.empty()) {
-
             VkDescriptorPoolSize poolSizes[] = {
                 {
                     .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -58,6 +53,11 @@ namespace pom::gfx {
                          "could not create descriptor pool.");
         }
 
+        if (descriptorSetBindings.size() > 4) {
+            POM_WARN("Creating a pipeline layout with more than 4 descriptor sets, this may cause issues especially on "
+                     "integrated CPUs");
+        }
+
         std::vector<VkDescriptorSetLayout> descSetLayouts(descriptorSetBindings.size());
         for (u32 i = 0; i < descriptorSetBindings.size(); i++) {
             VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {
@@ -76,6 +76,12 @@ namespace pom::gfx {
 
             descSetLayouts[i] = descriptorSetLayouts[i];
         }
+
+        // VkPushConstantRange pushConstant = {
+        //     .stageFlags =,
+        //     .offset =,
+        //     .size =,
+        // };
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

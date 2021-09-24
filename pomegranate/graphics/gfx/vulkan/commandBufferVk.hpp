@@ -4,6 +4,8 @@
 
 #include "../commandBuffer.hpp"
 
+#include "instanceVk.hpp"
+
 namespace pom::gfx {
     class InstanceVk;
     class TextureVk;
@@ -62,12 +64,12 @@ namespace pom::gfx {
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {
-            return commandBuffers[currentIndex];
+            return commandBuffers[instance->getCurrentFrameIndex() % count];
         }
 
         [[nodiscard]] inline VkFence& getCurrentRecordingFence()
         {
-            return recordingFences[currentIndex];
+            return recordingFences[instance->getCurrentFrameIndex() % count];
         }
 
     protected:
@@ -78,7 +80,6 @@ namespace pom::gfx {
         u32 count;
         VkCommandBuffer commandBuffers[POM_MAX_FRAMES_IN_FLIGHT] {};
         VkFence recordingFences[POM_MAX_FRAMES_IN_FLIGHT] {};
-        u32 currentIndex;
     };
 
     /// @}

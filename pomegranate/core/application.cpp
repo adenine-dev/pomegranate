@@ -70,6 +70,8 @@ namespace pom {
                 dt = timer.elapsed();
             }
         }
+
+        graphicsInstance->update();
     }
 
     void Application::setClientSO(std::string clientSOFile)

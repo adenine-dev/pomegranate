@@ -16,7 +16,7 @@ namespace pom::gfx {
         CommandBuffer(specialization), instance(instance),
         pool(specialization == CommandBufferSpecialization::TRANSFER ? instance->transferCommandPool
                                                                      : instance->graphicsCommandPool),
-        count(count), currentIndex(0)
+        count(count)
     {
         POM_ASSERT(count <= POM_MAX_FRAMES_IN_FLIGHT,
                    "Command buffers are only meant to hold less than the number of frames in flight, try using "
@@ -58,7 +58,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::begin()
     {
-        currentIndex = (currentIndex + 1) % count;
+        // currentIndex = (currentIndex + 1) % count;
 
         vkWaitForFences(instance->getVkDevice(), 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
         vkResetFences(instance->getVkDevice(), 1, &getCurrentRecordingFence());

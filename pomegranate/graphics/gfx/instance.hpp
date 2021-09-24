@@ -37,6 +37,8 @@ namespace pom::gfx {
         /// Determines the GPU and finishes initializing the Instance, only needs to be called once.
         virtual void determineGPU(Context* context) = 0;
 
+        virtual void update() = 0;
+
         /// Returns true if the Instance is ready to be used. Currently this involves calling `determineGPU`.
         [[nodiscard]] virtual bool ready() const = 0;
 

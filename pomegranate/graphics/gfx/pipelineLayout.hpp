@@ -45,6 +45,9 @@ namespace pom::gfx {
         u32 count = 1;
     };
 
+    struct PushConstant {
+    };
+
     class POM_API PipelineLayout {
     public:
         /// Returns the GraphicsAPI associated with this pipeline layout.
