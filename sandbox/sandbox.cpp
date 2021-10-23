@@ -22,18 +22,18 @@ struct UniformMVP {
     pom::maths::mat4 projection;
 };
 
+// clang-format off
 static Vertex VERTEX_DATA[] = {
-    { { -0.5f, -0.5f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { { 0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
-    { { 0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f, 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
     { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { { 0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
-    { { 0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f, 0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+    { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
 };
-
-static const f32 SCALE_DATA[] = { 2, 1.5, 1, 0.5 };
+// clang-format on
 
 static const u16 INDEX_DATA[]
     = { 0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1, 7, 6, 5, 5, 4, 7, 4, 0, 3, 3, 7, 4, 4, 5, 1, 1, 0, 4, 3, 2, 6, 6, 7, 3 };
@@ -84,14 +84,12 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
-    auto* contextVk = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
-
-    gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
-    gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
-        if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
-            clientUpdate(gamestate, {});
-        }
-    });
+    // gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
+    // gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
+    //     if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
+    //         clientUpdate(gamestate, {});
+    //     }
+    // });
 
     gamestate->otherCommandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
     gamestate->otherVertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
@@ -181,17 +179,15 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->pipeline = pom::gfx::Pipeline::create(
         {},
         shader,
-        contextVk->getSwapchainRenderPass(),
-        { {
-              .binding = 0,
-              .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
-                           { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },
-                           { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT } },
-          },
-          {
-              .binding = 1,
-              .attribs = { { .location = 3, .format = pom::gfx::Format::R32_SFLOAT } },
-          } },
+        pom::Application::get()->getMainWindow().getContext()->getSwapchainRenderPass(),
+        {
+            {
+                .binding = 0,
+                .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
+                             { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },
+                             { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, },
+            },
+        },
         gamestate->pipelineLayout);
 
     // command buffer
@@ -203,11 +199,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                 pom::gfx::BufferMemoryAccess::CPU_WRITE,
                                                 sizeof(VERTEX_DATA));
     }
-
-    gamestate->scaleBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
-                                                      pom::gfx::BufferMemoryAccess::GPU_ONLY,
-                                                      sizeof(SCALE_DATA),
-                                                      SCALE_DATA);
 
     // index buffer
     gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX,
@@ -264,7 +255,8 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
                 pom::Ref<pom::gfx::Buffer> uniformBuffer = gamestate->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 UniformMVP* data = (UniformMVP*)uniformBuffer->map();
 
-                data->model = pom::maths::mat4::rotate({ TAU / 100.f * 0, 0, 0 });
+                // data->model = pom::maths::mat4::rotate({ TAU / 100.f * pom::Application::get()->getFrame(), 0, 0 });
+                data->model = pom::maths::mat4::rotate({ 0, 0, 0 });
                 data->projection = pom::maths::mat4::perspective(TAU / 8.f,
                                                                  context->swapchainViewport.width
                                                                      / context->swapchainViewport.height,
@@ -285,7 +277,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
                                                  { context->swapchainExtent.width, context->swapchainExtent.height });
 
             gamestate->commandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
-            gamestate->commandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
             gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
@@ -306,7 +297,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         }
     }
 
-    if (!gamestate->otherWindow->isMinimized()) {
+    /* if (!gamestate->otherWindow->isMinimized()) {
         auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
         gamestate->otherCommandBuffer->begin();
         gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
@@ -316,7 +307,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
                                                   { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
 
         gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
-        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->scaleBuffer, 1);
 
         gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
 
@@ -334,7 +324,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         gamestate->otherCommandBuffer->submit();
 
         ctx->present();
-    }
+    } */
 
     // POM_DEBUG("dt: ", dt, "ms");
 }
@@ -349,7 +339,7 @@ POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientEnd(GameState* gamestate)
 {
-    delete gamestate->otherWindow;
+    // delete gamestate->otherWindow;
 
     delete gamestate;
 }

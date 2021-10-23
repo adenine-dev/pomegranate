@@ -29,14 +29,14 @@ namespace pom::gfx {
                     .location = attrib.location,
                     .binding = binding.binding,
                     .format = toVkFormat(attrib.format),
-                    .offset = attrib.offset == -1 ? totalAttribSize : attrib.offset,
+                    .offset = attrib.offset == VertexAttribute::AUTO_CALCULATE_OFFSET ? totalAttribSize : attrib.offset,
                 });
                 totalAttribSize += sizeofFormat(attrib.format);
             }
 
             vertexBindingDescs.push_back({
                 .binding = binding.binding,
-                .stride = binding.stride == -1 ? totalAttribSize : binding.stride,
+                .stride = binding.stride == VertexBinding::AUTO_CALCULATE_STRIDE ? totalAttribSize : binding.stride,
                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX // TODO: have this be configurable
             });
         }

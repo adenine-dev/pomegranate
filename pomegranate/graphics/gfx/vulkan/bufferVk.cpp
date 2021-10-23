@@ -21,7 +21,7 @@ namespace pom::gfx {
             usage |= BufferUsage::TRANSFER_DST;
         }
 
-        VkBufferCreateInfo vertexBufferCreateInfo = {
+        VkBufferCreateInfo bufferCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -32,7 +32,7 @@ namespace pom::gfx {
             .pQueueFamilyIndices = nullptr,
         };
 
-        POM_CHECK_VK(vkCreateBuffer(instance->getVkDevice(), &vertexBufferCreateInfo, nullptr, &buffer),
+        POM_CHECK_VK(vkCreateBuffer(instance->getVkDevice(), &bufferCreateInfo, nullptr, &buffer),
                      "Failed to create buffer");
 
         VkMemoryRequirements memoryReqs;

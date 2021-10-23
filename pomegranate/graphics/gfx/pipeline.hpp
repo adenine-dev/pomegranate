@@ -49,22 +49,26 @@ namespace pom::gfx {
 
     /// A single vertex attribute.
     struct VertexAttribute {
+        static const i32 AUTO_CALCULATE_OFFSET = -1;
+
         /// The location of this attribute.
         u32 location;
         /// The format of this attribute.
         Format format;
         /// The offset in bytes of this attribute from the beginning of a vertex. If not specified defaults to the sum
         /// of the size of previous `VertexAttribute::format`s in the VertexBinding.
-        i32 offset = -1;
+        i32 offset = AUTO_CALCULATE_OFFSET;
     };
 
     /// Used for the construction of graphics pipelines. Specifies data needed for a vertex binding.
     struct VertexBinding {
+        static const i32 AUTO_CALCULATE_STRIDE = -1;
+
         /// The bindpoint of ths vertex binding.
         u32 binding;
         /// Specifies the stride in bytes of a vertex. If not specified defaults to the sum of the size of the
         /// `VertexAttribute::format`s in `attribs`.
-        i32 stride = -1;
+        i32 stride = AUTO_CALCULATE_STRIDE;
         /// A list of all vertex attributes belonging to this binding.
         std::vector<VertexAttribute> attribs;
     };

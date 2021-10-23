@@ -42,4 +42,6 @@ namespace pom::gfx {
         VkBuffer buffer = VK_NULL_HANDLE;
         VkDeviceMemory memory = VK_NULL_HANDLE;
     };
+
+    ///@}
 } // namespace pom::gfx
