@@ -12,7 +12,6 @@ struct State {
     pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
     pom::Ref<pom::gfx::Buffer> vertexBuffer;
     pom::Ref<pom::gfx::Pipeline> pipeline;
-    pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
 };
 
 static Vertex VERTEX_DATA[] = {
@@ -56,8 +55,6 @@ POM_CLIENT_EXPORT void clientMount(State* state)
 
     pom::Ref<pom::gfx::Shader> shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
-    state->pipelineLayout = pom::gfx::PipelineLayout::create({});
-
     state->pipeline = pom::gfx::Pipeline::create(
         {},
         shader,
@@ -68,8 +65,7 @@ POM_CLIENT_EXPORT void clientMount(State* state)
                 .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
                              { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT } },
             },
-        },
-        state->pipelineLayout);
+        });
 }
 
 POM_CLIENT_EXPORT void clientUpdate(State* state, pom::DeltaTime dt)

@@ -85,7 +85,8 @@ namespace pom::gfx {
                                                   const Ref<Shader>& shader,
                                                   const Ref<RenderPass>& renderPass,
                                                   std::initializer_list<VertexBinding> vertexBindings,
-                                                  const Ref<PipelineLayout>& pipelineLayouto);
+                                                  const Ref<PipelineLayout>& pipelineLayout
+                                                  = Ref<PipelineLayout>(nullptr));
         Pipeline() = default;
         virtual ~Pipeline() = default;
 

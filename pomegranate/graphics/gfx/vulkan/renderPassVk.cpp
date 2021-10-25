@@ -6,18 +6,42 @@
 #include "instanceVk.hpp"
 
 namespace pom::gfx {
-    RenderPassVk::RenderPassVk(InstanceVk* instance, std::initializer_list<RenderPassAttachment> attachments) :
-        instance(instance), renderPass(VK_NULL_HANDLE), clearColors(attachments.size())
+    RenderPassVk::RenderPassVk(InstanceVk* instance,
+                               std::initializer_list<RenderPassAttachment> colorAttachments,
+                               RenderPassAttachment depthStencilAttachment) :
+        instance(instance),
+        renderPass(VK_NULL_HANDLE), clearColors(colorAttachments.size() + 1)
     {
-        std::vector<VkAttachmentDescription> attachmentDescs(attachments.size());
+        std::vector<VkAttachmentDescription> attachmentDescs(colorAttachments.size() + 1);
+        std::vector<VkAttachmentReference> colorAttachmentRefs;
 
-        u32 i = 0;
-        for (auto attachment : attachments) {
+        attachmentDescs[0] = {
+            .flags = 0,
+            .format = toVkFormat(depthStencilAttachment.format),
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = toVkAttachmentLoadOp(depthStencilAttachment.loadOperation),
+            .storeOp = toVkAttachmentStoreOp(depthStencilAttachment.storeOperation),
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        };
+
+        VkAttachmentReference depthStencilAttachmentRef = {
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        };
+
+        clearColors[0] = { .depthStencil = { depthStencilAttachment.depthStencilClear.depth,
+                                             depthStencilAttachment.depthStencilClear.stencil } };
+
+        u32 i = 1;
+        for (auto attachment : colorAttachments) {
             clearColors[i] = {
-                attachment.clearColor.r,
-                attachment.clearColor.g,
-                attachment.clearColor.b,
-                attachment.clearColor.a,
+                .color = { attachment.colorClear.r,
+                           attachment.colorClear.g,
+                           attachment.colorClear.b,
+                           attachment.colorClear.a },
             };
 
             attachmentDescs[i] = {
@@ -32,23 +56,23 @@ namespace pom::gfx {
                 .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             };
 
+            colorAttachmentRefs.push_back({
+                .attachment = i,
+                .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            });
+
             i++;
         }
-
-        VkAttachmentReference colorAttachmentRef = {
-            .attachment = 0,
-            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        };
 
         VkSubpassDescription subpassDesc = {
             .flags = 0,
             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
             .inputAttachmentCount = 0,
             .pInputAttachments = nullptr,
-            .colorAttachmentCount = 1,
-            .pColorAttachments = &colorAttachmentRef,
+            .colorAttachmentCount = static_cast<u32>(colorAttachmentRefs.size()),
+            .pColorAttachments = colorAttachmentRefs.data(),
             .pResolveAttachments = nullptr,
-            .pDepthStencilAttachment = nullptr,
+            .pDepthStencilAttachment = &depthStencilAttachmentRef,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = nullptr,
         };
@@ -56,10 +80,10 @@ namespace pom::gfx {
         VkSubpassDependency subpassDependency = {
             .srcSubpass = VK_SUBPASS_EXTERNAL,
             .dstSubpass = 0,
-            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             .dependencyFlags = 0,
         };
 

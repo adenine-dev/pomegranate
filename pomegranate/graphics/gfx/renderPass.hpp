@@ -23,6 +23,11 @@ namespace pom::gfx {
         DONTCARE ///< Image contents may be discarded, accessing them is undefined behavior.
     };
 
+    struct DepthStencilClear {
+        f32 depth;
+        u32 stencil;
+    };
+
     /// Attachment data for a `RenderPass`.
     struct RenderPassAttachment {
         Format format; ///< Image format of this attachment.
@@ -30,8 +35,8 @@ namespace pom::gfx {
         // u8 samples; ///< Number of samples, must be a power of 2
         LoadOperation loadOperation; ///< Load operation for this attachment.
         StoreOperation storeOperation; ///< Store operation for this attachment.
-        // TODO: depth/stencil clear colors for when that's a thing.
-        Color clearColor = Color::BLACK; ///< Clear color if this attachment's load operation is `LoadOperation::CLEAR`
+        Color colorClear = Color::BLACK; ///< Clear color if this attachment's load operation is `LoadOperation::CLEAR`
+        DepthStencilClear depthStencilClear = { 1.f, 0 };
     };
 
     // TODO: multiple subpasses, subpass dependencies. Make this less extremely dumb.
@@ -42,7 +47,8 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this render pass.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Ref<RenderPass> create(std::initializer_list<RenderPassAttachment> attachments);
+        [[nodiscard]] static Ref<RenderPass> create(std::initializer_list<RenderPassAttachment> colorAttachments,
+                                                    RenderPassAttachment depthStencilAttachment);
 
         virtual ~RenderPass() = default;
     };

@@ -246,6 +246,27 @@ namespace pom::gfx {
         case Format::R32G32B32A32_SFLOAT: {
             return VK_FORMAT_R32G32B32A32_SFLOAT;
         } break;
+        case Format::D16_UNORM: {
+            return VK_FORMAT_D16_UNORM;
+        } break;
+        case Format::X8_D24_UNORM_PACK32: {
+            return VK_FORMAT_X8_D24_UNORM_PACK32;
+        } break;
+        case Format::D32_SFLOAT: {
+            return VK_FORMAT_D32_SFLOAT;
+        } break;
+        case Format::S8_UINT: {
+            return VK_FORMAT_S8_UINT;
+        } break;
+        case Format::D16_UNORM_S8_UINT: {
+            return VK_FORMAT_D16_UNORM_S8_UINT;
+        } break;
+        case Format::D24_UNORM_S8_UINT: {
+            return VK_FORMAT_D24_UNORM_S8_UINT;
+        } break;
+        case Format::D32_SFLOAT_S8_UINT: {
+            return VK_FORMAT_D32_SFLOAT_S8_UINT;
+        } break;
         default: {
             return VK_FORMAT_UNDEFINED;
         }
@@ -494,6 +515,27 @@ namespace pom::gfx {
         } break;
         case VK_FORMAT_R32G32B32A32_SFLOAT: {
             return Format::R32G32B32A32_SFLOAT;
+        } break;
+        case VK_FORMAT_D16_UNORM: {
+            return Format::D16_UNORM;
+        } break;
+        case VK_FORMAT_X8_D24_UNORM_PACK32: {
+            return Format::X8_D24_UNORM_PACK32;
+        } break;
+        case VK_FORMAT_D32_SFLOAT: {
+            return Format::D32_SFLOAT;
+        } break;
+        case VK_FORMAT_S8_UINT: {
+            return Format::S8_UINT;
+        } break;
+        case VK_FORMAT_D16_UNORM_S8_UINT: {
+            return Format::D16_UNORM_S8_UINT;
+        } break;
+        case VK_FORMAT_D24_UNORM_S8_UINT: {
+            return Format::D24_UNORM_S8_UINT;
+        } break;
+        case VK_FORMAT_D32_SFLOAT_S8_UINT: {
+            return Format::D32_SFLOAT_S8_UINT;
         } break;
         default: {
             return Format::UNDEFINED;

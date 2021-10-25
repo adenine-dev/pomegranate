@@ -25,14 +25,18 @@ namespace pom::gfx {
         case GraphicsAPI::VULKAN: {
             POM_ASSERT(renderPass->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
             POM_ASSERT(shader->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
-            POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
+            if (pipelineLayout)
+                POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
 
-            return Ref<Pipeline>(new PipelineVk(dynamic_cast<InstanceVk*>(Instance::get()),
+            auto* instance = dynamic_cast<InstanceVk*>(Instance::get());
+
+            return Ref<Pipeline>(new PipelineVk(instance,
                                                 renderPass.dynCast<RenderPassVk>(),
                                                 shader.dynCast<ShaderVk>(),
                                                 state,
                                                 vertexBindings,
-                                                pipelineLayout.dynCast<PipelineLayoutVk>()));
+                                                pipelineLayout ? pipelineLayout.dynCast<PipelineLayoutVk>()
+                                                               : instance->emptyPipelineLayout));
         }
         }
     }

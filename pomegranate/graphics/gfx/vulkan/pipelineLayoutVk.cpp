@@ -26,17 +26,15 @@ namespace pom::gfx {
         }
 
         if (!descriptorTypes.empty()) {
-            VkDescriptorPoolSize poolSizes[] = {
-                {
-                    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT * descriptorTypes[DescriptorType::UNIFORM_BUFFER],
-                },
-                {
-                    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    .descriptorCount
-                    = POM_MAX_FRAMES_IN_FLIGHT * descriptorTypes[DescriptorType::COMBINED_TEXTURE_SAMPLER],
-                },
-            };
+            auto* poolSizes = new VkDescriptorPoolSize[descriptorTypes.size()];
+            u32 i = 0;
+            for (auto [type, count] : descriptorTypes) {
+                poolSizes[i] = {
+                    .type = toVkDescriptorType(type),
+                    .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT * count,
+                };
+                i++;
+            }
 
             VkDescriptorPoolCreateInfo poolCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -45,7 +43,7 @@ namespace pom::gfx {
                 .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
                 // FIXME: more than 2 descriptor sets will be bound.
                 .maxSets = static_cast<u32>(POM_MAX_FRAMES_IN_FLIGHT * descriptorSetBindings.size()),
-                .poolSizeCount = 2,
+                .poolSizeCount = static_cast<u32>(descriptorTypes.size()),
                 .pPoolSizes = poolSizes,
             };
 

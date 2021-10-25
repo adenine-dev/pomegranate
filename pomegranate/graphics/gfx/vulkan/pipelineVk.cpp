@@ -59,6 +59,21 @@ namespace pom::gfx {
             .primitiveRestartEnable = state.primativeRestart ? VK_TRUE : VK_FALSE,
         };
 
+        VkPipelineDepthStencilStateCreateInfo depthStencilCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .depthTestEnable = VK_TRUE,
+            .depthWriteEnable = VK_TRUE,
+            .depthCompareOp = VK_COMPARE_OP_LESS,
+            .depthBoundsTestEnable = VK_FALSE,
+            .stencilTestEnable = VK_FALSE, // TODO: stencil testing.
+            .front = {},
+            .back = {},
+            .minDepthBounds = 0.f,
+            .maxDepthBounds = 1.f,
+        };
+
         VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .pNext = nullptr,
@@ -145,7 +160,7 @@ namespace pom::gfx {
             .pViewportState = &viewportCreateInfo,
             .pRasterizationState = &rasterizationCreateInfo,
             .pMultisampleState = &multisampleCreateInfo,
-            .pDepthStencilState = nullptr,
+            .pDepthStencilState = &depthStencilCreateInfo,
             .pColorBlendState = &colorBlendCreateInfo,
             .pDynamicState = &dynamicStateCreateInfo,
             .layout = pipelineLayout->getVkPipelineLayout(),

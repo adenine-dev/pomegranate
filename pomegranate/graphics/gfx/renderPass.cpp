@@ -8,11 +8,13 @@
 #include "vulkan/renderPassVk.hpp"
 
 namespace pom::gfx {
-    Ref<RenderPass> RenderPass::create(std::initializer_list<RenderPassAttachment> attachments)
+    Ref<RenderPass> RenderPass::create(std::initializer_list<RenderPassAttachment> colorAttachments,
+                                       RenderPassAttachment depthStencilAttachment)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
-            return Ref<RenderPass>(new RenderPassVk(dynamic_cast<InstanceVk*>(Instance::get()), attachments));
+            return Ref<RenderPass>(
+                new RenderPassVk(dynamic_cast<InstanceVk*>(Instance::get()), colorAttachments, depthStencilAttachment));
         }
         }
     }

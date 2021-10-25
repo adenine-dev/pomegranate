@@ -66,6 +66,16 @@ namespace pom::maths {
             return ret;
         }
 
+        /// Returns a new scale matrix, that scales by the members of `v`
+        constexpr static Matrix<T, M, N> scale(T v)
+        {
+            Matrix<T, M, N> ret { 0 };
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+                ret[i][i] = v;
+            ret[N - 1][N - 1] = 1;
+            return ret;
+        }
+
         // FIXME: try doing a half way decent 2d/3d one...
         // NOTE: rotation non-linear (able to be translated) matrix
         /// Returns a new rotation matrix.
@@ -93,7 +103,7 @@ namespace pom::maths {
             return ret;
         }
 
-        /// Returns a new perspective matrix.
+        /// Returns a new perspective projection matrix.
         constexpr static Matrix<T, 4, 4> perspective(f32 fov, f32 aspectRatio, f32 near, f32 far) requires(N == M
                                                                                                            && N == 4)
         {
@@ -106,6 +116,22 @@ namespace pom::maths {
             ret[2][2] = (near + far) / (near - far);
             ret[2][3] = -1.f;
             ret[3][2] = (2.f * near * far) / (near - far);
+
+            return ret;
+        }
+
+        /// Returns a new orthographic projection matrix.
+        constexpr static Matrix<T, 4, 4>
+        ortho(T left, T right, T top, T bottom, T near = -1, T far = 1) requires(N == M && N == 4)
+        {
+            Matrix<T, 4, 4> ret = identity();
+
+            ret[0][0] = 2 / (right - left);
+            ret[1][1] = 2 / (top - bottom);
+            ret[2][2] = -2 / (far - near);
+            ret[3][0] = -(right + left) / (right - left);
+            ret[3][1] = -(top + bottom) / (top - bottom);
+            ret[3][2] = -(far + near) / (far - near);
 
             return ret;
         }
@@ -141,6 +167,90 @@ namespace pom::maths {
         {
             *this = operator*(*this, other);
             return *this;
+        }
+
+        constexpr T determinate() const requires(N == M && N > 1)
+        {
+            static_assert(std::is_floating_point<T>(),
+                          "Inverse matrices should only be calculated with float precision.");
+
+            Matrix<T, N, N> m = *this;
+            i8 sign = 1;
+            for (POM_VECTOR_SIZE_TYPE k = 0; k < N - 1; k++) {
+                if (m[k][k] == 0) {
+                    POM_VECTOR_SIZE_TYPE i = 0;
+                    for (i = k + 1; i < N; i++) {
+                        if (m[i][k] != 0) {
+                            std::swap(m[i], m[k]);
+                            sign *= -1;
+                            break;
+                        }
+                    }
+
+                    if (i == N)
+                        return 0;
+                }
+
+                for (POM_VECTOR_SIZE_TYPE i = k + 1; i < N; i++)
+                    for (POM_VECTOR_SIZE_TYPE j = k + 1; j < N; j++) {
+                        m[i][j] = (m[i][j] * m[k][k]) - (m[i][k] * m[k][j]);
+                        if (k > 0)
+                            m[i][j] /= m[k - 1][k - 1];
+                    }
+            }
+            return m[N - 1][N - 1] * sign;
+        }
+
+        constexpr Matrix<T, M, N> inverse() requires(N == M)
+        {
+            static_assert(std::is_floating_point<T>(),
+                          "Inverse matrices should only be calculated with float precision.");
+            Matrix<T, N, N * 2> m;
+
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++) {
+                for (POM_VECTOR_SIZE_TYPE j = 0; j < N; j++) {
+                    m.data[i][j] = data[i][j];
+                }
+                m.data[i][i + N] = 1;
+            }
+
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++) {
+                if (m.data[i][i] == 0) {
+                    POM_VECTOR_SIZE_TYPE j = 0;
+                    for (j = i + 1; j < N; j++) {
+                        if (m.data[j][i] != 0) {
+                            m.data[j] /= m.data[j][i];
+                            std::swap(m.data[j], m.data[i]);
+                            break;
+                        }
+                    }
+
+                    if (j == N)
+                        POM_ERROR("Attempting to invert noninvertable matrix.");
+                }
+
+                for (POM_VECTOR_SIZE_TYPE j = 0; j < N; j++) {
+                    if (i != j) {
+                        auto x = m.data[j][i] / m.data[i][i];
+                        for (POM_VECTOR_SIZE_TYPE k = 0; k < N * 2; k++) {
+                            m.data[j][k] -= x * m.data[i][k];
+                        }
+                    }
+                }
+            }
+
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++) {
+                m.data[i] /= m.data[i][i];
+            }
+
+            Matrix<T, N, N> inv;
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++) {
+                for (POM_VECTOR_SIZE_TYPE j = 0; j < N; j++) {
+                    inv[i][j] = m.data[i][j + N];
+                }
+            }
+
+            return inv;
         }
     };
 

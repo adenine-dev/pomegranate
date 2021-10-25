@@ -3,6 +3,7 @@
 #include "../instance.hpp"
 
 #include "contextVk.hpp"
+#include "pipelineLayoutVk.hpp"
 
 namespace pom::gfx {
     /// @addtogroup vulkan
@@ -47,6 +48,7 @@ namespace pom::gfx {
         friend class Instance;
         friend class ContextVk;
         friend class CommandBufferVk;
+        friend class Pipeline;
 
         POM_NOCOPY(InstanceVk);
         InstanceVk(const char* appname);
@@ -80,6 +82,8 @@ namespace pom::gfx {
         // FIXME: this is extremely not threadsafe, there should be at least 1 pool per thread.
         VkCommandPool graphicsCommandPool = VK_NULL_HANDLE;
         VkCommandPool transferCommandPool = VK_NULL_HANDLE;
+
+        Ref<PipelineLayoutVk> emptyPipelineLayout;
     };
 
     ///@}

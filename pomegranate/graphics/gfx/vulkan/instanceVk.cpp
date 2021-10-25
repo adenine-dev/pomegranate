@@ -209,6 +209,8 @@ namespace pom::gfx {
 
     InstanceVk::~InstanceVk()
     {
+        emptyPipelineLayout.free();
+
         if (ready()) {
             vkDestroyCommandPool(device, graphicsCommandPool, nullptr);
             vkDestroyCommandPool(device, transferCommandPool, nullptr);
@@ -401,6 +403,8 @@ namespace pom::gfx {
         commandPoolCreateInfo.queueFamilyIndex = transferQueueFamilyIndex;
         POM_CHECK_VK(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &transferCommandPool),
                      "Failed to create transfer command pool.");
+
+        emptyPipelineLayout = Ref<PipelineLayoutVk>(new PipelineLayoutVk(this, {}));
     }
 
     void InstanceVk::update()

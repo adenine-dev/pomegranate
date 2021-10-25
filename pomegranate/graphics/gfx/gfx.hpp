@@ -176,13 +176,13 @@ namespace pom::gfx {
 
         // B10G11R11_UFLOAT_PACK32, ///< corresponds to `VK_FORMAT_B10G11R11_UFLOAT_PACK32` in vulkan.
         // E5B9G9R9_UFLOAT_PACK32, ///< corresponds to `VK_FORMAT_E5B9G9R9_UFLOAT_PACK32` in vulkan.
-        // D16_UNORM, ///< corresponds to `VK_FORMAT_D16_UNORM` in vulkan.
-        // X8_D24_UNORM_PACK32, ///< corresponds to `VK_FORMAT_X8_D24_UNORM_PACK32` in vulkan.
-        // D32_SFLOAT, ///< corresponds to `VK_FORMAT_D32_SFLOAT` in vulkan.
-        // S8_UINT, ///< corresponds to `VK_FORMAT_S8_UINT` in vulkan.
-        // D16_UNORM_S8_UINT, ///< corresponds to `VK_FORMAT_D16_UNORM_S8_UINT` in vulkan.
-        // D24_UNORM_S8_UINT, ///< corresponds to `VK_FORMAT_D24_UNORM_S8_UINT` in vulkan.
-        // D32_SFLOAT_S8_UINT, ///< corresponds to `VK_FORMAT_D32_SFLOAT_S8_UINT` in vulkan.
+        D16_UNORM, ///< corresponds to `VK_FORMAT_D16_UNORM` in vulkan.
+        X8_D24_UNORM_PACK32, ///< 24 bit unsigned normalized depth, and **may** contain 8 extra unused bits. corresponds to `VK_FORMAT_X8_D24_UNORM_PACK32` in vulkan.
+        D32_SFLOAT, ///< 32 bit floating point depth value. corresponds to `VK_FORMAT_D32_SFLOAT` in vulkan.
+        S8_UINT, ///< 8 bit unsigned integer stencil value. corresponds to `VK_FORMAT_S8_UINT` in vulkan.
+        D16_UNORM_S8_UINT, ///< 16 bit normalized depth value, and 8 bit unsigned ingeger stencil value. corresponds to `VK_FORMAT_D16_UNORM_S8_UINT` in vulkan.
+        D24_UNORM_S8_UINT, ///< 24 bit normalized depth value, and 8 bit unsigned ingeger stencil value. corresponds to `VK_FORMAT_D24_UNORM_S8_UINT` in vulkan.
+        D32_SFLOAT_S8_UINT, ///< 32 bit signed floating point depth value, and 8 bit unsigned ingeger stencil value. corresponds to `VK_FORMAT_D32_SFLOAT_S8_UINT` in vulkan.
         // BC1_RGB_UNORM_BLOCK, ///< corresponds to `VK_FORMAT_BC1_RGB_UNORM_BLOCK` in vulkan.
         // BC1_RGB_SRGB_BLOCK, ///< corresponds to `VK_FORMAT_BC1_RGB_SRGB_BLOCK` in vulkan.
         // BC1_RGBA_UNORM_BLOCK, ///< corresponds to `VK_FORMAT_BC1_RGBA_UNORM_BLOCK` in vulkan.

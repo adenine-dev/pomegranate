@@ -115,7 +115,7 @@ namespace pom::gfx {
             = 0;
 
         /// Copies the contents of `src` to `dst`.
-        virtual void copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
+        virtual void copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBufferToTexture(Buffer* src,

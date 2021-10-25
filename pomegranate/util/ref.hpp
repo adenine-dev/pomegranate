@@ -35,6 +35,13 @@ namespace pom {
             count = other.count;
         }
 
+        void free()
+        {
+            decref();
+            count = nullptr;
+            ptr = nullptr;
+        }
+
         Ref& operator=(const Ref& other) noexcept
         {
             Ref(other).swap(*this);
@@ -107,9 +114,7 @@ namespace pom {
         void decref() const
         {
             if (count && --(*count) == 0) {
-                if (ptr) {
-                    delete ptr;
-                }
+                delete ptr;
                 delete count;
             }
         }

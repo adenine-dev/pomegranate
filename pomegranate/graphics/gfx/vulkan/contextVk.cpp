@@ -58,6 +58,10 @@ namespace pom::gfx {
     {
         vkDeviceWaitIdle(instance->device);
 
+        vkDestroyImageView(instance->device, depthImageView, nullptr);
+        vkDestroyImage(instance->device, depthImage, nullptr);
+        vkFreeMemory(instance->device, depthImageMemory, nullptr);
+
         for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(instance->device, renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(instance->device, imageAvailableSemaphores[i], nullptr);
@@ -75,6 +79,31 @@ namespace pom::gfx {
         vkDestroySwapchainKHR(instance->device, swapchain, nullptr);
 
         vkDestroySurfaceKHR(instance->instance, surface, nullptr);
+    }
+
+    bool hasStencilComponent(VkFormat format)
+    {
+        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+    }
+
+    VkFormat ContextVk::findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                            VkImageTiling tiling,
+                                            VkFormatFeatureFlags features) const
+    {
+        for (VkFormat format : candidates) {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(instance->physicalDevice, format, &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+                return format;
+            }
+            if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+                return format;
+            }
+        }
+
+        POM_FATAL("Unable to find suitable format");
+        return VK_FORMAT_UNDEFINED;
     }
 
     SwapchainSupportDetailsVk ContextVk::getSwapchainSupportDetails(VkPhysicalDevice device) const
@@ -215,16 +244,99 @@ namespace pom::gfx {
             };
 
             POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &swapchainImageViews[i]),
-                         "Failed to create image view")
+                         "Failed to create swapchain image view");
         }
+
+        depthImageFormat
+            = findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+                                  VK_IMAGE_TILING_OPTIMAL,
+                                  VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        VkImageCreateInfo imageInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = depthImageFormat,
+            .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
+            .mipLevels = 1,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+
+        POM_CHECK_VK(vkCreateImage(instance->device, &imageInfo, nullptr, &depthImage),
+                     "Failed to create depth image.");
+
+        VkMemoryRequirements memoryReqs;
+        vkGetImageMemoryRequirements(instance->device, depthImage, &memoryReqs);
+        VkPhysicalDeviceMemoryProperties physicalMemoryProps;
+        vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
+
+        u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
+
+        VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+        for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
+            if (memoryReqs.memoryTypeBits & (1 << i)
+                && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
+                memoryTypeIndex = i;
+                break;
+            }
+        }
+
+        POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
+
+        VkMemoryAllocateInfo allocInfo {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .allocationSize = memoryReqs.size,
+            .memoryTypeIndex = memoryTypeIndex,
+        };
+
+        POM_CHECK_VK(vkAllocateMemory(instance->device, &allocInfo, nullptr, &depthImageMemory),
+                     "unable to allocate depth image memory.");
+
+        vkBindImageMemory(instance->device, depthImage, depthImageMemory, 0);
+
+        VkImageViewCreateInfo imageViewCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = depthImage,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = depthImageFormat,
+            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                                  .baseMipLevel = 0,
+                                  .levelCount = 1,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 },
+        };
+
+        POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &depthImageView),
+                     "Failed to create depth image view")
 
         if (firstTime) {
             swapchainRenderPass = RenderPass::create({ {
                                                          .format = fromVkFormat(swapchainImageFormat),
                                                          .loadOperation = LoadOperation::CLEAR,
                                                          .storeOperation = StoreOperation::STORE,
-                                                         .clearColor = Color::BLACK,
-                                                     } })
+                                                         .colorClear = Color::BLACK,
+                                                     } },
+                                                     {
+                                                         .format = fromVkFormat(depthImageFormat),
+                                                         .loadOperation = LoadOperation::CLEAR,
+                                                         .storeOperation = StoreOperation::DONTCARE,
+                                                         .depthStencilClear = { 1.f, 0 },
+                                                     })
                                       .dynCast<RenderPassVk>();
         }
 
@@ -232,13 +344,14 @@ namespace pom::gfx {
         swapchainFramebuffers.resize(swapchainImageViews.size());
 
         for (u32 i = 0; i < swapchainFramebuffers.size(); i++) {
+            VkImageView attachments[2] = { depthImageView, swapchainImageViews[i] };
             VkFramebufferCreateInfo framebufferCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .renderPass = swapchainRenderPass->getHandle(),
-                .attachmentCount = 1,
-                .pAttachments = &swapchainImageViews[i],
+                .attachmentCount = 2,
+                .pAttachments = attachments,
                 .width = swapchainExtent.width,
                 .height = swapchainExtent.height,
                 .layers = 1,
@@ -256,6 +369,10 @@ namespace pom::gfx {
 
         // TODO: once deletion queues are implemented, this will not be needed.
         vkDeviceWaitIdle(instance->device);
+
+        vkDestroyImageView(instance->device, depthImageView, nullptr);
+        vkDestroyImage(instance->device, depthImage, nullptr);
+        vkFreeMemory(instance->device, depthImageMemory, nullptr);
 
         for (auto* framebuffer : swapchainFramebuffers) {
             vkDestroyFramebuffer(instance->device, framebuffer, nullptr);

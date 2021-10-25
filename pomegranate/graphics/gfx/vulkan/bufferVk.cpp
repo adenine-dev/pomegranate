@@ -84,7 +84,7 @@ namespace pom::gfx {
             auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::TRANSFER, 1);
 
             commandBuffer->begin();
-            commandBuffer->copyBuffer(transferBuffer, this, size, 0, 0);
+            commandBuffer->copyBufferToBuffer(transferBuffer, this, size, 0, 0);
             commandBuffer->end();
             commandBuffer->submit();
 

@@ -201,7 +201,7 @@ namespace pom::gfx {
                           dynamic_cast<PipelineVk*>(pipeline.get())->getHandle());
     }
 
-    void CommandBufferVk::copyBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
+    void CommandBufferVk::copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
     {
         POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");

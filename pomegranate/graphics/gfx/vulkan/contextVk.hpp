@@ -72,6 +72,9 @@ namespace pom::gfx {
         friend class InstanceVk;
 
         SwapchainSupportDetailsVk getSwapchainSupportDetails(VkPhysicalDevice device) const;
+        [[nodiscard]] VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
+                                                   VkImageTiling tiling,
+                                                   VkFormatFeatureFlags features) const;
 
         ContextVk(InstanceVk* instance, Window* window);
 
@@ -92,6 +95,12 @@ namespace pom::gfx {
         std::vector<VkImage> swapchainImages;
         std::vector<VkImageView> swapchainImageViews;
         std::vector<VkFramebuffer> swapchainFramebuffers;
+
+        VkImage depthImage;
+        VkDeviceMemory depthImageMemory;
+        VkImageView depthImageView;
+        VkFormat depthImageFormat;
+
         VkViewport swapchainViewport;
         u32 swapchainImageIndex = 0;
 

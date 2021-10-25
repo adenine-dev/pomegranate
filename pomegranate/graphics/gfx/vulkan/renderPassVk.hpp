@@ -17,7 +17,9 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        RenderPassVk(InstanceVk* instance, std::initializer_list<RenderPassAttachment> attachments);
+        RenderPassVk(InstanceVk* instance,
+                     std::initializer_list<RenderPassAttachment> colorAttachments,
+                     RenderPassAttachment depthStencilAttachment);
         ~RenderPassVk();
 
         [[nodiscard]] inline VkRenderPass getHandle() const

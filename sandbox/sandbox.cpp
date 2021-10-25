@@ -3,6 +3,9 @@
 #include "embed/shader/basic_frag_spv.hpp"
 #include "embed/shader/basic_vert_spv.hpp"
 
+#include "embed/shader/plane_frag_spv.hpp"
+#include "embed/shader/plane_vert_spv.hpp"
+
 #include "embed/img/empty_png.hpp"
 
 #include <spirv_reflect.hpp>
@@ -14,6 +17,11 @@ struct Vertex {
     pom::maths::vec3 pos;
     pom::Color color;
     pom::maths::vec2 uv;
+};
+
+struct Camera {
+    pom::maths::vec3 position = pom::maths::vec3(2, 2, 0);
+    f32 zoom = 1.f;
 };
 
 struct UniformMVP {
@@ -47,18 +55,18 @@ struct GameState {
     pom::Ref<pom::gfx::Buffer> indexBuffer;
 
     // uniform buffers
-    pom::maths::vec3 cameraPos = pom::maths::vec3(2, 2, 2);
     pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
+    Camera camera;
 
     // pipeline
     pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
     pom::Ref<pom::gfx::DescriptorSet> descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::Ref<pom::gfx::Pipeline> pipeline;
 
-    // other context test.
-    pom::Window* otherWindow;
-    pom::Ref<pom::gfx::CommandBuffer> otherCommandBuffer;
-    pom::Ref<pom::gfx::Buffer> otherVertexBuffer;
+    // plane
+    pom::Ref<pom::gfx::Pipeline> planePipeline;
+    pom::Ref<pom::gfx::DescriptorSet> planeDescriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
+    pom::Ref<pom::gfx::PipelineLayout> planePipelineLayout;
 
     // texture
     pom::Ref<pom::gfx::Texture> texture;
@@ -90,12 +98,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     //         clientUpdate(gamestate, {});
     //     }
     // });
-
-    gamestate->otherCommandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
-    gamestate->otherVertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
-                                                            pom::gfx::BufferMemoryAccess::GPU_ONLY,
-                                                            sizeof(VERTEX_DATA),
-                                                            VERTEX_DATA);
 
     // texture
     i32 width, height, channels;
@@ -197,7 +199,8 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     for (auto& vertexBuffer : gamestate->vertexBuffers) {
         vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
                                                 pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                sizeof(VERTEX_DATA));
+                                                sizeof(VERTEX_DATA),
+                                                VERTEX_DATA);
     }
 
     // index buffer
@@ -205,13 +208,51 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                       pom::gfx::BufferMemoryAccess::GPU_ONLY,
                                                       sizeof(INDEX_DATA),
                                                       INDEX_DATA);
+
+    // plane test
+
+    pom::Ref<pom::gfx::ShaderModule> planeVertShader
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
+                                         plane_vert_spv_size,
+                                         reinterpret_cast<const u32*>(plane_vert_spv_data));
+
+    pom::Ref<pom::gfx::ShaderModule> planeFragShader
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::FRAGMENT,
+                                         plane_frag_spv_size,
+                                         reinterpret_cast<const u32*>(plane_frag_spv_data));
+
+    pom::Ref<pom::gfx::Shader> planeShader = pom::gfx::Shader::create({ planeVertShader, planeFragShader });
+
+    gamestate->planePipelineLayout = pom::gfx::PipelineLayout::create({
+        {
+            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+            .set = 0,
+            .binding = 0,
+            .stages = pom::gfx::ShaderStageFlags::VERTEX,
+        },
+    });
+
+    for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
+        gamestate->planeDescriptorSets[i] = pom::gfx::DescriptorSet::create(gamestate->planePipelineLayout, 0);
+        gamestate->planeDescriptorSets[i]->setBuffer(0,
+                                                     gamestate->uniformBuffers[i],
+                                                     sizeof(pom::maths::mat4),
+                                                     sizeof(pom::maths::mat4) * 2);
+    }
+
+    gamestate->planePipeline
+        = pom::gfx::Pipeline::create({},
+                                     planeShader,
+                                     pom::Application::get()->getMainWindow().getContext()->getSwapchainRenderPass(),
+                                     {},
+                                     gamestate->planePipelineLayout);
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 {
 }
 
-POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
+POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 {
     auto frame = pom::Application::get()->getFrame();
     POM_PROFILE_SCOPE("update");
@@ -219,118 +260,87 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt)
         if (!pom::Application::get()->getMainWindow().isMinimized()) {
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-            pom::Ref<pom::gfx::Buffer> vertexBuffer = gamestate->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
-            {
-                // Vertex* data = (Vertex*)vertexBuffer->map();
-                // memcpy(data, VERTEX_DATA, sizeof(VERTEX_DATA));
-
-                // pom::maths::mat3 m = pom::maths::mat3::rotate({ (f32)(TAU / 100.f * (f32)frame) });
-                // for (u8 i = 0; i < 4; i++) {
-                //     data[i].pos = m * VERTEX_DATA[i].pos;
-                // }
-
-                // vertexBuffer->unmap();
-            }
-
             const f32 cameraSpeed = 0.01f;
             if (pom::keyDown(pom::KeyHid::KEY_W)) {
-                gamestate->cameraPos.y += cameraSpeed * dt;
+                gs->camera.position.y += cameraSpeed * dt;
             } else if (pom::keyDown(pom::KeyHid::KEY_S)) {
-                gamestate->cameraPos.y -= cameraSpeed * dt;
+                gs->camera.position.y -= cameraSpeed * dt;
             }
 
             if (pom::keyDown(pom::KeyHid::KEY_D)) {
-                gamestate->cameraPos.x += cameraSpeed * dt;
+                gs->camera.position.x += cameraSpeed * dt;
             } else if (pom::keyDown(pom::KeyHid::KEY_A)) {
-                gamestate->cameraPos.x -= cameraSpeed * dt;
+                gs->camera.position.x -= cameraSpeed * dt;
             }
 
             if (pom::keyDown(pom::KeyHid::KEY_Q)) {
-                gamestate->cameraPos.z += cameraSpeed * dt;
+                gs->camera.position.z += cameraSpeed * dt;
             } else if (pom::keyDown(pom::KeyHid::KEY_E)) {
-                gamestate->cameraPos.z -= cameraSpeed * dt;
+                gs->camera.position.z -= cameraSpeed * dt;
             }
 
             {
-                pom::Ref<pom::gfx::Buffer> uniformBuffer = gamestate->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+                // POM_DEBUG(gs->camera.position);
+                pom::Ref<pom::gfx::Buffer> uniformBuffer = gs->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 UniformMVP* data = (UniformMVP*)uniformBuffer->map();
 
-                // data->model = pom::maths::mat4::rotate({ TAU / 100.f * pom::Application::get()->getFrame(), 0, 0 });
+                // data->model = pom::maths::mat4::rotate({ TAU / 100.f * pom::Application::get()->getFrame(), 0, 0
+                // });
                 data->model = pom::maths::mat4::rotate({ 0, 0, 0 });
                 data->projection = pom::maths::mat4::perspective(TAU / 8.f,
                                                                  context->swapchainViewport.width
                                                                      / context->swapchainViewport.height,
                                                                  0.01f,
-                                                                 1000.f);
-                data->view = pom::maths::mat4::lookAt(gamestate->cameraPos,
+                                                                 100.f);
+                data->view = pom::maths::mat4::lookAt(gs->camera.position,
                                                       pom::maths::vec3(0.f, 0.f, 0.f),
-                                                      pom::maths::vec3(0.f, 0.f, 1.f));
+                                                      pom::maths::vec3(0.f, 1.f, 0.f));
 
                 uniformBuffer->unmap();
             }
 
-            gamestate->commandBuffer->begin();
-            gamestate->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
+            gs->commandBuffer->begin();
+            gs->commandBuffer->beginRenderPass(context->getSwapchainRenderPass(), context);
 
-            gamestate->commandBuffer->setViewport(context->getSwapchainViewport());
-            gamestate->commandBuffer->setScissor({ 0, 0 },
-                                                 { context->swapchainExtent.width, context->swapchainExtent.height });
+            gs->commandBuffer->setViewport(context->getSwapchainViewport());
+            gs->commandBuffer->setScissor({ 0, 0 },
+                                          { context->swapchainExtent.width, context->swapchainExtent.height });
 
-            gamestate->commandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
+            gs->commandBuffer->bindVertexBuffer(gs->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT]);
+            gs->commandBuffer->bindIndexBuffer(gs->indexBuffer, pom::gfx::IndexType::U16);
+            gs->commandBuffer->bindPipeline(gs->pipeline);
 
-            gamestate->commandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
+            gs->commandBuffer->bindDescriptorSet(gs->pipelineLayout,
+                                                 0,
+                                                 gs->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-            gamestate->commandBuffer->bindPipeline(gamestate->pipeline);
+            gs->commandBuffer->drawIndexed(gs->indexBuffer->getSize() / sizeof(u16));
 
-            gamestate->commandBuffer->bindDescriptorSet(gamestate->pipelineLayout,
-                                                        0,
-                                                        gamestate->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
+            gs->commandBuffer->bindPipeline(gs->planePipeline);
 
-            gamestate->commandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
+            gs->commandBuffer->bindDescriptorSet(gs->planePipelineLayout,
+                                                 0,
+                                                 gs->planeDescriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-            gamestate->commandBuffer->endRenderPass();
-            gamestate->commandBuffer->end();
+            gs->commandBuffer->draw(6);
 
-            gamestate->commandBuffer->submit();
+            gs->commandBuffer->endRenderPass();
+            gs->commandBuffer->end();
+
+            gs->commandBuffer->submit();
 
             pom::Application::get()->getMainWindow().getContext()->present();
         }
     }
 
-    /* if (!gamestate->otherWindow->isMinimized()) {
-        auto* ctx = dynamic_cast<pom::gfx::ContextVk*>(gamestate->otherWindow->getContext());
-        gamestate->otherCommandBuffer->begin();
-        gamestate->otherCommandBuffer->beginRenderPass(ctx->getSwapchainRenderPass(), ctx);
-
-        gamestate->otherCommandBuffer->setViewport(ctx->getSwapchainViewport());
-        gamestate->otherCommandBuffer->setScissor({ 0, 0 },
-                                                  { ctx->swapchainExtent.width, ctx->swapchainExtent.height });
-
-        gamestate->otherCommandBuffer->bindVertexBuffer(gamestate->otherVertexBuffer);
-
-        gamestate->otherCommandBuffer->bindIndexBuffer(gamestate->indexBuffer, pom::gfx::IndexType::U16);
-
-        gamestate->otherCommandBuffer->bindPipeline(gamestate->pipeline);
-
-        gamestate->otherCommandBuffer->bindDescriptorSet(gamestate->pipelineLayout,
-                                                         0,
-                                                         gamestate->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
-
-        gamestate->otherCommandBuffer->drawIndexed(gamestate->indexBuffer->getSize() / sizeof(u16));
-
-        gamestate->otherCommandBuffer->endRenderPass();
-        gamestate->otherCommandBuffer->end();
-
-        gamestate->otherCommandBuffer->submit();
-
-        ctx->present();
-    } */
-
     // POM_DEBUG("dt: ", dt, "ms");
 }
 
-POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gamestate, pom::InputEvent* ev)
+POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
 {
+    if (ev->type == pom::InputEventType::MOUSE_SCROLL) {
+        gs->camera.zoom += ev->getDelta().x;
+    }
 }
 
 POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)
