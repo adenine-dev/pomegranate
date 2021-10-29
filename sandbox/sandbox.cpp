@@ -31,20 +31,42 @@ struct UniformMVP {
 };
 
 // clang-format off
+// static Vertex VERTEX_DATA[] = {
+//     { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+//     { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
+//     { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+//     { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
+//     { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+//     { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
+//     { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+//     { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
+// };
+
 static Vertex VERTEX_DATA[] = {
-    { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
-    { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
-    { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
+    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    { { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    { { 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    
+    { { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+
+    { { 0.0f, 0.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
+    { { 0.1f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
+    { { 0.1f, 0.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
 };
 // clang-format on
 
-static const u16 INDEX_DATA[]
-    = { 0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1, 7, 6, 5, 5, 4, 7, 4, 0, 3, 3, 7, 4, 4, 5, 1, 1, 0, 4, 3, 2, 6, 6, 7, 3 };
+// static const u16 INDEX_DATA[] = { 2, 1, 0, 3, 2, 0 };
+static const u16 INDEX_DATA[] = { 3, 4, 6, 6, 5, 3, 2, 1, 0, 3, 2, 0 };
+
+struct GridConfig {
+    pom::Color xColor;
+    pom::Color zColor;
+    pom::Color gridColor;
+    f32 majorLineScale;
+    f32 minorLineScale;
+    f32 fadeStrength;
+    f32 axisIntensity;
+};
 
 struct GameState {
     // instance
@@ -67,6 +89,8 @@ struct GameState {
     pom::Ref<pom::gfx::Pipeline> planePipeline;
     pom::Ref<pom::gfx::DescriptorSet> planeDescriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::Ref<pom::gfx::PipelineLayout> planePipelineLayout;
+    pom::Ref<pom::gfx::Buffer> gridConfigBuffers[POM_MAX_FRAMES_IN_FLIGHT];
+    GridConfig gridConfig;
 
     // texture
     pom::Ref<pom::gfx::Texture> texture;
@@ -230,6 +254,12 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
             .binding = 0,
             .stages = pom::gfx::ShaderStageFlags::VERTEX,
         },
+        {
+            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+            .set = 0,
+            .binding = 1,
+            .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+        },
     });
 
     for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
@@ -238,7 +268,22 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                      gamestate->uniformBuffers[i],
                                                      sizeof(pom::maths::mat4),
                                                      sizeof(pom::maths::mat4) * 2);
+
+        gamestate->gridConfigBuffers[i] = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
+                                                                   pom::gfx::BufferMemoryAccess::CPU_WRITE,
+                                                                   sizeof(GridConfig));
+        gamestate->planeDescriptorSets[i]->setBuffer(1, gamestate->gridConfigBuffers[i]);
     }
+
+    gamestate->gridConfig = {
+        .xColor = pom::Color::rgb(255, 0, 0),
+        .zColor = pom::Color::rgb(0, 0, 255),
+        .gridColor = pom::Color::rgb(50, 50, 50),
+        .majorLineScale = 10.f,
+        .minorLineScale = 1.f,
+        .fadeStrength = 0.08f,
+        .axisIntensity = 50.f,
+    };
 
     gamestate->planePipeline
         = pom::gfx::Pipeline::create({},
@@ -316,6 +361,11 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 
             gs->commandBuffer->drawIndexed(gs->indexBuffer->getSize() / sizeof(u16));
 
+            pom::Ref<pom::gfx::Buffer> gridConfigBuffer = gs->gridConfigBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
+            auto* config = (GridConfig*)gridConfigBuffer->map();
+            *config = gs->gridConfig;
+            gridConfigBuffer->unmap();
+
             gs->commandBuffer->bindPipeline(gs->planePipeline);
 
             gs->commandBuffer->bindDescriptorSet(gs->planePipelineLayout,
@@ -339,7 +389,10 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
 {
     if (ev->type == pom::InputEventType::MOUSE_SCROLL) {
-        gs->camera.zoom += ev->getDelta().x;
+        // gs->camera.zoom += ev->getDelta().x;
+        gs->gridConfig.majorLineScale += ev->getDelta().y;
+        gs->gridConfig.minorLineScale += ev->getDelta().x;
+        POM_INFO(gs->gridConfig.majorLineScale, ", ", gs->gridConfig.minorLineScale);
     }
 }
 

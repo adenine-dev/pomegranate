@@ -15,7 +15,7 @@ namespace pom {
         /// @private
         union {
             f32 data[4];
-            maths::vec4 vec;
+            maths::vec4 vec = maths::vec4(0.f);
             struct {
                 f32 r;
                 f32 g;
