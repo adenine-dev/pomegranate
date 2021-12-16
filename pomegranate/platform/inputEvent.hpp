@@ -26,10 +26,11 @@ namespace pom {
         WINDOW_MINIMIZE, ///< Fires when a window is minimized, is immediately followed by a `WINDOW_BLUR` event.
         WINDOW_MAXIMIZE, ///< Fires when a window loses maximized.
 
-        MOUSE_MOVE, ///< Fires when the mouse moves over the window, x/y are from the top-left corner.
+        MOUSE_MOVE, ///< Fires when the mouse moves over the window, origin is the top-left corner of the window.
         MOUSE_DOWN, ///< Fires when a mouse button is pressed down.
         MOUSE_UP, ///< Fires when a pressed mouse button is released.
         MOUSE_SCROLL, ///< Fires when the user scrolls, contains both x and y information.
+        // TODO: maybe a mouse drag event type?
 
         KEY_DOWN, ///< Fires when the user presses a key down. Is only propagated to the focused window.
         KEY_UP, ///< Fires when the user releases a held key. Is only propagated to the focused window.
@@ -85,6 +86,9 @@ namespace pom {
             /// The new position of the mouse from the top left corner of the window (not including
             /// the titlebar).
             maths::ivec2 position;
+
+            /// The currently pressed mouse button(s).
+            MouseButton button;
         };
 
         /// Data concerning the mouse down event. Not intended to be used alone.
@@ -170,7 +174,7 @@ namespace pom {
         /// invalid this will assert.
         [[nodiscard]] const maths::ivec2& getDelta() const;
 
-        /// Returns the pressed mouse button, only works when the event type is `MOUSE_DOWN` or
+        /// Returns the pressed mouse button, only works when the event type is `MOUSE_MOVE`, `MOUSE_DOWN` or
         /// `MOUSE_UP`. If the type is invalid this will assert.
         [[nodiscard]] const MouseButton& getMouseButton() const;
 

@@ -19,9 +19,90 @@ struct Vertex {
     pom::maths::vec2 uv;
 };
 
-struct Camera {
-    pom::maths::vec3 position = pom::maths::vec3(2, 2, 0);
-    f32 zoom = 1.f;
+struct ArcballCamera {
+    ArcballCamera(f32 width, f32 height) : width(width), height(height)
+    {
+        calculateProjection();
+        calculateView();
+    };
+
+    pom::maths::vec3 pivot;
+    pom::maths::vec3 eye = pom::maths::vec3(2, 2, 2);
+    f32 radius = eye.mag();
+
+    pom::maths::mat4 view;
+    pom::maths::mat4 projection;
+    f32 width;
+    f32 height;
+    bool orthographic = false;
+
+    const f32 rotateSpeed = 3.f;
+    const f32 panSpeed = 5.f;
+    pom::maths::ivec2 lastMousePos;
+
+    void calculateProjection()
+    {
+        if (orthographic) {
+            projection = pom::maths::mat4::ortho(-(width / height), (width / height), -1, 1, -1000, 1000);
+        } else {
+            projection = pom::maths::mat4::perspective(45, (width / height), 0.01, 1000);
+        }
+    }
+
+    void calculateView()
+    {
+        view = pom::maths::mat4::lookAt(eye, pivot, { 0, 1, 0 });
+    }
+
+    void handleEvent(pom::InputEvent* ev)
+    {
+        if (ev->type == pom::InputEventType::MOUSE_SCROLL) {
+            radius += ev->getDelta().y;
+            radius = std::max(radius, 0.1f);
+            eye = eye.norm() * radius;
+
+            calculateView();
+        } else if (ev->type == pom::InputEventType::KEY_DOWN) {
+            if (ev->getKeycode() == pom::Keycode::O) {
+                orthographic = !orthographic;
+                calculateProjection();
+            }
+        } else if (ev->type == pom::InputEventType::WINDOW_RESIZE) {
+            width = (f32)ev->getSize().x;
+            height = (f32)ev->getSize().y;
+            calculateProjection();
+        } else if (ev->type == pom::InputEventType::MOUSE_DOWN
+                   && ev->getMouseButton() & pom::MouseButton::BUTTON_LEFT) {
+            lastMousePos = pom::getMousePostition();
+        } else if (ev->type == pom::InputEventType::MOUSE_MOVE
+                   && ev->getMouseButton() & pom::MouseButton::BUTTON_LEFT) {
+            if (pom::keyDown(pom::KeyHid::KEY_LALT) || pom::keyDown(pom::KeyHid::KEY_RALT)) {
+                pom::maths::vec2 delta
+                    = pom::maths::vec2(lastMousePos - ev->getPosition()) / pom::maths::vec2(width, height) * panSpeed;
+                pivot += view.up() * -delta.y + view.right() * delta.x;
+                eye += view.up() * -delta.y + view.right() * delta.x;
+
+                calculateView();
+                lastMousePos = ev->getPosition();
+            } else {
+                pom::maths::vec2 delta = (lastMousePos - ev->getPosition()) * rotateSpeed * eye.mag();
+
+                pom::maths::vec2 angle((f32)(delta.x * TAU / width), (f32)(delta.y * PI / height));
+
+                float cosAngle = dot(view.forward(), view.up());
+                if (cosAngle * sgn(angle.y) > 0.99f)
+                    angle.y = 0;
+
+                // eye = ((pom::maths::mat3::rotate(angle.x, view.up()) * (eye - pivot)) + pivot).norm() * eye.mag();
+                // eye = ((pom::maths::mat3::rotate(angle.y, view.right()) * (eye - pivot)) + pivot).norm() * eye.mag();
+
+                eye = (eye - pivot + (view.up() * -angle.y + view.right() * angle.x)).norm() * radius + pivot;
+
+                calculateView();
+                lastMousePos = ev->getPosition();
+            }
+        }
+    }
 };
 
 struct UniformMVP {
@@ -31,32 +112,30 @@ struct UniformMVP {
 };
 
 // clang-format off
+static Vertex VERTEX_DATA[] = {
+    { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+    { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
+};
+
+
 // static Vertex VERTEX_DATA[] = {
-//     { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-//     { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
-//     { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-//     { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
-//     { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-//     { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
-//     { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-//     { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
+//     { { -0.5f, -0.5f,  0 }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
+//     { {  0.5f, -0.5f,  0 }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
+//     { {  0.5f,  0.5f,  0 }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
+//     { { -0.5f,  0.5f,  0 }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
 // };
 
-static Vertex VERTEX_DATA[] = {
-    { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { { 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    
-    { { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-
-    { { 0.0f, 0.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
-    { { 0.1f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
-    { { 0.1f, 0.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.f, 0.f } },
-};
 // clang-format on
 
-// static const u16 INDEX_DATA[] = { 2, 1, 0, 3, 2, 0 };
-static const u16 INDEX_DATA[] = { 3, 4, 6, 6, 5, 3, 2, 1, 0, 3, 2, 0 };
+// static const u16 INDEX_DATA[] = { 0, 1, 2, 0, 2, 3 };
+static const u16 INDEX_DATA[]
+    = { 0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1, 7, 6, 5, 5, 4, 7, 4, 0, 3, 3, 7, 4, 4, 5, 1, 1, 0, 4, 3, 2, 6, 6, 7, 3 };
 
 struct GridConfig {
     pom::Color xColor;
@@ -78,7 +157,7 @@ struct GameState {
 
     // uniform buffers
     pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
-    Camera camera;
+    ArcballCamera camera = ArcballCamera(720.f, 480.f);
 
     // pipeline
     pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
@@ -116,6 +195,10 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
+    // gamestate->camera
+    //     = ArcballCamera(pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().width
+    //                     / pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().height);
+
     // gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
     // gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
     //     if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
@@ -203,7 +286,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     }
 
     gamestate->pipeline = pom::gfx::Pipeline::create(
-        {},
+        {
+            .cullMode = pom::gfx::CullMode::NONE
+        },
         shader,
         pom::Application::get()->getMainWindow().getContext()->getSwapchainRenderPass(),
         {
@@ -305,41 +390,16 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
         if (!pom::Application::get()->getMainWindow().isMinimized()) {
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
-            const f32 cameraSpeed = 0.01f;
-            if (pom::keyDown(pom::KeyHid::KEY_W)) {
-                gs->camera.position.y += cameraSpeed * dt;
-            } else if (pom::keyDown(pom::KeyHid::KEY_S)) {
-                gs->camera.position.y -= cameraSpeed * dt;
-            }
-
-            if (pom::keyDown(pom::KeyHid::KEY_D)) {
-                gs->camera.position.x += cameraSpeed * dt;
-            } else if (pom::keyDown(pom::KeyHid::KEY_A)) {
-                gs->camera.position.x -= cameraSpeed * dt;
-            }
-
-            if (pom::keyDown(pom::KeyHid::KEY_Q)) {
-                gs->camera.position.z += cameraSpeed * dt;
-            } else if (pom::keyDown(pom::KeyHid::KEY_E)) {
-                gs->camera.position.z -= cameraSpeed * dt;
-            }
-
             {
                 // POM_DEBUG(gs->camera.position);
                 pom::Ref<pom::gfx::Buffer> uniformBuffer = gs->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 UniformMVP* data = (UniformMVP*)uniformBuffer->map();
 
-                // data->model = pom::maths::mat4::rotate({ TAU / 100.f * pom::Application::get()->getFrame(), 0, 0
-                // });
-                data->model = pom::maths::mat4::rotate({ 0, 0, 0 });
-                data->projection = pom::maths::mat4::perspective(TAU / 8.f,
-                                                                 context->swapchainViewport.width
-                                                                     / context->swapchainViewport.height,
-                                                                 0.01f,
-                                                                 100.f);
-                data->view = pom::maths::mat4::lookAt(gs->camera.position,
-                                                      pom::maths::vec3(0.f, 0.f, 0.f),
-                                                      pom::maths::vec3(0.f, 1.f, 0.f));
+                // data->model = pom::maths::mat4::translate(gs->camera.pivot);
+                data->model = pom::maths::mat4::identity();
+
+                data->projection = gs->camera.projection;
+                data->view = gs->camera.view;
 
                 uniformBuffer->unmap();
             }
@@ -388,12 +448,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
 {
-    if (ev->type == pom::InputEventType::MOUSE_SCROLL) {
-        // gs->camera.zoom += ev->getDelta().x;
-        gs->gridConfig.majorLineScale += ev->getDelta().y;
-        gs->gridConfig.minorLineScale += ev->getDelta().x;
-        POM_INFO(gs->gridConfig.majorLineScale, ", ", gs->gridConfig.minorLineScale);
-    }
+    gs->camera.handleEvent(ev);
 }
 
 POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)

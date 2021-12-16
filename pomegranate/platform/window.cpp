@@ -134,7 +134,10 @@ namespace pom {
 
                 self->callbackFn({ .type = InputEventType::MOUSE_MOVE,
                                    .sourceWindow = self,
-                                   .mouseMoveData = maths::ivec2 { e.motion.x, e.motion.y } });
+                                   .mouseMoveData = {
+                                       { e.motion.x, e.motion.y },
+                                       static_cast<MouseButton>(e.button.button),
+                                   } });
             } break;
             case SDL_MOUSEBUTTONDOWN: {
                 auto* self = static_cast<Window*>(

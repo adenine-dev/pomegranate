@@ -14,10 +14,7 @@
 
 #define IMPL_COMMON_VECTOR_FUNCS(T, N)                                                                                 \
     constexpr Vector<T, N>() = default;                                                                                \
-    template <typename... U> constexpr Vector<T, N>(U... args) : data { static_cast<T>(args)... }                      \
-    {                                                                                                                  \
-    }                                                                                                                  \
-    template <typename U> constexpr explicit Vector<T, N>(Vector<U, N> other)                                          \
+    template <typename U> constexpr Vector<T, N>(Vector<U, N> other)                                                   \
     {                                                                                                                  \
         for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)                                                                   \
             data[i] = static_cast<T>(other[i]);                                                                        \
@@ -190,6 +187,14 @@ namespace pom::maths {
         };
 
         IMPL_COMMON_VECTOR_FUNCS(T, 2)
+
+        Vector<T, 2>(T x) : data { x, x }
+        {
+        }
+
+        Vector<T, 2>(T x, T y) : data { x, y }
+        {
+        }
     };
 
     /// @private
@@ -215,6 +220,13 @@ namespace pom::maths {
         };
 
         IMPL_COMMON_VECTOR_FUNCS(T, 3)
+
+        Vector<T, 3>(T x) : data { x, x, x }
+        {
+        }
+        Vector<T, 3>(T x, T y, T z) : data { x, y, z }
+        {
+        }
     };
 
     /// @private
@@ -243,7 +255,19 @@ namespace pom::maths {
             };
         };
 
-        IMPL_COMMON_VECTOR_FUNCS(T, 4)
+        IMPL_COMMON_VECTOR_FUNCS(T, 4);
+
+        Vector<T, 4>(T x) : data { x, x, x, x }
+        {
+        }
+
+        Vector<T, 4>(T x, T y, T z, T w) : data { x, y, z, w }
+        {
+        }
+
+        Vector<T, 4>(Vector<T, 3> v, T w) : data { v.x, v.y, v.z, w }
+        {
+        }
     };
 
     template <typename T, POM_VECTOR_SIZE_TYPE N>
@@ -288,6 +312,14 @@ namespace pom::maths {
     template <typename T, POM_VECTOR_SIZE_TYPE N, typename U> constexpr Vector<T, N>& operator/(Vector<T, N> lhs, U rhs)
     {
         return lhs.div(rhs);
+    }
+
+    template <typename T, POM_VECTOR_SIZE_TYPE N> constexpr T dot(Vector<T, N> lhs, const Vector<T, N>& rhs)
+    {
+        T ret = 0;
+        for (POM_VECTOR_SIZE_TYPE i = 0; i < N; i++)
+            ret += lhs[i] * rhs[i];
+        return ret;
     }
 
     /// @addtogroup types

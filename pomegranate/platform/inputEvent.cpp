@@ -91,6 +91,9 @@ namespace pom {
     const MouseButton& InputEvent::getMouseButton() const
     {
         switch (type) {
+        case InputEventType::MOUSE_MOVE: {
+            return mouseMoveData.button;
+        } break;
         case InputEventType::MOUSE_DOWN: {
             return mouseDownData.button;
         } break;

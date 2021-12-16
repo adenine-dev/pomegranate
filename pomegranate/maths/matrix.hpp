@@ -46,12 +46,12 @@ namespace pom::maths {
         }
 
         /// Returns a new translation matrix, that translates by the members of `v`.
-        constexpr static Matrix<T, M, N> translate(const Vector<T, N - 1>& v)
+        constexpr static Matrix<T, M, N> translate(const Vector<T, N - 1>& v) requires(N == M)
         {
             Matrix<T, M, N> ret = identity();
-            for (POM_VECTOR_SIZE_TYPE i = 0; i < M; i++) {
-                ret[i][N - 1] = v[i];
-            }
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+                ret[N - 1][i] = v[i];
+
             return ret;
         }
 
@@ -101,6 +101,37 @@ namespace pom::maths {
             }
 
             return ret;
+        }
+
+        constexpr static Matrix<T, M, N> rotate(T angle, const Vector<T, 3>& axis) requires(N == M && N == 4)
+        {
+            Vector<T, 3> u = axis.norm();
+            T a = cos(angle);
+            T b = sin(angle);
+
+            // clang-format off
+            return {{
+                { a + u.x * u.x * (1 - a),         u.x * u.y * (1 - a) - u.z * b,   u.x * u.z * (1 - a) + u.y * b, 0 },
+                { u.y * u.x * (1 - a) + u.z * b,   a + u.y * u.y * (1 - a),         u.y * u.z * (1 - a) - u.y * b, 0 },
+                { u.z * u.x * (1 - a) - u.y * b,   u.z * u.y * (1 - a) + u.x * b,   a + u.z * u.z * (1 - a),       0 },
+                { 0,                               0,                               0,                             1 },
+            }};
+            // clang-format on
+        }
+
+        constexpr static Matrix<T, M, N> rotate(T angle, const Vector<T, 3>& axis) requires(N == M && N == 3)
+        {
+            Vector<T, 3> u = axis.norm();
+            T a = cos(angle);
+            T b = sin(angle);
+
+            // clang-format off
+            return {{
+                { a + u.x * u.x * (1 - a),         u.x * u.y * (1 - a) - u.z * b,   u.x * u.z * (1 - a) + u.y * b },
+                { u.y * u.x * (1 - a) + u.z * b,   a + u.y * u.y * (1 - a),         u.y * u.z * (1 - a) - u.y * b },
+                { u.z * u.x * (1 - a) - u.y * b,   u.z * u.y * (1 - a) + u.x * b,   a + u.z * u.z * (1 - a)       },
+            }};
+            // clang-format on
         }
 
         /// Returns a new perspective projection matrix.
@@ -154,9 +185,9 @@ namespace pom::maths {
             ret[0][2] = -f[0];
             ret[1][2] = -f[1];
             ret[2][2] = -f[2];
-            ret[3][0] = -s.dot(eye);
-            ret[3][1] = -u.dot(eye);
-            ret[3][2] = f.dot(eye);
+            ret[3][0] = -dot(s, eye);
+            ret[3][1] = -dot(u, eye);
+            ret[3][2] = dot(f, eye);
 
             ret[3][3] = 1.f;
 
@@ -251,6 +282,33 @@ namespace pom::maths {
             }
 
             return inv;
+        }
+
+        constexpr Vector<T, N - 1> forward() requires(N == M && N > 1)
+        {
+            Vector<T, N - 1> ret;
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+                ret[i] = -data[i][2];
+
+            return ret;
+        }
+
+        constexpr Vector<T, N - 1> up() requires(N == M && N > 1)
+        {
+            Vector<T, N - 1> ret;
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+                ret[i] = data[i][1];
+
+            return ret;
+        }
+
+        constexpr Vector<T, N - 1> right() requires(N == M && N > 1)
+        {
+            Vector<T, N - 1> ret;
+            for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
+                ret[i] = data[i][0];
+
+            return ret;
         }
     };
 

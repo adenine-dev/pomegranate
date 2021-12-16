@@ -12,20 +12,31 @@ namespace pom {
     /// @ingroup input_events
     /// @{
 
+#ifndef DOXYGEN // Hide this because technically it doesn't matter, the namespace is only really here so that the
+    // members of the enum do not pollute the namespace.
+    namespace MouseButtonNamespace {
+#endif
+
+        enum MouseButton : u8 {
+            NONE = 0,
+            BUTTON_1 = SDL_BUTTON_LEFT,
+            BUTTON_2 = SDL_BUTTON_MIDDLE,
+            BUTTON_3 = SDL_BUTTON_RIGHT,
+            BUTTON_4 = SDL_BUTTON_X1,
+            BUTTON_5 = SDL_BUTTON_X2,
+
+            BUTTON_LEFT = SDL_BUTTON_LEFT,
+            BUTTON_MIDDLE = SDL_BUTTON_MIDDLE,
+            BUTTON_RIGHT = SDL_BUTTON_RIGHT,
+        };
+
+#ifndef DOXYGEN
+    } // namespace MouseButtonNamespace
+
     /// Buttons on a mouse or trackpad. Currently mapped to SDL2 values because that is what is used
     /// in the implementation. Only supports up to 5 mouse buttons.
-    enum class MouseButton : u8 {
-        NONE = 0,
-        BUTTON_1 = SDL_BUTTON_LEFT,
-        BUTTON_2 = SDL_BUTTON_MIDDLE,
-        BUTTON_3 = SDL_BUTTON_RIGHT,
-        BUTTON_4 = SDL_BUTTON_X1,
-        BUTTON_5 = SDL_BUTTON_X2,
-
-        BUTTON_LEFT = SDL_BUTTON_LEFT,
-        BUTTON_MIDDLE = SDL_BUTTON_MIDDLE,
-        BUTTON_RIGHT = SDL_BUTTON_RIGHT,
-    };
+    using MouseButton = MouseButtonNamespace::MouseButton;
+#endif
 
     /// USB HID's for keyboards. If you are doing non-text input you should be using these unless
     /// you have a good reason. If you use KeyCode instead, you will break alternate keyboard
