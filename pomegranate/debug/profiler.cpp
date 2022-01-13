@@ -39,7 +39,16 @@ namespace pom {
             currentProfiler->output << "{"
                                        "\"otherData\": { \"application\": \"Pomegranate\" },"
                                        "\"traceEvents\": [";
+
+            currentProfiler->output << "{"
+                                    << R"("ph": "M",)"
+                                    << R"("pid": 0,)"
+                                    << R"("args": { "name" : "Pomegranate Process" })"
+                                    << "}";
+
             currentProfiler->output.flush();
+
+            POM_DEBUG("Begin profiler session");
         } else {
             POM_ERROR("Could not open ", "result.json", " for writing.");
             delete currentProfiler;
@@ -54,15 +63,17 @@ namespace pom {
         }
 
         // clang-format off
-        currentProfiler->output << "{"
+        currentProfiler->output << ",{"
                << R"("ph": "X",)"
                << R"("name": ")" << timer.functionName << "\","
                << R"("pid": 0,)"
                << R"("tid": 0,)" // TODO: make this not break with multithreading
                << R"("ts": )" << std::chrono::time_point_cast<std::chrono::microseconds>(timer.startTime).time_since_epoch().count() << ","
                << R"("dur": )" << timer.duration.count() 
-               << "},";
+               << "}";
         // clang-format on
+
+        currentProfiler->output.flush();
     }
 
     void Profiler::end()
@@ -72,11 +83,13 @@ namespace pom {
             return;
         }
 
-        currentProfiler->output << "{}]}";
+        currentProfiler->output << "]}";
         currentProfiler->output.flush();
         currentProfiler->output.close();
         delete currentProfiler;
         currentProfiler = nullptr;
+
+        POM_DEBUG("End profiler session");
     }
 
 } // namespace pom

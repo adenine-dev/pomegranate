@@ -47,7 +47,7 @@ namespace pom {
         /// `true` if the application should limit the number of updates per second (UPS). It is a good idea to set this
         /// to true because it will improve system wide performance. This *roughly* corresponds with FPS (frames per
         /// second). Common UPS include 24, 30, 60, 120, and 240.
-        bool limitUpdateRate = false;
+        bool limitUpdateRate = true;
 
         /// The target number of UPS (updates per second) the actual UPS may be very slightly faster, or in the case of
         /// a poorly optimized program the actual UPS may be less than the target. Only applies if `limitUpdateRate` is
