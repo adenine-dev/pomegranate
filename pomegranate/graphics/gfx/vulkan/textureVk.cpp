@@ -19,6 +19,7 @@ namespace pom::gfx {
         Texture(createInfo, width, height, depth),
         instance(instance), imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     {
+        POM_PROFILE_FUNCTION();
         if (initialData) {
             createInfo.usage |= TextureUsage::TRANSFER_DST;
         }
@@ -148,6 +149,7 @@ namespace pom::gfx {
 
     TextureVk::~TextureVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDestroySampler(instance->getVkDevice(), sampler, nullptr);
         vkDestroyImageView(instance->getVkDevice(), view, nullptr);
         vkDestroyImage(instance->getVkDevice(), image, nullptr);

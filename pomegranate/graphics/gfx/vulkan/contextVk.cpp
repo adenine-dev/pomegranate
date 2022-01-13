@@ -9,6 +9,7 @@ namespace pom::gfx {
     ContextVk::ContextVk(InstanceVk* instance, Window* window) :
         Context(window), instance(instance), surface(window->getVulkanSurface(instance->instance))
     {
+        POM_PROFILE_FUNCTION();
         if (!instance->ready()) {
             instance->determineGPU(this);
         } else {
@@ -56,6 +57,7 @@ namespace pom::gfx {
 
     ContextVk::~ContextVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDeviceWaitIdle(instance->device);
 
         vkDestroyImageView(instance->device, depthImageView, nullptr);
@@ -90,6 +92,7 @@ namespace pom::gfx {
                                             VkImageTiling tiling,
                                             VkFormatFeatureFlags features) const
     {
+        POM_PROFILE_FUNCTION();
         for (VkFormat format : candidates) {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(instance->physicalDevice, format, &props);
@@ -108,6 +111,7 @@ namespace pom::gfx {
 
     SwapchainSupportDetailsVk ContextVk::getSwapchainSupportDetails(VkPhysicalDevice device) const
     {
+        POM_PROFILE_FUNCTION();
         SwapchainSupportDetailsVk swapchainSupport;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &swapchainSupport.capabilities);
 
@@ -135,6 +139,7 @@ namespace pom::gfx {
 
     void ContextVk::createSwapchain(const VkExtent2D& extent, bool firstTime)
     {
+        POM_PROFILE_FUNCTION();
         SwapchainSupportDetailsVk swapchainSupport = getSwapchainSupportDetails(instance->physicalDevice);
 
         VkSurfaceFormatKHR surfaceFormat = swapchainSupport.formats[0];
@@ -365,6 +370,7 @@ namespace pom::gfx {
 
     void ContextVk::recreateSwapchain(const maths::vec2& extent)
     {
+        POM_PROFILE_FUNCTION();
         VkExtent2D ext = { .width = static_cast<u32>(extent.x), .height = static_cast<u32>(extent.y) };
 
         // TODO: once deletion queues are implemented, this will not be needed.
@@ -403,6 +409,7 @@ namespace pom::gfx {
 
     void ContextVk::present()
     {
+        POM_PROFILE_FUNCTION();
         VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[frameIndex] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[frameIndex] };
@@ -458,6 +465,7 @@ namespace pom::gfx {
 
     void ContextVk::acquireNextSwapchainImage()
     {
+        POM_PROFILE_FUNCTION();
         VkResult result = vkAcquireNextImageKHR(instance->device,
                                                 swapchain,
                                                 UINT64_MAX,

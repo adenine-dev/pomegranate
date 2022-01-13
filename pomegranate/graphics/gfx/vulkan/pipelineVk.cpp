@@ -18,6 +18,7 @@ namespace pom::gfx {
         instance(instance),
         renderPass(std::move(r)), shader(std::move(s)), pipelineLayout(std::move(layout))
     {
+        POM_PROFILE_FUNCTION();
         std::vector<VkVertexInputBindingDescription> vertexBindingDescs;
         vertexBindingDescs.reserve(vertexBindings.size());
         std::vector<VkVertexInputAttributeDescription> vertexAttribDescs;
@@ -181,6 +182,7 @@ namespace pom::gfx {
 
     PipelineVk::~PipelineVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDestroyPipeline(instance->getVkDevice(), pipeline, nullptr);
     }
 } // namespace pom::gfx

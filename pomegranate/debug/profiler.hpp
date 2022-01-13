@@ -1,38 +1,67 @@
 #pragma once
 
 #include <chrono>
+#include <fstream>
 #include <string>
 
 #include "base.hpp"
 
 namespace pom {
 
+    using ProfilerTimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
+    using ProfilerDuration = std::chrono::duration<double, std::micro>;
+
     /// @ingroup debug
-    /// A scope based Profiler, not meant to be used directly, instad use the POM_PROFILE_SCOPE()
+    /// A scope based profiler, not meant to be used directly, instad use the POM_PROFILE_SCOPE()
     /// and POM_PROFILE_FUNCTION() macros. Very simple, records time when it is constructed, and
     /// when it is destructed, prints the difference. Eventually this will use
     /// [speedscope](https://github.com/jlfwong/speedscope) with this
     /// [schema](https://www.speedscope.app/file-format-schema.json)
-    class POM_API Profiler {
+    class POM_API ProfilerTimer {
     public:
         /// Constructor, begins the timer.
-        Profiler(const char* function, const char* file, u64 line);
+        ProfilerTimer(const char* function, const char* file, u64 line);
 
         /// Destructor, ends the timer and logs the output. This behavior subject to change.
-        ~Profiler();
+        ~ProfilerTimer();
 
         // instances of profiler should be largely hidden and not interacted with.
-        Profiler(const Profiler&) = delete;
-        Profiler& operator=(const Profiler&) = delete;
-        Profiler(Profiler&&) = delete;
-        Profiler& operator=(Profiler&&) = delete;
+        ProfilerTimer(const ProfilerTimer&) = delete;
+        ProfilerTimer& operator=(const ProfilerTimer&) = delete;
+        ProfilerTimer(ProfilerTimer&&) = delete;
+        ProfilerTimer& operator=(ProfilerTimer&&) = delete;
 
     private:
         const char* functionName;
         const char* fileName;
         u64 lineNumber;
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+        ProfilerTimePoint startTime;
+        ProfilerDuration duration;
+
+        friend class Profiler;
+    };
+
+    class POM_API Profiler {
+    public:
+        static void begin();
+
+        static void addTimer(const ProfilerTimer& timer);
+
+        static void end();
+
+        [[nodiscard]] static bool active()
+        {
+            return currentProfiler != nullptr;
+        }
+
+    private:
+        // Profiler();
+        // ~Profiler();
+
+        inline static Profiler* currentProfiler = nullptr;
+
+        std::fstream output;
     };
 } // namespace pom
 
@@ -72,7 +101,7 @@ namespace pom {
 ///     // do stuff
 /// }
 /// ```
-#define POM_PROFILE_SCOPE(name) const ::pom::Profiler _POM_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
+#define POM_PROFILE_SCOPE(name) const ::pom::ProfilerTimer _POM_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
 
 /*! \def POM_PROFILE_FUNCTION() */
 /// When put in a scope, will profile the rest of the scope (recommended to place at beginning
@@ -81,7 +110,7 @@ namespace pom {
 /// ```cpp
 /// void func() {
 ///     POM_PROFILE_FUNCTION();
-///     // do stuff
+///     // do other stuff
 /// }
 /// ```
 #define POM_PROFILE_FUNCTION() POM_PROFILE_SCOPE(POM_CURRENT_FUNCSIG)

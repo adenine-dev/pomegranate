@@ -449,6 +449,15 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
 {
     gs->camera.handleEvent(ev);
+
+    if (ev->type == pom::InputEventType::KEY_UP) {
+        if (ev->getKeycode() == pom::Keycode::P) {
+            if (!pom::Profiler::active())
+                pom::Profiler::begin();
+            else
+                pom::Profiler::end();
+        }
+    }
 }
 
 POM_CLIENT_EXPORT void clientUnmount(GameState* gamestate)

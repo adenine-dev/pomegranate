@@ -11,6 +11,7 @@ namespace pom::gfx {
     PipelineLayoutVk::PipelineLayoutVk(InstanceVk* instance, std::initializer_list<Descriptor> descriptors) :
         instance(instance)
     {
+        POM_PROFILE_FUNCTION();
         std::unordered_map<DescriptorType, u32> descriptorTypes;
         std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
 
@@ -98,6 +99,7 @@ namespace pom::gfx {
 
     PipelineLayoutVk::~PipelineLayoutVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDestroyPipelineLayout(instance->getVkDevice(), pipelineLayout, nullptr);
         if (pool != VK_NULL_HANDLE) {
             vkDestroyDescriptorPool(instance->getVkDevice(), pool, nullptr);

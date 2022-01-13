@@ -13,6 +13,8 @@
 namespace pom::gfx {
     Ref<DescriptorSet> DescriptorSet::create(const Ref<PipelineLayout>& layout, u32 set)
     {
+        POM_PROFILE_FUNCTION();
+        
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             POM_ASSERT(layout->getAPI() == GraphicsAPI::VULKAN,

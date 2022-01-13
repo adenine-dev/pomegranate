@@ -17,6 +17,8 @@ namespace pom::gfx {
         Buffer(usage, access, size),
         instance(instance)
     {
+        POM_PROFILE_FUNCTION();
+
         if (access == BufferMemoryAccess::GPU_ONLY) {
             usage |= BufferUsage::TRANSFER_DST;
         }
@@ -101,12 +103,16 @@ namespace pom::gfx {
 
     BufferVk::~BufferVk()
     {
+        POM_PROFILE_FUNCTION();
+
         vkDestroyBuffer(instance->getVkDevice(), buffer, nullptr);
         vkFreeMemory(instance->getVkDevice(), memory, nullptr);
     }
 
     [[nodiscard]] void* BufferVk::map(size_t offset, size_t size)
     {
+        POM_PROFILE_FUNCTION();
+
         void* data = nullptr;
         vkMapMemory(instance->getVkDevice(), memory, offset, size == 0 ? VK_WHOLE_SIZE : size, 0, &data);
         return data;
@@ -114,6 +120,8 @@ namespace pom::gfx {
 
     void BufferVk::unmap()
     {
+        POM_PROFILE_FUNCTION();
+
         vkUnmapMemory(instance->getVkDevice(), memory);
     }
 

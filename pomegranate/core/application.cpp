@@ -11,6 +11,8 @@ namespace pom {
         graphicsInstance(gfx::Instance::create(createInfo->name, createInfo->graphicsAPI)),
         mainWindow(createInfo->name, createInfo->graphicsAPI, createInfo->enableVsync)
     {
+        POM_PROFILE_FUNCTION();
+
         POM_ASSERT(!instance, "Attempting to create multiple Application");
 
         instance = this;
@@ -49,6 +51,8 @@ namespace pom {
 
     void Application::update()
     {
+        POM_PROFILE_FUNCTION();
+
         pom::DeltaTime dt = timer.elapsed();
         timer.reset();
 
@@ -76,6 +80,8 @@ namespace pom {
 
     void Application::setClientSO(std::string clientSOFile)
     {
+        POM_PROFILE_FUNCTION();
+
         client.setSOFile(std::move(clientSOFile));
     }
 

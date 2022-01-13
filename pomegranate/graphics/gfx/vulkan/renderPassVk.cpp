@@ -12,6 +12,7 @@ namespace pom::gfx {
         instance(instance),
         renderPass(VK_NULL_HANDLE), clearColors(colorAttachments.size() + 1)
     {
+        POM_PROFILE_FUNCTION();
         std::vector<VkAttachmentDescription> attachmentDescs(colorAttachments.size() + 1);
         std::vector<VkAttachmentReference> colorAttachmentRefs;
 
@@ -105,6 +106,7 @@ namespace pom::gfx {
 
     RenderPassVk::~RenderPassVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDestroyRenderPass(instance->getVkDevice(), renderPass, nullptr);
     }
 } // namespace pom::gfx

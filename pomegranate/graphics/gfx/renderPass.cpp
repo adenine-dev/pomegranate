@@ -11,6 +11,7 @@ namespace pom::gfx {
     Ref<RenderPass> RenderPass::create(std::initializer_list<RenderPassAttachment> colorAttachments,
                                        RenderPassAttachment depthStencilAttachment)
     {
+        POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             return Ref<RenderPass>(

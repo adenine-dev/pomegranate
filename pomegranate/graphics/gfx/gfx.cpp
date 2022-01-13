@@ -376,6 +376,7 @@ namespace pom::gfx {
 
     void shutdown()
     {
+        POM_PROFILE_FUNCTION();
         Instance::destroy();
     }
 } // namespace pom::gfx

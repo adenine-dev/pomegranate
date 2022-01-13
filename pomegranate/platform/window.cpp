@@ -11,6 +11,7 @@ namespace pom {
                    const maths::ivec2& size) :
         enableVSync(enableVSync)
     {
+        POM_PROFILE_FUNCTION();
         constexpr int DEFAULT_WIDTH = 720;
         constexpr int DEFAULT_HEIGHT = 480;
 
@@ -69,6 +70,7 @@ namespace pom {
 
     Window::~Window()
     {
+        POM_PROFILE_FUNCTION();
         if (windowHandle) {
             SDL_DestroyWindow(windowHandle);
         }
@@ -78,6 +80,7 @@ namespace pom {
 
     void Window::pollEvents()
     {
+        POM_PROFILE_FUNCTION();
         SDL_Event e;
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
@@ -187,6 +190,7 @@ namespace pom {
 
     VkSurfaceKHR Window::getVulkanSurface(VkInstance instance) const
     {
+        POM_PROFILE_FUNCTION();
         VkSurfaceKHR surface;
 
         if (!SDL_Vulkan_CreateSurface(windowHandle, instance, &surface)) {

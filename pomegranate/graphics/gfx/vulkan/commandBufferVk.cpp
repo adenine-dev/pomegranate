@@ -18,6 +18,7 @@ namespace pom::gfx {
                                                                      : instance->graphicsCommandPool),
         count(count)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(count <= POM_MAX_FRAMES_IN_FLIGHT,
                    "Command buffers are only meant to hold less than the number of frames in flight, try using "
                    "multiple command buffers.");
@@ -48,6 +49,7 @@ namespace pom::gfx {
 
     CommandBufferVk::~CommandBufferVk()
     {
+        POM_PROFILE_FUNCTION();
         vkWaitForFences(instance->getVkDevice(), count, recordingFences, VK_TRUE, UINT64_MAX);
         for (auto& recordingFence : recordingFences) {
             vkDestroyFence(instance->getVkDevice(), recordingFence, nullptr);
@@ -58,6 +60,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::begin()
     {
+        POM_PROFILE_FUNCTION();
         // currentIndex = (currentIndex + 1) % count;
 
         vkWaitForFences(instance->getVkDevice(), 1, &getCurrentRecordingFence(), VK_TRUE, UINT32_MAX);
@@ -76,6 +79,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::beginRenderPass(Ref<RenderPass> renderPass, Context* context)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(renderPass->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched render pass api.");
         POM_ASSERT(context->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched context api.");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
@@ -99,6 +103,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::endRenderPass()
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
@@ -107,11 +112,13 @@ namespace pom::gfx {
 
     void CommandBufferVk::end()
     {
+        POM_PROFILE_FUNCTION();
         POM_CHECK_VK(vkEndCommandBuffer(getCurrentCommandBuffer()), "Failed to end recording command buffer.");
     }
 
     void CommandBufferVk::submit()
     {
+        POM_PROFILE_FUNCTION();
         VkSubmitInfo submitInfo = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
@@ -132,6 +139,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::setViewport(const Viewport& viewport)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
@@ -141,6 +149,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::setScissor(const maths::ivec2& offset, const maths::uvec2& extent)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
@@ -150,6 +159,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::draw(u32 vertexCount, u32 vertexOffset)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
@@ -158,6 +168,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::drawIndexed(u32 indexCount, u32 firstIndex, i32 vertexOffset)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
@@ -166,6 +177,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint, size_t offset)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(vertexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched vertex buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
@@ -178,6 +190,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(indexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
@@ -192,6 +205,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::bindPipeline(Ref<Pipeline> pipeline)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(pipeline->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
@@ -203,6 +217,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(src->getSize() - srcOffset >= size, "Attempting to copy from a buffer of insufficient size.");
@@ -223,6 +238,7 @@ namespace pom::gfx {
     void
     CommandBufferVk::bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN,
                    "attempting to use mismatched pipeline layout api.");
         POM_ASSERT(descriptorSet->getAPI() == GraphicsAPI::VULKAN, "attempting to use mismatched descriptor set api.");
@@ -249,6 +265,7 @@ namespace pom::gfx {
                                               const maths::ivec3& dstOffset,
                                               const maths::uvec3& dstExtent)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(dst->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
         POM_ASSERT(src->getSize() - srcOffset >= size, "Attempting to copy from a buffer of insufficient size.");
@@ -288,6 +305,7 @@ namespace pom::gfx {
 
     void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout)
     {
+        POM_PROFILE_FUNCTION();
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,

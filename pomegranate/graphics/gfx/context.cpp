@@ -8,6 +8,8 @@
 namespace pom::gfx {
     Context* Context::create(GraphicsAPI api, Window* window)
     {
+        POM_PROFILE_FUNCTION();
+
         // Currently only allow one graphics context per run.
         POM_ASSERT(Instance::get()->getAPI() == api,
                    "Attempting to create a graphics context with non-matching Instance");

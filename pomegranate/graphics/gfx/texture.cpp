@@ -16,6 +16,7 @@ namespace pom::gfx {
                                  size_t initialDataOffset,
                                  size_t initialDataSize)
     {
+        POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             return Ref<Texture>(new TextureVk(dynamic_cast<InstanceVk*>(Instance::get()),

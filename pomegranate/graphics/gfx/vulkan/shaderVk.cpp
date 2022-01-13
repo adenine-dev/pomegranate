@@ -10,6 +10,7 @@ namespace pom::gfx {
     ShaderModuleVk::ShaderModuleVk(InstanceVk* instance, ShaderStage stage, size_t size, const u32* spirvCode) :
         ShaderModule(stage), instance(instance), spirv(spirvCode, spirvCode + size)
     {
+        POM_PROFILE_FUNCTION();
         VkShaderModuleCreateInfo shaderModuleCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .pNext = nullptr,
@@ -24,12 +25,14 @@ namespace pom::gfx {
 
     ShaderModuleVk::~ShaderModuleVk()
     {
+        POM_PROFILE_FUNCTION();
         vkDestroyShaderModule(instance->getVkDevice(), module, nullptr);
     }
 
     ShaderVk::ShaderVk(std::initializer_list<Ref<ShaderModule>> shaderModules) :
         modules(shaderModules.size()), shaderStageCreateInfos(shaderModules.size())
     {
+        POM_PROFILE_FUNCTION();
         u32 i = 0;
         for (auto& shaderModule : shaderModules) {
             POM_ASSERT(shaderModule->getAPI() == GraphicsAPI::VULKAN,

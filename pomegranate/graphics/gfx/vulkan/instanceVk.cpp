@@ -51,6 +51,7 @@ VkBool32 debugCallbackVk(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 namespace pom::gfx {
     InstanceVk::InstanceVk(const char* appname)
     {
+        POM_PROFILE_FUNCTION();
         // load desired api version
         u32 instanceApiVersion = 0;
         auto vkEnumerateInstanceVersion
@@ -187,6 +188,7 @@ namespace pom::gfx {
 
     void InstanceVk::loadPhysicalDevices()
     {
+        POM_PROFILE_FUNCTION();
         u32 deviceCount = 0;
         POM_CHECK_VK(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr), "Failed to get device count.");
         POM_ASSERT(deviceCount, "No GPU with vulkan support available");
@@ -209,6 +211,7 @@ namespace pom::gfx {
 
     InstanceVk::~InstanceVk()
     {
+        POM_PROFILE_FUNCTION();
         emptyPipelineLayout.free();
 
         if (ready()) {
@@ -231,6 +234,7 @@ namespace pom::gfx {
 
     void InstanceVk::determineGPU(Context* ctx)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(ctx->getAPI() == getAPI(), "Attempting to use graphics context with mismatched api.");
 
         auto* context = dynamic_cast<ContextVk*>(ctx);

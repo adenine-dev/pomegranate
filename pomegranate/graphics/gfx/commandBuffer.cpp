@@ -12,6 +12,7 @@
 namespace pom::gfx {
     Ref<CommandBuffer> CommandBuffer::create(CommandBufferSpecialization specialization, u32 count)
     {
+        POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             return Ref<CommandBuffer>(new CommandBufferVk(dynamic_cast<InstanceVk*>(Instance::get()),

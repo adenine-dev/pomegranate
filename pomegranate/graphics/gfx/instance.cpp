@@ -9,6 +9,7 @@ namespace pom::gfx {
 
     Instance* Instance::create(const char* name, GraphicsAPI api)
     {
+        POM_PROFILE_FUNCTION();
         POM_ASSERT(!singleton, "Attempting to create multiple instances.");
 
         switch (api) {

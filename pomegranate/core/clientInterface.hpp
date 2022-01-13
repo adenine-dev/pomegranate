@@ -58,7 +58,7 @@ namespace pom {
         gfx::GraphicsAPI graphicsAPI = gfx::GraphicsAPI::VULKAN;
 
         /// `true` if VSync should be used, this does not override `targetUPS`.
-        bool enableVsync = true;
+        bool enableVsync = false;
 
         // TODO: version? engine config? application type? icon?
     };

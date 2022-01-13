@@ -7,6 +7,7 @@
 namespace pom::platform {
     bool init()
     {
+        POM_PROFILE_FUNCTION();
         if (SDL_Init(SDL_INIT_VIDEO)) {
             POM_ERROR("Unable to initialize SDL. error: ", SDL_GetError());
             return false;
@@ -33,6 +34,7 @@ namespace pom::platform {
     SharedObject::SharedObject(std::string soFilename) :
         filename(std::move(soFilename)), loadedFilename(filename + ".temp"), handle(nullptr)
     {
+        POM_PROFILE_FUNCTION();
         reload(); // SDL_UnloadObject checks for nullptrs so this is fine.
     }
 
@@ -40,11 +42,13 @@ namespace pom::platform {
         filename(std::move(o.filename)), loadedFilename(std::move(o.loadedFilename)), handle(nullptr),
         functions(std::move(o.functions))
     {
+        POM_PROFILE_FUNCTION();
         std::swap(handle, o.handle);
     }
 
     SharedObject& SharedObject::operator=(SharedObject&& o) noexcept
     {
+        POM_PROFILE_FUNCTION();
         filename = std::move(o.filename);
         loadedFilename = std::move(o.loadedFilename);
         handle = o.handle;
@@ -54,6 +58,7 @@ namespace pom::platform {
 
     SharedObject::~SharedObject()
     {
+        POM_PROFILE_FUNCTION();
         SDL_UnloadObject(handle);
         for (auto [name, funcptr] : functions) {
             *funcptr = nullptr;
@@ -66,6 +71,7 @@ namespace pom::platform {
 
     void SharedObject::reload()
     {
+        POM_PROFILE_FUNCTION();
         SDL_UnloadObject(handle);
 
 // mingw currently has a bug that prevents `std::filesystem::copy_options` from working
@@ -88,6 +94,7 @@ namespace pom::platform {
 
     void SharedObject::setSOFilename(std::string SOFile)
     {
+        POM_PROFILE_FUNCTION();
         SDL_UnloadObject(handle);
         if (std::filesystem::exists(loadedFilename)) {
             std::filesystem::remove(loadedFilename);

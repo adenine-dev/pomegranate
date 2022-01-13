@@ -21,6 +21,7 @@ namespace pom::gfx {
                                    std::initializer_list<VertexBinding> vertexBindings,
                                    const Ref<PipelineLayout>& pipelineLayout)
     {
+        POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
             POM_ASSERT(renderPass->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
