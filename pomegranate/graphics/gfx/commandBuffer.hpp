@@ -101,13 +101,13 @@ namespace pom::gfx {
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
         /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
-        virtual void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, size_t offset = 0) = 0;
+        virtual void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, usize offset = 0) = 0;
 
         /// Binds an index buffer, the Buffer **must** have been initialize with `BufferUsage::INDEX`. `type` is how the
         /// data in the buffer will be read, this is independent from the type of whatever data was written into the
         /// buffer. `offset` is the offset to the first byte from which indicies will be calculated. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
-        virtual void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset = 0) = 0;
+        virtual void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, usize offset = 0) = 0;
 
         virtual void bindPipeline(Ref<Pipeline> pipeline) = 0;
 
@@ -115,13 +115,13 @@ namespace pom::gfx {
             = 0;
 
         /// Copies the contents of `src` to `dst`.
-        virtual void copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) = 0;
+        virtual void copyBufferToBuffer(Buffer* src, Buffer* dst, usize size, usize srcOffset, usize dstOffset) = 0;
 
         /// Copies the contents of `src` to `dst`.
         virtual void copyBufferToTexture(Buffer* src,
                                          Texture* dst,
-                                         size_t size,
-                                         size_t srcOffset,
+                                         usize size,
+                                         usize srcOffset,
                                          const maths::ivec3& dstOffset,
                                          const maths::uvec3& dstExtent)
             = 0;

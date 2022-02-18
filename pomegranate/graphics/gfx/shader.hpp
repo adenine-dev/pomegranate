@@ -24,7 +24,7 @@ namespace pom::gfx {
         /// @param stage: The shader stage this module will be used for.
         /// @param size: The size of `spirvCode` **in bytes**
         /// @param spirvCode: Valid SPIR-V code this shader module will be used with.
-        [[nodiscard]] static Ref<ShaderModule> create(ShaderStage stage, size_t size, const u32* spirvCode);
+        [[nodiscard]] static Ref<ShaderModule> create(ShaderStage stage, usize size, const u32* spirvCode);
 
         [[nodiscard]] inline ShaderStage getStage() const
         {
@@ -47,7 +47,7 @@ namespace pom::gfx {
 
         [[nodiscard]] static Ref<Shader> create(std::initializer_list<Ref<ShaderModule>> modules);
 
-        [[nodiscard]] inline virtual size_t getNumModules() const = 0;
+        [[nodiscard]] inline virtual usize getNumModules() const = 0;
 
         virtual ~Shader() = default;
     };

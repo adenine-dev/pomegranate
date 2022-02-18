@@ -16,10 +16,10 @@ namespace pom::gfx {
         BufferVk(InstanceVk* instance,
                  BufferUsage usage,
                  BufferMemoryAccess access,
-                 size_t size,
+                 usize size,
                  const void* initialData,
-                 size_t initialDataOffset,
-                 size_t initialDataSize);
+                 usize initialDataOffset,
+                 usize initialDataSize);
         ~BufferVk() final;
 
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final
@@ -32,7 +32,7 @@ namespace pom::gfx {
             return buffer;
         }
 
-        [[nodiscard]] void* map(size_t offset = 0, size_t size = 0) final;
+        [[nodiscard]] void* map(usize offset = 0, usize size = 0) final;
         void unmap() final;
 
     protected:

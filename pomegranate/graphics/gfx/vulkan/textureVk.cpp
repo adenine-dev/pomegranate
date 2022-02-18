@@ -14,8 +14,8 @@ namespace pom::gfx {
                          u32 height,
                          u32 depth,
                          const void* initialData,
-                         size_t initialDataOffset,
-                         size_t initialDataSize) :
+                         usize initialDataOffset,
+                         usize initialDataSize) :
         Texture(createInfo, width, height, depth),
         instance(instance), imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
     {

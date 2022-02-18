@@ -10,10 +10,10 @@
 namespace pom::gfx {
     Ref<Buffer> Buffer::create(BufferUsage usage,
                                BufferMemoryAccess access,
-                               size_t size,
+                               usize size,
                                const void* initialData,
-                               size_t initialDataOffset,
-                               size_t initialDataSize)
+                               usize initialDataOffset,
+                               usize initialDataSize)
     {
         switch (Instance::get()->getAPI()) {
         case GraphicsAPI::VULKAN: {
@@ -28,7 +28,7 @@ namespace pom::gfx {
         }
     }
 
-    Buffer::Buffer(BufferUsage usage, BufferMemoryAccess access, size_t size) :
+    Buffer::Buffer(BufferUsage usage, BufferMemoryAccess access, usize size) :
         usage(usage), memoryAccess(access), size(size)
     {
     }

@@ -258,7 +258,7 @@ namespace pom::gfx {
         return os;
     }
 
-    size_t sizeofFormat(Format format)
+    usize sizeofFormat(Format format)
     {
         switch (format) {
         case Format::UNDEFINED: {

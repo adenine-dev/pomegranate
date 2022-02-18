@@ -175,7 +175,7 @@ namespace pom::gfx {
         vkCmdDrawIndexed(getCurrentCommandBuffer(), indexCount, 1, firstIndex, vertexOffset, 0);
     }
 
-    void CommandBufferVk::bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint, size_t offset)
+    void CommandBufferVk::bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint, usize offset)
     {
         POM_PROFILE_FUNCTION();
         POM_ASSERT(vertexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched vertex buffer api");
@@ -188,7 +188,7 @@ namespace pom::gfx {
         vkCmdBindVertexBuffers(getCurrentCommandBuffer(), bindPoint, 1, &buffer, &offset);
     }
 
-    void CommandBufferVk::bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset)
+    void CommandBufferVk::bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, usize offset)
     {
         POM_PROFILE_FUNCTION();
         POM_ASSERT(indexBuffer->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched index buffer api");
@@ -215,7 +215,7 @@ namespace pom::gfx {
                           dynamic_cast<PipelineVk*>(pipeline.get())->getHandle());
     }
 
-    void CommandBufferVk::copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset)
+    void CommandBufferVk::copyBufferToBuffer(Buffer* src, Buffer* dst, usize size, usize srcOffset, usize dstOffset)
     {
         POM_PROFILE_FUNCTION();
         POM_ASSERT(src->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
@@ -260,8 +260,8 @@ namespace pom::gfx {
 
     void CommandBufferVk::copyBufferToTexture(Buffer* src,
                                               Texture* dst,
-                                              size_t size,
-                                              size_t srcOffset,
+                                              usize size,
+                                              usize srcOffset,
                                               const maths::ivec3& dstOffset,
                                               const maths::uvec3& dstExtent)
     {

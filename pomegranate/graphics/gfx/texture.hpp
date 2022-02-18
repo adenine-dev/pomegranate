@@ -54,8 +54,8 @@ namespace pom::gfx {
                                                  u32 height = 1u,
                                                  u32 depth = 1u,
                                                  const void* initialData = nullptr,
-                                                 size_t initialDataOffset = 0,
-                                                 size_t initialDataSize = 0);
+                                                 usize initialDataOffset = 0,
+                                                 usize initialDataSize = 0);
 
         [[nodiscard]] inline TextureUsage getUsage() const
         {
@@ -80,7 +80,7 @@ namespace pom::gfx {
             return extent;
         }
 
-        [[nodiscard]] virtual inline size_t getSize() const = 0;
+        [[nodiscard]] virtual inline usize getSize() const = 0;
 
         virtual ~Texture() = default;
 

@@ -10,10 +10,10 @@ namespace pom::gfx {
     BufferVk::BufferVk(InstanceVk* instance,
                        BufferUsage usage,
                        BufferMemoryAccess access,
-                       size_t size,
+                       usize size,
                        const void* initialData,
-                       size_t initialDataOffset,
-                       size_t initialDataSize) :
+                       usize initialDataOffset,
+                       usize initialDataSize) :
         Buffer(usage, access, size),
         instance(instance)
     {
@@ -109,7 +109,7 @@ namespace pom::gfx {
         vkFreeMemory(instance->getVkDevice(), memory, nullptr);
     }
 
-    [[nodiscard]] void* BufferVk::map(size_t offset, size_t size)
+    [[nodiscard]] void* BufferVk::map(usize offset, usize size)
     {
         POM_PROFILE_FUNCTION();
 

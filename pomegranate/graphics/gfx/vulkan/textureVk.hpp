@@ -20,11 +20,11 @@ namespace pom::gfx {
                   u32 height,
                   u32 depth,
                   const void* initialData,
-                  size_t initialDataOffset,
-                  size_t initialDataSize);
+                  usize initialDataOffset,
+                  usize initialDataSize);
         ~TextureVk() final;
 
-        [[nodiscard]] inline size_t getSize() const final
+        [[nodiscard]] inline usize getSize() const final
         {
             return memorySize;
         }
@@ -62,6 +62,6 @@ namespace pom::gfx {
         VkDeviceMemory memory = VK_NULL_HANDLE;
         VkImageView view = VK_NULL_HANDLE;
         VkSampler sampler = VK_NULL_HANDLE;
-        size_t memorySize = 0;
+        usize memorySize = 0;
     };
 } // namespace pom::gfx

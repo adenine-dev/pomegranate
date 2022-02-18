@@ -55,10 +55,10 @@ namespace pom::gfx {
         /// size `size`, and `initialDataOffset` should be 0.
         [[nodiscard]] static Ref<Buffer> create(BufferUsage usage,
                                                 BufferMemoryAccess access,
-                                                size_t size,
+                                                usize size,
                                                 const void* initialData = nullptr,
-                                                size_t initialDataOffset = 0,
-                                                size_t initialDataSize = 0);
+                                                usize initialDataOffset = 0,
+                                                usize initialDataSize = 0);
 
         virtual ~Buffer() = default;
 
@@ -66,7 +66,7 @@ namespace pom::gfx {
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
         /// Returns the size of this buffer.
-        [[nodiscard]] inline size_t getSize() const
+        [[nodiscard]] inline usize getSize() const
         {
             return size;
         }
@@ -83,15 +83,15 @@ namespace pom::gfx {
             return memoryAccess;
         }
 
-        [[nodiscard]] virtual void* map(size_t offset = 0, size_t size = 0) = 0;
+        [[nodiscard]] virtual void* map(usize offset = 0, usize size = 0) = 0;
         virtual void unmap() = 0;
 
     protected:
-        Buffer(BufferUsage usage, BufferMemoryAccess access, size_t size);
+        Buffer(BufferUsage usage, BufferMemoryAccess access, usize size);
 
         BufferUsage usage;
         BufferMemoryAccess memoryAccess;
-        size_t size;
+        usize size;
     };
 
     /// @}

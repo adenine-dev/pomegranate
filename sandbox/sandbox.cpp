@@ -215,7 +215,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                         &channels,
                                                         STBI_rgb_alpha);
 
-    size_t textureSize = width * height * 4;
+    usize textureSize = width * height * 4;
 
     gamestate->texture = pom::gfx::Texture::create(
         {

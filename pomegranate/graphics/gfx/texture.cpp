@@ -13,8 +13,8 @@ namespace pom::gfx {
                                  u32 height,
                                  u32 depth,
                                  const void* initialData,
-                                 size_t initialDataOffset,
-                                 size_t initialDataSize)
+                                 usize initialDataOffset,
+                                 usize initialDataSize)
     {
         POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {

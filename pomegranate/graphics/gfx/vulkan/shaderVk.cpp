@@ -7,7 +7,7 @@
 #include "typesVk.hpp"
 
 namespace pom::gfx {
-    ShaderModuleVk::ShaderModuleVk(InstanceVk* instance, ShaderStage stage, size_t size, const u32* spirvCode) :
+    ShaderModuleVk::ShaderModuleVk(InstanceVk* instance, ShaderStage stage, usize size, const u32* spirvCode) :
         ShaderModule(stage), instance(instance), spirv(spirvCode, spirvCode + size)
     {
         POM_PROFILE_FUNCTION();

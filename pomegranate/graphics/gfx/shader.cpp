@@ -8,7 +8,7 @@
 #include "vulkan/shaderVk.hpp"
 
 namespace pom::gfx {
-    Ref<ShaderModule> ShaderModule::create(ShaderStage stage, size_t size, const u32* spirvCode)
+    Ref<ShaderModule> ShaderModule::create(ShaderStage stage, usize size, const u32* spirvCode)
     {
         POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {

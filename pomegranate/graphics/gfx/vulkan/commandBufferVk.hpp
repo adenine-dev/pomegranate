@@ -43,20 +43,20 @@ namespace pom::gfx {
 
         void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) final;
 
-        void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, size_t offset = 0) final;
+        void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, usize offset = 0) final;
 
-        void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, size_t offset = 0) final;
+        void bindIndexBuffer(Ref<Buffer> indexBuffer, IndexType type, usize offset = 0) final;
 
         void bindPipeline(Ref<Pipeline> pipeline) final;
 
         void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet) final;
 
-        void copyBufferToBuffer(Buffer* src, Buffer* dst, size_t size, size_t srcOffset, size_t dstOffset) final;
+        void copyBufferToBuffer(Buffer* src, Buffer* dst, usize size, usize srcOffset, usize dstOffset) final;
 
         void copyBufferToTexture(Buffer* src,
                                  Texture* dst,
-                                 size_t size,
-                                 size_t srcOffset,
+                                 usize size,
+                                 usize srcOffset,
                                  const maths::ivec3& dstOffset,
                                  const maths::uvec3& dstExtent) final;
 

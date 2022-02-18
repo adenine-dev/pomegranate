@@ -230,7 +230,7 @@ namespace pom::gfx {
     }
 
     const char* REQUIRED_DEVICE_EXTENSIONS[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-    const size_t REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
+    const usize REQUIRED_DEVICE_EXTENSIONS_COUNT = 1;
 
     void InstanceVk::determineGPU(Context* ctx)
     {

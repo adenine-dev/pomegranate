@@ -6,15 +6,15 @@
 namespace pom {
     template <typename T> class Ref {
     public:
-        Ref() : count(new size_t(0))
+        Ref() : count(new usize(0))
         {
         }
 
-        explicit Ref(T* ptr) : ptr(ptr), count(new size_t(1))
+        explicit Ref(T* ptr) : ptr(ptr), count(new usize(1))
         {
         }
 
-        explicit Ref(T* ptr, size_t* count) : ptr(ptr), count(count)
+        explicit Ref(T* ptr, usize* count) : ptr(ptr), count(count)
         {
             if (ptr) {
                 incref();
@@ -120,6 +120,6 @@ namespace pom {
         }
 
         T* ptr = nullptr;
-        size_t* count = nullptr;
+        usize* count = nullptr;
     };
 } // namespace pom
