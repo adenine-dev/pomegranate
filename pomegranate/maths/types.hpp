@@ -32,12 +32,19 @@ using i32 = int32_t;
 /// 64bit signed integer.
 using i64 = int64_t;
 
-// BUG: ensure IEEE-754
+/// platform dependent unsigned size type.
+using usize = size_t;
+/// platform dependent byte type.
+using byte = unsigned char;
 
 /// 32bit floating point number, IEEE-754 compliant.
 using f32 = float;
 /// 64bit floating point number, IEEE-754 compliant.
 using f64 = double;
+
+// NOLINTNEXTLINE
+static_assert(std::numeric_limits<f32>::is_iec559 && std::numeric_limits<f64>::is_iec559,
+              "floating point is not IEEE-754 compliant");
 
 /// @}
 /// @}
