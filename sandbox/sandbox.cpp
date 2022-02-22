@@ -193,8 +193,51 @@ POM_CLIENT_EXPORT GameState* clientCreateState()
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
+struct Position {
+    i32 x, y;
+
+    ECS_COMPONENT();
+};
+
+std::ostream& operator<<(std::ostream& os, const Position& p)
+{
+    os << "Position { x = " << p.x << ", y = " << p.y << " }";
+    return os;
+}
+
+struct Velocity {
+    i32 x, y;
+
+    ECS_COMPONENT();
+};
+
+struct Color {
+    u8 r, g, b, a;
+
+    ECS_COMPONENT();
+};
+
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
+    POM_WARN("... --- ... ... --- ... ... --- ...");
+    pom::Type type = pom::Type::fromPack<Position>();
+
+    pom::Store store;
+    pom::Entity e = store.createEntity();
+    store.addComponent<Position>(e);
+    store.getComponent<Position>(e) = { 10, 20 };
+    POM_INFO(store.getComponent<Position>(e));
+    store.addComponent<Velocity>(e);
+    store.addComponent<Color>(e);
+    POM_INFO(store.hasComponent<Position>(e));
+    POM_INFO(store.hasComponent<Color>(e));
+
+    store.removeComponent<Color>(e);
+    POM_INFO(store.hasComponent<Color>(e));
+
+    POM_INFO(store.getComponent<Position>(e));
+
+    POM_ASSERT(false, "end lol");
     // gamestate->camera
     //     = ArcballCamera(pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().width
     //                     / pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().height);

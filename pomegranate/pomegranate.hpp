@@ -60,6 +60,7 @@
 /// @defgroup util Utilities
 /// @brief Little utility things that don't fit anywhere else.
 #include "util/bitflags.hpp"
+#include "util/misc.hpp"
 #include "util/ref.hpp"
 
 /// @defgroup maths Maths
@@ -119,6 +120,12 @@
 #include "graphics/gfx/vulkan/shaderVk.hpp"
 #include "graphics/gfx/vulkan/textureVk.hpp"
 #include "graphics/gfx/vulkan/typesVk.hpp"
+
+// TODO: docs
+#include "scene/ecs/archetype.hpp"
+#include "scene/ecs/component.hpp"
+#include "scene/ecs/store.hpp"
+#include "scene/ecs/type.hpp"
 
 /// @defgroup core Core
 /// @brief Core functionality.
