@@ -220,22 +220,47 @@ struct Color {
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
     POM_WARN("... --- ... ... --- ... ... --- ...");
-    pom::Type type = pom::Type::fromPack<Position>();
 
     pom::Store store;
-    pom::Entity e = store.createEntity();
-    store.addComponent<Position>(e);
-    store.getComponent<Position>(e) = { 10, 20 };
-    POM_INFO(store.getComponent<Position>(e));
-    store.addComponent<Velocity>(e);
-    store.addComponent<Color>(e);
-    POM_INFO(store.hasComponent<Position>(e));
-    POM_INFO(store.hasComponent<Color>(e));
+    // pom::Entity e = store.createEntity();
+    // store.addComponent<Position>(e);
+    // store.getComponent<Position>(e) = { 10, 20 };
+    // POM_INFO(store.getComponent<Position>(e));
+    // store.addComponent<Velocity>(e);
+    // store.addComponent<Color>(e);
+    // POM_INFO(store.hasComponent<Position>(e));
+    // POM_INFO(store.hasComponent<Color>(e));
 
-    store.removeComponent<Color>(e);
-    POM_INFO(store.hasComponent<Color>(e));
+    // store.removeComponent<Color>(e);
+    // POM_INFO(store.hasComponent<Color>(e));
 
-    POM_INFO(store.getComponent<Position>(e));
+    // POM_INFO(store.getComponent<Position>(e));
+
+    for (i32 i = 0; i < 10; i++) {
+        pom::Entity e = store.createEntity();
+        store.addComponent<Position>(e);
+        store.getComponent<Position>(e) = { i, i };
+    }
+
+    // NOTE: these values are to be undefined behavior
+    store.addComponent<Color>(1);
+    store.addComponent<Velocity>(2);
+    store.addComponent<Velocity>(1);
+    store.addComponent<Color>(2);
+
+    store.addComponent<Color>(4);
+    store.addComponent<Velocity>(0);
+
+    for (auto [e, position] : store.view<Position>()) {
+        POM_INFO(e, " (", store.getType(e), "): ", position);
+        ++position.x;
+    }
+
+    POM_INFO();
+
+    for (auto [e, position, _color] : store.view<Position, Color>()) {
+        POM_INFO(e, " (", store.getType(e), "): ", position);
+    }
 
     POM_ASSERT(false, "end lol");
     // gamestate->camera

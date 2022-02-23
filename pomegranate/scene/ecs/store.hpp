@@ -6,6 +6,7 @@
 
 #include "archetype.hpp"
 #include "component.hpp"
+#include "view.hpp"
 
 namespace pom {
     class POM_API Store {
@@ -114,6 +115,12 @@ namespace pom {
             }
 
             oldRecord.archetype->removeEntity(oldRecord.idx);
+        }
+
+        // FIXME: adding or removing components in a view breaks stuff
+        template <Component... Cs> View<Cs...> view()
+        {
+            return View<Cs...>(findOrCreateArchetype<Cs...>());
         }
 
     private:

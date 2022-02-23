@@ -119,6 +119,7 @@ namespace pom {
 
     private:
         friend class Store;
+        template <Component... Cs> friend class View;
 
         constexpr static const usize INITIAL_LENGTH = 4;
 

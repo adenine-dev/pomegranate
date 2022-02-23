@@ -126,6 +126,7 @@
 #include "scene/ecs/component.hpp"
 #include "scene/ecs/store.hpp"
 #include "scene/ecs/type.hpp"
+#include "scene/ecs/view.hpp"
 
 /// @defgroup core Core
 /// @brief Core functionality.
