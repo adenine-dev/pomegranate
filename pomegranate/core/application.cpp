@@ -26,6 +26,7 @@ namespace pom {
             case pom::InputEventType::KEY_DOWN: {
 #ifdef _DEBUG
                 if (ev.getKeycode() == pom::Keycode::R) {
+                    POM_DEBUG("Reloading");
                     client.reload();
                 }
 #endif
