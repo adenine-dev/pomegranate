@@ -26,6 +26,8 @@ namespace pom {
 
             iterator& operator++()
             {
+                POM_PROFILE_FUNCTION();
+
                 if (++currentIdx >= frontier[currentArchetypeIdx]->size()) {
                     currentIdx = 0;
                     do {
@@ -48,6 +50,8 @@ namespace pom {
 
             const iterator operator++(int)
             {
+                POM_PROFILE_FUNCTION();
+
                 View::iterator retval = *this;
                 ++(*this);
                 return retval;
@@ -65,6 +69,8 @@ namespace pom {
 
             value_type operator*() const
             {
+                POM_PROFILE_FUNCTION();
+
                 // FIXME: don't use get component, store references to component buffers directly
                 return value_type(frontier[currentArchetypeIdx]->entities[currentIdx],
                                   frontier[currentArchetypeIdx]->getComponent<Cs>(currentIdx)...);

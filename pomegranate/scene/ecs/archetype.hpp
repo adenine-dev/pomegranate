@@ -91,6 +91,8 @@ namespace pom {
 
         template <Component C> [[nodiscard]] C& getComponent(usize idx)
         {
+            POM_PROFILE_FUNCTION();
+
             const i32 i = type.indexOf<C>();
             POM_ASSERT(i != -1,
                        "Requested component `",
@@ -104,6 +106,8 @@ namespace pom {
 
         template <Component C> [[nodiscard]] C* tryGetComponent(usize idx)
         {
+            POM_PROFILE_FUNCTION();
+
             i32 i = type.indexOf<C>();
             if (i != -1)
                 return nullptr;

@@ -6,6 +6,8 @@
 namespace pom {
     Archetype* EdgeTable::get(ComponentId id)
     {
+        POM_PROFILE_FUNCTION();
+
         auto edge = binaryFind(edges.begin(), edges.end(), id);
         if (edge == edges.end())
             return nullptr;
@@ -15,6 +17,8 @@ namespace pom {
 
     Archetype* EdgeTable::add(ComponentId id, Archetype* archetype)
     {
+        POM_PROFILE_FUNCTION();
+
         if (get(id) == nullptr) {
             edges.push_back({ id, archetype });
             std::sort(edges.begin(), edges.end());
@@ -24,6 +28,8 @@ namespace pom {
 
     Archetype::Archetype(Store* store, const Type& type) : store(store), type(type)
     {
+        POM_PROFILE_FUNCTION();
+
         componentBuffers.reserve(type.size());
 
         for (const ComponentMetadata& component : type) {
@@ -37,13 +43,16 @@ namespace pom {
 
     Archetype::~Archetype()
     {
-        for (auto componentStorage : componentBuffers) {
+        POM_PROFILE_FUNCTION();
+
+        for (auto componentStorage : componentBuffers)
             free(componentStorage.data);
-        }
     }
 
     Record Archetype::addEntity(Entity entity)
     {
+        POM_PROFILE_FUNCTION();
+
         for (usize i = 0; i < type.size(); i++) {
             if (componentBuffers[i].allocated == componentBuffers[i].length) {
                 componentBuffers[i].allocated *= 2;
@@ -63,6 +72,8 @@ namespace pom {
 
     void Archetype::removeEntity(usize idx)
     {
+        POM_PROFILE_FUNCTION();
+
         POM_ASSERT(idx < size(), "index ", idx, " does not exist in archetype that has size ", size());
         for (usize i = 0; i < type.size(); i++) {
             memcpy((byte*)componentBuffers[i].data + (idx * type[i].size),

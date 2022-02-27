@@ -20,6 +20,7 @@ namespace pom {
         /// Constructs a Type from a template parameter pack of Components. The passed components must be unique.
         template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] static Type fromPack()
         {
+            POM_PROFILE_FUNCTION();
             Type t;
             t.components = { getComponentMetadata<Cs>()... };
             t.sort();
@@ -28,6 +29,7 @@ namespace pom {
 
         [[nodiscard]] Type add(const ComponentMetadata& added) const
         {
+            POM_PROFILE_FUNCTION();
             Type newType = { components };
             if (newType.indexOf(added.id) == -1) {
                 newType.components.push_back(added);
@@ -40,6 +42,7 @@ namespace pom {
         /// component, it returns the same type.
         template <Component C> [[nodiscard]] Type add() const
         {
+            POM_PROFILE_FUNCTION();
             return add(getComponentMetadata<C>());
         }
 
@@ -47,6 +50,7 @@ namespace pom {
         /// component, it returns the same type.
         template <Component C> [[nodiscard]] Type remove() const
         {
+            POM_PROFILE_FUNCTION();
             Type newType = { components };
             auto it = binaryFind(newType.components.begin(), newType.components.end(), componentId<C>());
             if (it != newType.components.end())
@@ -57,6 +61,7 @@ namespace pom {
         /// Returns the index of a component within the type, if the component does not exist returns -1.
         [[nodiscard]] inline i32 indexOf(ComponentId id) const
         {
+            POM_PROFILE_FUNCTION();
             auto it = binaryFind(components.cbegin(),
                                  components.cend(),
                                  ComponentMetadata { .id = id },
