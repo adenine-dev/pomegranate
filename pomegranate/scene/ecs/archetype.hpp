@@ -130,7 +130,14 @@ namespace pom {
 
     private:
         friend class Store;
-        template <Component... Cs> friend class View;
+        template <Component... Cs> requires(are_distinct<Cs...>) friend class View;
+
+        
+
+        template <Component... Cs> [[nodiscard]] constexpr auto getQueryIndicies()
+        {
+            return (usize[std::tuple_size<std::tuple<Cs...>>::value]) { (usize)type.indexOf<Cs>()... };
+        }
 
         constexpr static const usize INITIAL_LENGTH = 4;
 

@@ -75,12 +75,15 @@ namespace pom {
         /// Returns the index of a component within the type, if the component does not exist returns -1.
         template <Component C> [[nodiscard]] inline i32 indexOf() const
         {
+            POM_PROFILE_FUNCTION();
             return indexOf(componentId<C>());
         }
 
         /// Returns true if the type contains the component, false otherwise.
         template <Component C> [[nodiscard]] inline bool contains() const
         {
+            POM_PROFILE_FUNCTION();
+
             return indexOf<C>() != -1;
         }
 
@@ -114,6 +117,8 @@ namespace pom {
 
         void sort()
         {
+            POM_PROFILE_FUNCTION();
+
             std::sort(components.begin(), components.end(), [](ComponentMetadata& a, ComponentMetadata& b) {
                 return a.id < b.id;
             });

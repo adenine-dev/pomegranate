@@ -10,7 +10,7 @@ namespace pom {
     namespace detail {
         /// @private
         template <typename T> struct typeNameStorage {
-            template <std::size_t... Idxs>
+            template <usize... Idxs>
             static constexpr auto arrify(std::string_view sv, std::index_sequence<Idxs...> /*unused*/)
             {
                 return std::array { sv[Idxs]..., '\0' };
@@ -79,5 +79,13 @@ namespace pom {
 
     /// Concept that ensures all types passed in the pack are distinct from oneanother.
     template <typename... Ts> concept are_distinct = Distinct<Ts...>::value;
+
+    template <class T, class Tuple> struct TupleIndex;
+    template <class T, class... Types> struct TupleIndex<T, std::tuple<T, Types...>> {
+        static const usize value = 0;
+    };
+    template <class T, class U, class... Types> struct TupleIndex<T, std::tuple<U, Types...>> {
+        static const usize value = 1 + TupleIndex<T, std::tuple<Types...>>::value;
+    };
 
 } // namespace pom

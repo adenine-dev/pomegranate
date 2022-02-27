@@ -336,7 +336,13 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                 Vertex* buffer = (Vertex*)vb->map();
                 u32 i = 0;
                 for (auto [e, p, v, c] : gs->store.view<Position, Velocity, Color>()) {
+                    POM_PROFILE_SCOPE("update buffer");
+                    v.data -= pom::maths::vec3 { 0, 0.02, 0 };
                     p.data += v.data;
+                    if (p.data.y < -90) {
+                        v = Velocity::random();
+                        p.data = pom::maths::vec3(0, 0, 0);
+                    }
                     for (u32 j = 0; j < PARTICLE_VERTICIES; j++) {
                         buffer[i + j] = {
                             .pos = p.data

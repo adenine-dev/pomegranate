@@ -8,8 +8,10 @@
 namespace pom {
     class Archetype;
 
-    template <Component... Cs> class View {
+    template <Component... Cs> requires(are_distinct<Cs...>) class View {
     private:
+        using Components = std::tuple<Cs...>;
+
         class iterator {
         public:
             using difference_type = std::ptrdiff_t; // meaningless, just for the iterator concept.
@@ -20,8 +22,12 @@ namespace pom {
 
             explicit iterator(Archetype* a, usize idx) :
                 frontier(a ? std::vector<Archetype*> { a } : std::vector<Archetype*> {}),
+                indicies(
+                    a ? std::array<usize, std::tuple_size<Components>::value> { (usize)a->getType().indexOf<Cs>()... }
+                      : std::array<usize, std::tuple_size<Components>::value>()),
                 currentArchetypeIdx(a ? 0 : SIZE_MAX), currentIdx(idx)
             {
+                POM_PROFILE_FUNCTION();
             }
 
             iterator& operator++()
@@ -40,9 +46,10 @@ namespace pom {
                         if (++currentArchetypeIdx >= frontier.size()) {
                             currentArchetypeIdx = SIZE_MAX;
                             currentIdx = SIZE_MAX;
-                            break;
+                            return *this;
                         }
                     } while (frontier[currentArchetypeIdx]->size() == 0);
+                    indicies = { (usize)frontier[currentArchetypeIdx]->getType().indexOf<Cs>()... };
                 }
 
                 return *this;
@@ -59,12 +66,14 @@ namespace pom {
 
             inline bool operator==(iterator other) const
             {
+                POM_PROFILE_FUNCTION();
                 return currentArchetypeIdx == other.currentArchetypeIdx && currentIdx == other.currentIdx;
             }
 
             inline bool operator!=(iterator other) const
             {
-                return !(*this == other);
+                POM_PROFILE_FUNCTION();
+                return currentArchetypeIdx != other.currentArchetypeIdx || currentIdx != other.currentIdx;
             }
 
             value_type operator*() const
@@ -73,11 +82,14 @@ namespace pom {
 
                 // FIXME: don't use get component, store references to component buffers directly
                 return value_type(frontier[currentArchetypeIdx]->entities[currentIdx],
-                                  frontier[currentArchetypeIdx]->getComponent<Cs>(currentIdx)...);
+                                  ((Cs*)frontier[currentArchetypeIdx]
+                                       ->componentBuffers[TupleIndex<Cs, Components>::value]
+                                       .data)[currentIdx]...);
             }
 
         private:
             std::vector<Archetype*> frontier; // TODO: can this be done without a vector here?
+            std::array<usize, std::tuple_size<Components>::value> indicies;
             usize currentArchetypeIdx;
             usize currentIdx;
         };
