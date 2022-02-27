@@ -50,7 +50,7 @@ a:focus {
   position: absolute;
   height: 90%;
   width: 1px;
-  background-color: var(--alt-color);
+  background-color: var(--sidebar-divider-color);
   z-index: -1;
   top: 5%;
   right: 0;
@@ -83,7 +83,7 @@ a:focus {
   color: var(--text-color);
 }
 
-#nav-tree .item{    
+#nav-tree .item {
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -253,14 +253,18 @@ a:focus {
   position: relative;
   border-collapse: collapse;
 }
+div.directory {
+  margin-top: 16px;
+}
 
 .directory > tbody > tr {
-  border-bottom: 8px solid transparent;
+  border-bottom: 0px solid transparent;
 }
 
 .directory .levels {
   position: absolute;
   right: 0;
+  display: none;
 }
 
 .directory .levels span {
@@ -273,11 +277,6 @@ a:focus {
 .directory .entry {
   white-space: nowrap;
 }
-
-/* .directory .entry > span:first-child {
-  border-right: 2px solid #fff;
-  margin-right: 25px;
-} */
 
 .directory .entry .icona {
   margin: 0 20px 0 10px;
@@ -333,8 +332,9 @@ a:focus {
 }
 
 /* NOTE: this may fail in some cases, I haven't found one tho.  */
+/* NOTE: found it, when a link is in a description */
 .mdescRight > a:last-of-type {
-  display: none;
+  /* display: none; */
 }
 
 a.anchor {
@@ -367,7 +367,7 @@ a.anchor {
   display: contents;
 }
 
-.title >.ingroups::before {
+.title > .ingroups::before {
   content: "";
   display: block;
   flex-basis: 100%;

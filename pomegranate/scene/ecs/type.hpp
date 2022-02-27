@@ -5,13 +5,20 @@
 #include <utility>
 
 #include "component.hpp"
+#include "util/misc.hpp"
 
 namespace pom {
+    /// @addtogroup ecs
+    /// @{
+
+    /// Entities have types represented by a constant array of `ComponentMetadata`. components are unique within a type
+    /// and sorted based on their id which is arbitrary.
     class Type {
     public:
         Type() = default;
 
-        template <Component... Cs> [[nodiscard]] static Type fromPack()
+        /// Constructs a Type from a template parameter pack of Components. The passed components must be unique.
+        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] static Type fromPack()
         {
             Type t;
             t.components = { getComponentMetadata<Cs>()... };
@@ -19,34 +26,40 @@ namespace pom {
             return t;
         }
 
-        template <Component C> [[nodiscard]] Type add() const
-        {
-            Type newType = { components };
-            newType.components.push_back(getComponentMetadata<C>());
-            newType.sort();
-            return newType;
-        }
-
         [[nodiscard]] Type add(const ComponentMetadata& added) const
         {
             Type newType = { components };
-            newType.components.push_back(added);
-            newType.sort();
+            if (newType.indexOf(added.id) == -1) {
+                newType.components.push_back(added);
+                newType.sort();
+            }
             return newType;
         }
 
+        /// Creates a new type from a type having added a component. If the existing type does not contain the
+        /// component, it returns the same type.
+        template <Component C> [[nodiscard]] Type add() const
+        {
+            return add(getComponentMetadata<C>());
+        }
+
+        /// Creates a new type from a type having removed a component. If the existing type does not contain the
+        /// component, it returns the same type.
         template <Component C> [[nodiscard]] Type remove() const
         {
             Type newType = { components };
-            newType.components.erase(std::find(newType.components.begin(), newType.components.end(), componentId<C>()));
+            auto it = binaryFind(newType.components.begin(), newType.components.end(), componentId<C>());
+            if (it != newType.components.end())
+                newType.components.erase(it);
             return newType;
         }
 
-        template <Component C> [[nodiscard]] i32 indexOf() const
+        /// Returns the index of a component within the type, if the component does not exist returns -1.
+        [[nodiscard]] inline i32 indexOf(ComponentId id) const
         {
             auto it = binaryFind(components.cbegin(),
                                  components.cend(),
-                                 ComponentMetadata { .id = componentId<C>() },
+                                 ComponentMetadata { .id = id },
                                  [](const ComponentMetadata& a, const ComponentMetadata& b) { return a.id < b.id; });
             if (it == components.cend())
                 return -1;
@@ -54,11 +67,19 @@ namespace pom {
             return it - components.cbegin();
         }
 
-        template <Component C> [[nodiscard]] bool contains() const
+        /// Returns the index of a component within the type, if the component does not exist returns -1.
+        template <Component C> [[nodiscard]] inline i32 indexOf() const
+        {
+            return indexOf(componentId<C>());
+        }
+
+        /// Returns true if the type contains the component, false otherwise.
+        template <Component C> [[nodiscard]] inline bool contains() const
         {
             return indexOf<C>() != -1;
         }
 
+        /// Returns the number of components within the type.
         [[nodiscard]] usize size() const
         {
             return components.size();
@@ -95,6 +116,8 @@ namespace pom {
 
         std::vector<ComponentMetadata> components;
     };
+
+    /// @}
 
     inline std::ostream& operator<<(std::ostream& os, const Type& type)
     {

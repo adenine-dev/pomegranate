@@ -7,6 +7,7 @@ everything I've done to get this to work should get me exiled in at least 3 coun
   --bg-color: #fcfeff;
   --nav-bg: #fcfeff;
   --alt-color: #e0eef1;
+  --sidebar-divider-color: var(--alt-color);
   --text-color: #000;
   --link-color: #58a6ff;
   --accent-color: #b2ebf2;
@@ -34,7 +35,8 @@ everything I've done to get this to work should get me exiled in at least 3 coun
 [data-theme="dark"] {
   --bg-color: #202124;
   --nav-bg: #18191b;
-  --alt-color: #1d1e20;
+  --alt-color: #35373b;
+  --sidebar-divider-color: transparent;
   --text-color: #fff;
   --link-color: #58a6ff;
   --accent-color: #84ffff;

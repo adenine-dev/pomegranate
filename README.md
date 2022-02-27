@@ -8,9 +8,9 @@ personal project that I am using in order to learn a bunch of things that I am i
 To build this project, you must have [CMake](https://cmake.org/), the 
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), and a C++ compiler installed. Clang gcc and msvc are all tested 
 regularly however carry no grantees for any given commit. Currently only works on windows, Linux & Web to come.
-First clone [The reposotry](https://Pgithub.com/alexa-griffin/pomegranate/) recursively:
+First clone [The reposotry](https://Pgithub.com/pairswiththymine/pomegranate/) recursively:
 ```sh
-git clone https://github.com/alexa-griffin/pomegranate.git --recurse-submodules
+git clone https://github.com/pairswiththymine/pomegranate.git --recurse-submodules
 ```
 Then setup CMake however you want, it should look something like:
 ```sh

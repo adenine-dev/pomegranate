@@ -9,18 +9,35 @@
 #include "view.hpp"
 
 namespace pom {
+    /// @addtogroup ecs
+    /// @{
+
+    /// @brief Creates and contains all entity and component data.
     class POM_API Store {
     public:
         Store();
         ~Store();
 
+        /// Returns a new entity with no components attached to it.
+        /// @note Entities are only unique within the `Store` they were created in, and they may be reused after an
+        /// entity hsa been destroyed.
         Entity createEntity();
+
+        /// @brief Destroys an entity and all of its components.
+        /// @note After destroying the entity, the entity id may be used again.
         void destroyEntity(Entity entity);
 
+        /// @brief Returns true if the entity exists in the store, false otherwise.
         [[nodiscard]] bool exists(Entity entity) const;
 
+        /// @brief Returns the Type of an entity.
+        /// @warning This crashes if the entity does not exist in this store, use Store::exists to check if an entity
+        /// exists in the store.
         [[nodiscard]] const Type& getType(Entity entity) const;
 
+        /// @brief Returns true if the entity contains the component C
+        /// @warning This crashes if the entity does not exist in this store, use Store::exists to check if an entity
+        /// exists in the store.
         template <Component C> bool hasComponent(Entity entity)
         {
             auto recordPair = records.find(entity);
@@ -28,6 +45,10 @@ namespace pom {
             return recordPair->second.archetype->getType().contains<C>();
         }
 
+        /// @brief Returns a mutable reference to the entity's component `C`.
+        /// @warning This crashes if the entity does not exist in this store or if the entity does no have the
+        /// component, use Store::exists to check if an entity exists in the store, or `tryGetComponent` to
+        /// conditionally get the component.
         template <Component C> C& getComponent(Entity entity)
         {
             auto recordPair = records.find(entity);
@@ -35,6 +56,9 @@ namespace pom {
             return recordPair->second.archetype->getComponent<C>(recordPair->second.idx);
         }
 
+        /// @brief Adds a component to the entity. Returns a mutable reference to the entity's component `C`.
+        /// @warning This crashes if the entity does not exist in this store or if the entity already has the
+        /// component, use Store::exists to check if an entity exists in the store.
         template <Component C> C& addComponent(Entity entity)
         {
             auto recordPair = records.find(entity);
@@ -78,6 +102,9 @@ namespace pom {
             return ((C*)(archetype->componentBuffers[i].data))[record.idx];
         }
 
+        /// @brief Adds a component to the entity. Returns a mutable reference to the entity's component `C`.
+        /// @warning This crashes if the entity does not exist in this store or if the entity does not have the
+        /// component, use Store::exists to check if an entity exists in the store.
         template <Component C> void removeComponent(Entity entity)
         {
             auto recordPair = records.find(entity);
@@ -118,13 +145,13 @@ namespace pom {
         }
 
         // FIXME: adding or removing components in a view breaks stuff
-        template <Component... Cs> View<Cs...> view()
+        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] View<Cs...> view()
         {
             return View<Cs...>(findOrCreateArchetype<Cs...>());
         }
 
     private:
-        template <Component... Cs> Archetype* findOrCreateArchetype()
+        template <Component... Cs> requires(are_distinct<Cs...>) Archetype* findOrCreateArchetype()
         {
             return findOrCreateArchetype(Type::fromPack<Cs...>());
         }
@@ -141,4 +168,6 @@ namespace pom {
         std::unordered_map<Entity, Record> records;
         std::vector<Archetype*> archetypes;
     };
+
+    /// @}
 } // namespace pom

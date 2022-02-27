@@ -8,9 +8,9 @@
  * To build this project, you must have [CMake](https://cmake.org/), the
  * [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/), and a C++ compiler installed. Clang gcc and msvc are all tested
  * regularly however carry no grantees for any given commit. Currently only works on windows, Linux & Web to come.
- * First clone [The reposotry](https://Pgithub.com/alexa-griffin/pomegranate/) recursively:
+ * First clone [The reposotry](https://Pgithub.com/pairswiththymine/pomegranate/) recursively:
  * ```sh
- * git clone https://github.com/alexa-griffin/pomegranate.git --recurse-submodules
+ * git clone https://github.com/pairswiththymine/pomegranate.git --recurse-submodules
  * ```
  * Then setup CMake however you want, it should look something like:
  * ```sh
@@ -121,7 +121,16 @@
 #include "graphics/gfx/vulkan/textureVk.hpp"
 #include "graphics/gfx/vulkan/typesVk.hpp"
 
-// TODO: docs
+/// @defgroup scene Scene
+
+/// @defgroup ecs Entity Component System
+/// @ingroup scene
+/// @brief Contains the underlying logic for entity management.
+/// @details Pomegranate uses a custom archetype based entity component system. An entity component system or ECS is a
+/// method of organizing game objects (entities) in such a way that they each have a set of components which contain
+/// their data, and can be acted on individually or in groups. \n
+/// In this engine components are defined to be trivially copyable and destructable structures. By convention they are
+/// also zero constructable and all their data is public.
 #include "scene/ecs/archetype.hpp"
 #include "scene/ecs/component.hpp"
 #include "scene/ecs/store.hpp"

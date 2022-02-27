@@ -6,14 +6,19 @@
 #include "util/misc.hpp"
 
 namespace pom {
+    /// @addtogroup ecs
+    /// @{
+
     class Store;
     class Archetype;
 
+    /// @private
     struct Record {
         Archetype* archetype;
         usize idx;
     };
 
+    /// @private
     struct Edge {
         ComponentId id;
         Archetype* archetype;
@@ -69,6 +74,7 @@ namespace pom {
         }
     };
 
+    /// @private
     struct POM_API EdgeTable {
         std::vector<Edge> edges;
 
@@ -77,6 +83,7 @@ namespace pom {
         Archetype* add(ComponentId id, Archetype* archetype);
     };
 
+    /// @private
     class POM_API Archetype {
     public:
         Archetype(Store* store, const Type& type);
@@ -136,4 +143,6 @@ namespace pom {
         std::vector<ComponentStorage> componentBuffers;
         std::vector<Entity> entities;
     };
+
+    /// @}
 } // namespace pom

@@ -8,6 +8,7 @@
 
 namespace pom {
     namespace detail {
+        /// @private
         template <typename T> struct typeNameStorage {
             template <std::size_t... Idxs>
             static constexpr auto arrify(std::string_view sv, std::index_sequence<Idxs...> /*unused*/)
@@ -28,10 +29,14 @@ namespace pom {
                 return arrify(name, std::make_index_sequence<name.size()> {});
             })();
         };
+
     } // namespace detail
 
-    /// Returns a compile time stringified name of the underlying type.
-    /// `typeName<u32>` → `"unsigned int"`.
+    /// @addtogroup util
+    /// @{
+
+    /// Returns a compile time stringified name of the underlying type.\n
+    /// `typeName<u32>` → `"unsigned int"`.\n
     /// `typeName<u32&>` → `"unsigned int &"`.
     template <typename T> constexpr const char* typeName()
     {
@@ -60,5 +65,19 @@ namespace pom {
             return last;
         return first;
     }
+
+    /// @}
+
+    /// @private
+    template <typename T, typename... Ts>
+    struct Distinct : std::conjunction<std::negation<std::is_same<T, Ts>>..., Distinct<Ts...>> {
+    };
+
+    /// @private
+    template <typename T> struct Distinct<T> : std::true_type {
+    };
+
+    /// Concept that ensures all types passed in the pack are distinct from oneanother.
+    template <typename... Ts> concept are_distinct = Distinct<Ts...>::value;
 
 } // namespace pom
