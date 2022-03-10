@@ -4,14 +4,12 @@
 
 #include "archetype.hpp"
 #include "component.hpp"
+#include "store.hpp"
 
 namespace pom {
-    class Archetype;
-
+    /// @brief An iterator into a store that sees all entities with the passed Components.
     template <Component... Cs> requires(are_distinct<Cs...>) class View {
     private:
-        using Components = std::tuple<Cs...>;
-
         class iterator {
         public:
             using difference_type = std::ptrdiff_t; // meaningless, just for the iterator concept.
@@ -20,12 +18,11 @@ namespace pom {
             using reference = value_type&;
             using iterator_category = std::forward_iterator_tag;
 
-            explicit iterator(Archetype* a, usize idx) :
-                frontier(a ? std::vector<Archetype*> { a } : std::vector<Archetype*> {}),
-                indicies(
-                    a ? std::array<usize, std::tuple_size<Components>::value> { (usize)a->getType().indexOf<Cs>()... }
-                      : std::array<usize, std::tuple_size<Components>::value>()),
-                currentArchetypeIdx(a ? 0 : SIZE_MAX), currentIdx(idx)
+            explicit iterator(std::vector<Archetype*>* archetypes, usize aidx, usize idx) :
+                archetypes(archetypes), currentArchetypeIdx(aidx), currentIdx(idx),
+                indicies(aidx == SIZE_MAX ? std::array<i32, std::tuple_size<std::tuple<Cs...>>::value>()
+                                          : std::array<i32, std::tuple_size<std::tuple<Cs...>>::value> {
+                                              (*archetypes)[aidx]->getType().indexOf<Cs>()... })
             {
                 POM_PROFILE_FUNCTION();
             }
@@ -34,28 +31,23 @@ namespace pom {
             {
                 POM_PROFILE_FUNCTION();
 
-                if (++currentIdx >= frontier[currentArchetypeIdx]->size()) {
+                if (++currentIdx >= (*archetypes)[currentArchetypeIdx]->size()) {
                     currentIdx = 0;
                     do {
-                        for (auto& edge : frontier[currentArchetypeIdx]->addEdges.edges) {
-                            if (std::find(frontier.begin(), frontier.end(), edge.archetype) == frontier.end()) {
-                                frontier.push_back(edge.archetype);
-                            }
-                        }
-
-                        if (++currentArchetypeIdx >= frontier.size()) {
+                        if (++currentArchetypeIdx >= archetypes->size()) {
                             currentArchetypeIdx = SIZE_MAX;
                             currentIdx = SIZE_MAX;
                             return *this;
                         }
-                    } while (frontier[currentArchetypeIdx]->size() == 0);
-                    indicies = { (usize)frontier[currentArchetypeIdx]->getType().indexOf<Cs>()... };
+                    } while ((*archetypes)[currentArchetypeIdx]->size() == 0
+                             || !(*archetypes)[currentArchetypeIdx]->getType().match<Cs...>());
+                    indicies = { (*archetypes)[currentArchetypeIdx]->getType().indexOf<Cs>()... };
                 }
 
                 return *this;
             }
 
-            const iterator operator++(int)
+            iterator operator++(int)
             {
                 POM_PROFILE_FUNCTION();
 
@@ -67,48 +59,63 @@ namespace pom {
             inline bool operator==(iterator other) const
             {
                 POM_PROFILE_FUNCTION();
-                return currentArchetypeIdx == other.currentArchetypeIdx && currentIdx == other.currentIdx;
+                return archetypes == other.archetypes && currentArchetypeIdx == other.currentArchetypeIdx
+                       && currentIdx == other.currentIdx;
             }
 
             inline bool operator!=(iterator other) const
             {
                 POM_PROFILE_FUNCTION();
-                return currentArchetypeIdx != other.currentArchetypeIdx || currentIdx != other.currentIdx;
+                return archetypes != other.archetypes || currentArchetypeIdx != other.currentArchetypeIdx
+                       || currentIdx != other.currentIdx;
             }
 
-            value_type operator*() const
+            value_type operator*()
             {
                 POM_PROFILE_FUNCTION();
+                // if ((*archetypes)[currentArchetypeIdx]->size() == 0)
+                //     operator++();
 
-                // FIXME: don't use get component, store references to component buffers directly
-                return value_type(frontier[currentArchetypeIdx]->entities[currentIdx],
-                                  ((Cs*)frontier[currentArchetypeIdx]
-                                       ->componentBuffers[TupleIndex<Cs, Components>::value]
+                return value_type((*archetypes)[currentArchetypeIdx]->entities[currentIdx],
+                                  ((Cs*)(*archetypes)[currentArchetypeIdx]
+                                       ->componentBuffers[indicies[TupleIndex<Cs, std::tuple<Cs...>>::value]]
                                        .data)[currentIdx]...);
             }
 
         private:
-            std::vector<Archetype*> frontier; // TODO: can this be done without a vector here?
-            std::array<usize, std::tuple_size<Components>::value> indicies;
+            std::vector<Archetype*>* archetypes;
             usize currentArchetypeIdx;
             usize currentIdx;
+            std::array<i32, std::tuple_size<std::tuple<Cs...>>::value> indicies;
         };
 
     public:
-        View(Archetype* startArchetype) : startArchetype(startArchetype)
+        View(Store* store)
         {
+            if (store)
+                // TODO: cache/generate these in store
+                for (auto* a : store->archetypes) {
+                    if (a->getType().match<Cs...>())
+                        archetypes.push_back(a);
+                }
         }
 
         iterator begin()
         {
-            return iterator(startArchetype, 0);
+            if (archetypes.empty())
+                return end();
+            for (u32 i = 0; i < archetypes.size(); i++)
+                if (archetypes[i]->size() != 0 && archetypes[i]->getType().match<Cs...>())
+                    return iterator(&archetypes, i, 0);
+
+            return end();
         }
 
         iterator end()
         {
-            return iterator(nullptr, SIZE_MAX);
+            return iterator(&archetypes, SIZE_MAX, SIZE_MAX);
         }
 
-        Archetype* startArchetype;
+        std::vector<Archetype*> archetypes;
     };
 } // namespace pom

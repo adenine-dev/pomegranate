@@ -26,8 +26,7 @@ namespace pom {
         static Entity counter = 0;
 
         Entity ret = counter++; // NOTE: 0 is reserved?
-        records[ret] = archetypes[0]->addEntity(ret);
-
+        records.insert({ ret, archetypes[0]->addEntity(ret) });
         return ret;
     }
 
@@ -38,6 +37,7 @@ namespace pom {
         auto recordPair = records.find(entity);
         POM_ASSERT(recordPair != records.end(), "Cannot destroy nonexistent entity ", entity);
         recordPair->second.archetype->removeEntity(recordPair->second.idx);
+        records.erase(recordPair);
     }
 
     [[nodiscard]] bool Store::exists(Entity entity) const

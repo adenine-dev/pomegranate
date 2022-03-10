@@ -2,7 +2,7 @@
 
 #include <pomegranate.hpp>
 
-constexpr usize PARTICLES = 10000;
+constexpr usize PARTICLES = 15000;
 constexpr usize PARTICLE_VERTICIES = 3;
 
 struct Position {

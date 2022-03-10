@@ -73,7 +73,7 @@ namespace pom {
                << "}";
         // clang-format on
 
-        currentProfiler->output.flush();
+        // currentProfiler->output.flush();
     }
 
     void Profiler::end()

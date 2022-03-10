@@ -7,13 +7,15 @@
 // What all of this means is that **ALL** weak enums will be considered bitflags and have these applied to them. I don't
 // care about this because I will only be using weak enums for bitflags anyway.
 
+/// @private
 template <typename T, bool B = std::is_enum<T>::value> struct is_scoped_enum : std::false_type {
 };
+/// @private
 template <typename T>
 struct is_scoped_enum<T, true>
     : std::integral_constant<bool, !std::is_convertible<T, typename std::underlying_type<T>::type>::value> {
 };
-
+/// @private
 template <typename T>
 struct is_bitflagable_enum
     : std::integral_constant<bool,

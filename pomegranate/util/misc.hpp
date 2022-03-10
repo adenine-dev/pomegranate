@@ -80,10 +80,15 @@ namespace pom {
     /// Concept that ensures all types passed in the pack are distinct from oneanother.
     template <typename... Ts> concept are_distinct = Distinct<Ts...>::value;
 
+    /// Returns the first index of the type T in the `std::tuple` Tuple.
     template <class T, class Tuple> struct TupleIndex;
+
+    /// @private
     template <class T, class... Types> struct TupleIndex<T, std::tuple<T, Types...>> {
         static const usize value = 0;
     };
+
+    /// @private
     template <class T, class U, class... Types> struct TupleIndex<T, std::tuple<U, Types...>> {
         static const usize value = 1 + TupleIndex<T, std::tuple<Types...>>::value;
     };

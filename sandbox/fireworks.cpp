@@ -6,11 +6,22 @@
 #include "embed/shader/plane_frag_spv.hpp"
 #include "embed/shader/plane_vert_spv.hpp"
 
-constexpr usize PARTICLES = 15000;
+f32 randomF32()
+{
+    return (f32)rand() / RAND_MAX;
+}
+
+constexpr usize START_FIREWORKS = 20;
+constexpr usize MAX_PARTICLES = 5000;
 constexpr usize PARTICLE_VERTICIES = 3;
 
 struct Position {
     pom::maths::vec3 data;
+
+    static Position firework()
+    {
+        return Position { { randomF32() * 50.f - 25.f, 0.0f, randomF32() * 50.f - 25.f } };
+    }
 
     ECS_COMPONENT();
 };
@@ -19,11 +30,13 @@ struct Velocity {
     static Velocity random()
     {
         return Velocity {
-            pom::maths::vec3(((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
-                             ((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
-                             ((f32)rand() / RAND_MAX - 0.5f) * 0.3f)
+            pom::maths::vec3((randomF32() - 0.5f) * 0.3f, (randomF32() - 0.5f) * 0.3f, (randomF32() - 0.5f) * 0.3f)
                 .norm(),
         };
+    }
+    static Velocity firework()
+    {
+        return Velocity { { 0, randomF32() * 0.5f + 0.5f, 0 } };
     }
 
     pom::maths::vec3 data;
@@ -36,9 +49,17 @@ struct Rendered {
 
     static Rendered random()
     {
-        return Rendered { pom::Color { (f32)rand() / RAND_MAX, (f32)rand() / RAND_MAX, (f32)rand() / RAND_MAX, 1.f } };
+        return Rendered { pom::Color { randomF32(), randomF32(), randomF32(), 1.f } };
     }
 
+    ECS_COMPONENT();
+};
+
+struct Emitter {
+    ECS_COMPONENT();
+};
+
+struct Fader {
     ECS_COMPONENT();
 };
 
@@ -139,7 +160,7 @@ struct Vertex {
     pom::Color color;
 };
 
-static Vertex VERTEX_DATA[PARTICLES * PARTICLE_VERTICIES] = {};
+static Vertex VERTEX_DATA[MAX_PARTICLES * PARTICLE_VERTICIES] = {};
 
 struct GridConfig {
     pom::Color xColor;
@@ -197,11 +218,12 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gs)
 {
-    for (usize i = 0; i < PARTICLES; i++) {
+    for (usize i = 0; i < START_FIREWORKS; i++) {
         const pom::Entity e = gs->store.createEntity();
-        gs->store.addComponent<Position>(e) = Position { { 0.0f, 0.0f, 0.0f } };
-        gs->store.addComponent<Velocity>(e) = Velocity::random();
-        gs->store.addComponent<Rendered>(e) = Rendered::random();
+        gs->store.addComponent<Position>(e) = Position::firework();
+        gs->store.addComponent<Velocity>(e) = Velocity::firework();
+        gs->store.addComponent<Rendered>(e) = { .color = pom::Color::rgb(80, 80, 80) };
+        gs->store.addComponent<Emitter>(e) = {};
     }
 
     // pipeline
@@ -338,6 +360,7 @@ POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
 
 POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
 {
+    // POM_DEBUG("dt: ", dt, "ms");
     auto frame = pom::Application::get()->getFrame();
     POM_PROFILE_SCOPE("update");
     {
@@ -365,46 +388,18 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             gs->commandBuffer->setScissor({ 0, 0 },
                                           { context->swapchainExtent.width, context->swapchainExtent.height });
 
+            u32 verticies = 0;
             {
                 POM_PROFILE_SCOPE("update buffer");
 
                 pom::Ref<pom::gfx::Buffer> vb = gs->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 Vertex* buffer = (Vertex*)vb->map();
-                // for (auto [e, p, v] : gs->pvView) {
-                //     v.data -= pom::maths::vec3 { 0, 0.02, 0 };
-                //     p.data += v.data;
-                //     if (p.data.y < -90) {
-                //         v = Velocity::random();
-                //         p.data = pom::maths::vec3(0, 0, 0);
-                //     }
-                // }
 
-                // u32 i = 0;
-                // for (auto [e, p, c] : gs->pcView) {
-                //     for (u32 j = 0; j < PARTICLE_VERTICIES; j++) {
-                //         buffer[i + j] = {
-                //             .pos = p.data
-                //                    + pom::maths::vec3(sinf((f32)j / PARTICLE_VERTICIES * TAU),
-                //                                       cosf((f32)j / PARTICLE_VERTICIES * TAU),
-                //                                       0)
-                //                          * 0.5f,
-                //             .color = c.data,
-                //         };
-                //     }
-                //     i += 3;
-                // }
-
-                u32 i = 0;
-                for (auto [e, p, v, r] : gs->store.view<Position, Velocity, Rendered>()) {
-                    POM_PROFILE_SCOPE("update buffer");
-                    v.data -= pom::maths::vec3 { 0, 0.02, 0 };
+                for (auto [_, p, v, r] : gs->store.view<Position, Velocity, Rendered>()) {
+                    v.data -= pom::maths::vec3 { 0.f, 0.01f, 0.f };
                     p.data += v.data;
-                    if (p.data.y < -90) {
-                        v = Velocity::random();
-                        p.data = pom::maths::vec3(0, 0, 0);
-                    }
                     for (u32 j = 0; j < PARTICLE_VERTICIES; j++) {
-                        buffer[i + j] = {
+                        buffer[verticies + j] = {
                             .pos = p.data
                                    + pom::maths::vec3(sinf((f32)j / PARTICLE_VERTICIES * TAU),
                                                       cosf((f32)j / PARTICLE_VERTICIES * TAU),
@@ -413,8 +408,39 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                             .color = r.color,
                         };
                     }
-                    i += 3;
+                    verticies += 3;
                 }
+
+                for (auto [_, p, v, _1] : gs->store.view<Position, Velocity, Emitter>()) {
+                    if (v.data.y < 0.f) {
+                        static const pom::Color colors[3] = {
+                            pom::Color::rgb(91, 206, 250),
+                            pom::Color::rgb(245, 169, 184),
+                            pom::Color::rgb(255, 255, 255),
+                        };
+                        const u32 c = floor(((f32)rand() / RAND_MAX) * 3);
+                        for (u32 i = 0; i < 100; i++) {
+                            pom::Entity e = gs->store.createEntity();
+                            gs->store.addComponent<Position>(e) = p;
+                            gs->store.addComponent<Velocity>(e) = Velocity::random();
+                            gs->store.addComponent<Rendered>(e) = { colors[c] };
+                            gs->store.addComponent<Fader>(e);
+                        }
+
+                        p = Position::firework();
+                        v = Velocity::firework();
+                    }
+                }
+
+                std::vector<pom::Entity> destroyList;
+                for (auto [e, r, _] : gs->store.view<Rendered, Fader>()) {
+                    r.color.a -= 0.03f;
+                    if (r.color.a < 0.f)
+                        destroyList.push_back(e);
+                }
+
+                for (auto e : destroyList)
+                    gs->store.destroyEntity(e);
 
                 vb->unmap();
             }
@@ -427,7 +453,7 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                                                  0,
                                                  gs->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-            gs->commandBuffer->draw(sizeof(VERTEX_DATA) / sizeof(VERTEX_DATA[0]));
+            gs->commandBuffer->draw(verticies);
 
             // gs->commandBuffer->drawIndexed(gs->indexBuffer->getSize() / sizeof(u16));
 
@@ -452,8 +478,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             pom::Application::get()->getMainWindow().getContext()->present();
         }
     }
-
-    // POM_DEBUG("dt: ", dt, "ms");
 }
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)

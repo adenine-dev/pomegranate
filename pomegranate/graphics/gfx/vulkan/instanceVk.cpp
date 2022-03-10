@@ -6,6 +6,7 @@
 
 #include <set>
 
+#ifdef _DEBUG
 VkBool32 debugCallbackVk(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                          VkDebugUtilsMessageTypeFlagsEXT /*types*/,
                          const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -47,7 +48,7 @@ VkBool32 debugCallbackVk(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 
     return VK_FALSE;
 }
-
+#endif
 namespace pom::gfx {
     InstanceVk::InstanceVk(const char* appname)
     {
@@ -128,6 +129,7 @@ namespace pom::gfx {
             POM_ASSERT(found, "Unable to find requested extension: ", extension);
         }
 
+#ifdef _DEBUG
         VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = nullptr,
@@ -140,6 +142,7 @@ namespace pom::gfx {
             .pfnUserCallback = debugCallbackVk,
             .pUserData = nullptr,
         };
+#endif
 
         VkApplicationInfo appInfo = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -153,7 +156,11 @@ namespace pom::gfx {
 
         VkInstanceCreateInfo instanceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+#ifdef _DEBUG
             .pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo,
+#else
+            .pNext = nullptr,
+#endif
             .flags = 0,
             .pApplicationInfo = &appInfo,
             .enabledLayerCount = static_cast<u32>(validationLayers.size()),
@@ -164,7 +171,8 @@ namespace pom::gfx {
 
         POM_CHECK_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &instance), "Failed to create instance.");
 
-        // debug messanger
+// debug messanger
+#ifdef _DEBUG
         auto vkCreateDebugUtilsMessengerEXT
             = PFN_vkCreateDebugUtilsMessengerEXT(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
         POM_ASSERT(vkCreateDebugUtilsMessengerEXT, "Unable to find vkCreateDebugUtilsMessengerEXT");
@@ -182,7 +190,7 @@ namespace pom::gfx {
         };
 
         vkCreateDebugUtilsMessengerEXT(instance, &messangerCreateInfo, nullptr, &debugMessenger);
-
+#endif
         loadPhysicalDevices();
     }
 
@@ -220,12 +228,12 @@ namespace pom::gfx {
 
             vkDestroyDevice(device, nullptr);
         }
-
+#ifdef _DEBUG
         auto vkDestroyDebugUtilsMessengerEXT
             = PFN_vkDestroyDebugUtilsMessengerEXT(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
         POM_ASSERT(vkDestroyDebugUtilsMessengerEXT, "Unable to find vkDestroyDebugUtilsMessengerEXT");
         vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-
+#endif
         vkDestroyInstance(instance, nullptr);
     }
 

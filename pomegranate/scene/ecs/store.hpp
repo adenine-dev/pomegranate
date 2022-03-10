@@ -6,11 +6,12 @@
 
 #include "archetype.hpp"
 #include "component.hpp"
-#include "view.hpp"
 
 namespace pom {
     /// @addtogroup ecs
     /// @{
+
+    template <Component... Cs> requires(are_distinct<Cs...>) class View;
 
     /// @brief Creates and contains all entity and component data.
     class POM_API Store {
@@ -20,7 +21,7 @@ namespace pom {
 
         /// Returns a new entity with no components attached to it.
         /// @note Entities are only unique within the `Store` they were created in, and they may be reused after an
-        /// entity hsa been destroyed.
+        /// entity has been destroyed.
         Entity createEntity();
 
         /// @brief Destroys an entity and all of its components.
@@ -144,10 +145,12 @@ namespace pom {
             oldRecord.archetype->removeEntity(oldRecord.idx);
         }
 
-        // FIXME: adding or removing components in a view breaks stuff
+        /// Returns a view into the store with the requested components.
+        /// @warning moving an entity while iterating over a view invalidates that view.
         template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] View<Cs...> view()
         {
-            return View<Cs...>(findOrCreateArchetype<Cs...>());
+            POM_PROFILE_FUNCTION();
+            return View<Cs...>(this);
         }
 
     private:
@@ -165,6 +168,8 @@ namespace pom {
         }
 
         friend class Archetype;
+        template <Component... Cs> requires(are_distinct<Cs...>) friend class View;
+
         std::unordered_map<Entity, Record> records;
         std::vector<Archetype*> archetypes;
     };

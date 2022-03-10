@@ -20,6 +20,7 @@ namespace pom {
         /// Constructs a Type from a template parameter pack of Components. The passed components must be unique.
         template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] static Type fromPack()
         {
+            // TODO: compile time sorting
             POM_PROFILE_FUNCTION();
             Type t;
             t.components = { getComponentMetadata<Cs>()... };
@@ -96,6 +97,22 @@ namespace pom {
         [[nodiscard]] const ComponentMetadata& operator[](usize idx) const
         {
             return components[idx];
+        }
+
+        /// Returns true if the passed parameter pack could be used to construct this type.
+        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] bool is() const
+        {
+            // TODO: compile time sorting
+            // NOTE: this assumes Cs... is sorted
+            POM_PROFILE_FUNCTION();
+            return ((components[TupleIndex<Cs, std::tuple<Cs...>>::value].id == componentId<Cs>)&&...);
+        }
+
+        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] bool match() const
+        {
+            POM_PROFILE_FUNCTION();
+
+            return (contains<Cs>() + ...) == std::tuple_size<std::tuple<Cs...>>::value;
         }
 
         [[nodiscard]] auto begin() const
