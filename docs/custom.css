@@ -292,6 +292,10 @@ div.directory {
   user-select: none;
 }
 
+.directory tr.even {
+  background-color: var(--alt-color);
+}
+
 .directory .arrow {
   width: 16px;
   text-align: center;

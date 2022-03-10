@@ -42,7 +42,7 @@ namespace pom {
         }
     }
 
-    /// @]
+    /// @}
 } // namespace pom
 
 /// @addtogroup debug
