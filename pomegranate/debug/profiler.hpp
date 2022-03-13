@@ -101,7 +101,12 @@ namespace pom {
 ///     // do stuff
 /// }
 /// ```
-#define POM_PROFILE_SCOPE(name) const ::pom::ProfilerTimer _POM_PROFILER_##__LINE__##_(name, __FILENAME__, __LINE__)
+
+// clang-format off
+#define POM_PROFILE_SCOPE_IMPL2(name, line) const ::pom::ProfilerTimer _POM_PROFILER_ ## line ## _(name, __FILENAME__, line)
+#define POM_PROFILE_SCOPE_IMPL(name, line) POM_PROFILE_SCOPE_IMPL2(name, line)
+#define POM_PROFILE_SCOPE(name) POM_PROFILE_SCOPE_IMPL(name, __LINE__)
+// clang-format on
 
 /*! \def POM_PROFILE_FUNCTION() */
 /// When put in a scope, will profile the rest of the scope (recommended to place at beginning

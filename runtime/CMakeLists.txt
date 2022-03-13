@@ -9,7 +9,7 @@ add_executable(pom_runtime ${SOURCES})
 add_dependencies(pom_runtime sandbox)
 target_compile_definitions(pom_runtime PRIVATE CLIENT_SO_FILE="$<TARGET_FILE_NAME:sandbox>" POM_RUNTIME)
 
-if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
+if (NOT CMAKE_BUILD_TYPE MATCHES Debug|RelWithDebInfo)
     set_target_properties(pom_runtime PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 

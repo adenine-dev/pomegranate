@@ -8,6 +8,7 @@
 
 namespace pom {
     /// @brief An iterator into a store that sees all entities with the passed Components.
+    /// @private
     template <Component... Cs> requires(are_distinct<Cs...>) class View {
     private:
         class iterator {

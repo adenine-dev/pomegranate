@@ -394,7 +394,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             auto* context = dynamic_cast<pom::gfx::ContextVk*>(pom::Application::get()->getMainWindow().getContext());
 
             {
-                // POM_DEBUG(gs->camera.position);
                 pom::Ref<pom::gfx::Buffer> uniformBuffer = gs->uniformBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
                 UniformMVP* data = (UniformMVP*)uniformBuffer->map();
 

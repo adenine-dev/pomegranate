@@ -63,7 +63,7 @@ namespace pom::gfx {
         u32 currentFrame = 0;
 
         VkInstance instance = VK_NULL_HANDLE;
-#ifdef _DEBUG
+#ifdef POM_DEBUG
         VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 #endif
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

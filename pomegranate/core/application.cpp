@@ -24,7 +24,7 @@ namespace pom {
             // TODO: its prob good to detect this change somehow then act on it, but this is good enough for now.
             switch (ev.type) {
             case pom::InputEventType::KEY_DOWN: {
-#ifdef _DEBUG
+#ifdef POM_DEBUG
                 if (ev.getKeycode() == pom::Keycode::R) {
                     POM_DEBUG("Reloading");
                     client.reload();

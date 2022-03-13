@@ -2,10 +2,10 @@
 
 namespace pom {
     namespace {
-#ifdef NDEBUG
-        LogLevel currentLogLevel = LogLevel::ERROR;
-#else
+#ifdef POM_DEBUG
         LogLevel currentLogLevel = LogLevel::DEBUG;
+#else
+        LogLevel currentLogLevel = LogLevel::ERROR;
 #endif
     } // namespace
 

@@ -572,7 +572,7 @@ namespace pom::gfx {
         } break;
         default: {
             // FIXME: there has to be a better way to do this.
-#ifdef _DEBUG
+#ifdef POM_DEBUG
             POM_ERROR("Bad vk attachment load operation.");
 #endif
             return LoadOperation::LOAD;
@@ -603,7 +603,7 @@ namespace pom::gfx {
         } break;
         default: {
             // FIXME: there has to be a better way to do this.
-#ifdef _DEBUG
+#ifdef POM_DEBUG
             POM_ERROR("Bad vk attachment store operation.");
 #endif
             return StoreOperation::STORE;
@@ -680,7 +680,7 @@ namespace pom::gfx {
         } break;
         default: {
             // FIXME: there has to be a better way to do this.
-#ifdef _DEBUG
+#ifdef POM_DEBUG
             POM_ERROR("Bad vk index type.");
 #endif
             return IndexType::U32;
@@ -711,7 +711,7 @@ namespace pom::gfx {
         } break;
         default: {
             // FIXME: there has to be a better way to do this.
-#ifdef _DEBUG
+#ifdef POM_DEBUG
             POM_ERROR("Bad vk Shader stage flags.");
 #endif
             return ShaderStage::VERTEX;
