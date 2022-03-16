@@ -101,7 +101,7 @@ namespace pom {
     /// @private
     class POM_API Client {
     public:
-        Client(std::string clientFilename);
+        explicit Client(std::string clientFilename);
         ~Client();
 
         void begin();

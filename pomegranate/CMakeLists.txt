@@ -26,7 +26,7 @@ target_link_libraries(pomegranate PUBLIC
 
 target_precompile_headers(pomegranate PUBLIC "pch.hpp")
 
-target_compile_definitions(pomegranate PUBLIC "$<$<PLATFORM_ID:Windows>:POM_PLATFORM_WINDOWS>" PRIVATE POM_DLL "$<$<CONFIG:Debug,RelWithDebInfo>:POM_DEBUG>")
+target_compile_definitions(pomegranate PUBLIC "$<$<PLATFORM_ID:Windows>:POM_PLATFORM_WINDOWS>" PRIVATE POM_DLL "$<$<CONFIG:Debug,RelWithDebInfo>:POM_DEBUG_SYMBOLS>")
 
 assign_source_group(${SOURCES})
 define_filename_macro(${SOURCES})
