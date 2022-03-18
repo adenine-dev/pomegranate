@@ -30,8 +30,9 @@ struct Velocity {
     static Velocity random()
     {
         return Velocity {
-            pom::maths::vec3((randomF32() - 0.5f) * 0.3f, (randomF32() - 0.5f) * 0.3f, (randomF32() - 0.5f) * 0.3f)
-                .norm(),
+            pom::maths::norm(pom::maths::vec3((randomF32() - 0.5f) * 0.3f,
+                                              (randomF32() - 0.5f) * 0.3f,
+                                              (randomF32() - 0.5f) * 0.3f)),
         };
     }
     static Velocity firework()
@@ -103,7 +104,7 @@ struct ArcballCamera {
         if (ev->type == pom::InputEventType::MOUSE_SCROLL) {
             radius += ev->getDelta().y;
             radius = std::max(radius, 0.1f);
-            eye = eye.norm() * radius;
+            eye = pom::maths::norm(eye) * radius;
 
             calculateView();
         } else if (ev->type == pom::InputEventType::KEY_DOWN) {
@@ -137,10 +138,7 @@ struct ArcballCamera {
                 if (cosAngle * sgn(angle.y) > 0.99f)
                     angle.y = 0;
 
-                // eye = ((pom::maths::mat3::rotate(angle.x, view.up()) * (eye - pivot)) + pivot).norm() * eye.mag();
-                // eye = ((pom::maths::mat3::rotate(angle.y, view.right()) * (eye - pivot)) + pivot).norm() * eye.mag();
-
-                eye = (eye - pivot + (view.up() * -angle.y + view.right() * angle.x)).norm() * radius + pivot;
+                eye = pom::maths::norm(eye - pivot + (view.up() * -angle.y + view.right() * angle.x)) * radius + pivot;
 
                 calculateView();
                 lastMousePos = ev->getPosition();
@@ -478,6 +476,8 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             pom::Application::get()->getMainWindow().getContext()->present();
         }
     }
+
+    POM_DEBUG("dt: ", dt, "ms");
 }
 
 POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)

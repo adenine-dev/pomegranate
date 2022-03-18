@@ -14,12 +14,9 @@ struct Position {
 struct Velocity {
     static Velocity random()
     {
-        return Velocity {
-            pom::maths::vec3(((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
-                             ((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
-                             ((f32)rand() / RAND_MAX - 0.5f) * 0.3f)
-                .norm(),
-        };
+        return Velocity { pom::maths::norm(pom::maths::vec3(((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
+                                                            ((f32)rand() / RAND_MAX - 0.5f) * 0.3f,
+                                                            ((f32)rand() / RAND_MAX - 0.5f) * 0.3f)) };
     }
 
     pom::maths::vec3 data;

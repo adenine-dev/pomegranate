@@ -38,7 +38,7 @@ namespace pom::maths {
         /// Returns an new identity matrix.
         constexpr static Matrix<T, M, N> identity()
         {
-            Matrix<T, M, N> ret { 0 };
+            Matrix<T, M, N> ret {};
             for (POM_VECTOR_SIZE_TYPE i = 0; i < M; i++) {
                 ret[i][i] = 1;
             }
@@ -58,7 +58,7 @@ namespace pom::maths {
         /// Returns a new scale matrix, that scales by the members of `v`
         constexpr static Matrix<T, M, N> scale(const Vector<T, N - 1>& v)
         {
-            Matrix<T, M, N> ret { 0 };
+            Matrix<T, M, N> ret {};
             for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++) {
                 ret[i][i] = v[i];
             }
@@ -69,7 +69,7 @@ namespace pom::maths {
         /// Returns a new scale matrix, that scales by the members of `v`
         constexpr static Matrix<T, M, N> scale(T v)
         {
-            Matrix<T, M, N> ret { 0 };
+            Matrix<T, M, N> ret {};
             for (POM_VECTOR_SIZE_TYPE i = 0; i < N - 1; i++)
                 ret[i][i] = v;
             ret[N - 1][N - 1] = 1;
@@ -138,7 +138,7 @@ namespace pom::maths {
         constexpr static Matrix<T, 4, 4> perspective(f32 fov, f32 aspectRatio, f32 near, f32 far) requires(N == M
                                                                                                            && N == 4)
         {
-            Matrix<T, 4, 4> ret;
+            Matrix<T, 4, 4> ret = {};
 
             f32 q = tan(fov / 2);
 
@@ -171,10 +171,10 @@ namespace pom::maths {
         constexpr static Matrix<T, 4, 4> lookAt(const vec3& eye, const vec3& at, const vec3& up) requires(N == M
                                                                                                           && N == 4)
         {
-            Matrix<T, 4, 4> ret;
-            vec3 f = (at - eye).norm();
-            vec3 s = f.cross(up).norm();
-            vec3 u = s.cross(f);
+            Matrix<T, 4, 4> ret = {};
+            const vec3 f = (at - eye).norm();
+            const vec3 s = f.cross(up).norm();
+            const vec3 u = s.cross(f);
 
             ret[0][0] = s[0];
             ret[1][0] = s[1];
@@ -328,7 +328,7 @@ namespace pom::maths {
     template <typename T, POM_VECTOR_SIZE_TYPE M, POM_VECTOR_SIZE_TYPE N, POM_VECTOR_SIZE_TYPE P>
     constexpr Matrix<T, P, M> operator*(const Matrix<T, N, M>& lhs, const Matrix<T, P, N>& rhs)
     {
-        Matrix<T, P, M> ret;
+        Matrix<T, P, M> ret = {};
         for (POM_VECTOR_SIZE_TYPE i = 0; i < P; i++) {
             for (POM_VECTOR_SIZE_TYPE j = 0; j < M; j++) {
                 for (POM_VECTOR_SIZE_TYPE k = 0; k < N; k++) {

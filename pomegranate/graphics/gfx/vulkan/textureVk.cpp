@@ -85,7 +85,7 @@ namespace pom::gfx {
             .image = image,
             .viewType = toVkImageViewType(createInfo.type),
             .format = toVkFormat(createInfo.textureFormat),
-            .components = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,

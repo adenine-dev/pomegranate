@@ -87,16 +87,13 @@ struct ArcballCamera {
                 calculateView();
                 lastMousePos = ev->getPosition();
             } else {
-                pom::maths::vec2 delta = (lastMousePos - ev->getPosition()) * rotateSpeed * eye.mag();
+                pom::maths::vec2 delta = pom::maths::vec2(lastMousePos - ev->getPosition()) * (rotateSpeed * eye.mag());
 
                 pom::maths::vec2 angle((f32)(delta.x * TAU / width), (f32)(delta.y * PI / height));
 
                 float cosAngle = dot(view.forward(), view.up());
                 if (cosAngle * sgn(angle.y) > 0.99f)
                     angle.y = 0;
-
-                // eye = ((pom::maths::mat3::rotate(angle.x, view.up()) * (eye - pivot)) + pivot).norm() * eye.mag();
-                // eye = ((pom::maths::mat3::rotate(angle.y, view.right()) * (eye - pivot)) + pivot).norm() * eye.mag();
 
                 eye = (eye - pivot + (view.up() * -angle.y + view.right() * angle.x)).norm() * radius + pivot;
 
@@ -322,7 +319,6 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                       INDEX_DATA);
 
     // plane test
-
     pom::Ref<pom::gfx::ShaderModule> planeVertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
                                          plane_vert_spv_size,

@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SOURCES
-    ./sandbox.cpp
+    ./fireworks.cpp
 )
 
 add_library(sandbox SHARED ${SOURCES})

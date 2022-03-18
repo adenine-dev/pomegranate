@@ -27,16 +27,20 @@ namespace pom {
                     if (SDL_GetWindowFromID(e->window.windowID) == self->windowHandle) {
                         switch (e->window.event) {
                         case SDL_WINDOWEVENT_MOVED: {
-                            self->callbackFn({ .type = InputEventType::WINDOW_MOVE,
-                                               .sourceWindow = self,
-                                               .windowMoveData = maths::ivec2 { e->window.data1, e->window.data2 } });
+                            self->callbackFn(pom::InputEvent {
+                                .type = InputEventType::WINDOW_MOVE,
+                                .sourceWindow = self,
+                                .windowMoveData = { maths::ivec2(e->window.data1, e->window.data2) },
+                            });
                         } break;
                         case SDL_WINDOWEVENT_RESIZED: {
                             self->graphicsContext->recreateSwapchain({ (f32)e->window.data1, (f32)e->window.data2 });
 
-                            self->callbackFn({ .type = InputEventType::WINDOW_RESIZE,
-                                               .sourceWindow = self,
-                                               .windowResizeData = maths::ivec2 { e->window.data1, e->window.data2 } });
+                            self->callbackFn(pom::InputEvent {
+                                .type = InputEventType::WINDOW_RESIZE,
+                                .sourceWindow = self,
+                                .windowResizeData = { maths::ivec2(e->window.data1, e->window.data2) },
+                            });
                         } break;
                         }
                     }
@@ -162,9 +166,11 @@ namespace pom {
                 auto* self = static_cast<Window*>(
                     SDL_GetWindowData(SDL_GetWindowFromID(e.window.windowID), POM_SDL_WINDOW_PTR));
 
-                self->callbackFn({ .type = InputEventType::MOUSE_SCROLL,
-                                   .sourceWindow = self,
-                                   .mouseScrollData = maths::ivec2 { e.wheel.x, e.wheel.y } });
+                self->callbackFn(pom::InputEvent {
+                    .type = InputEventType::MOUSE_SCROLL,
+                    .sourceWindow = self,
+                    .mouseScrollData = { maths::ivec2(e.wheel.x, e.wheel.y) },
+                });
             } break;
             case SDL_KEYDOWN: {
                 auto* self = static_cast<Window*>(

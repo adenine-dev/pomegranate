@@ -2,7 +2,7 @@
 
 namespace pom {
     namespace {
-#ifdef POM_DEBUG
+#ifdef POM_DEBUG_SYMBOLS
         LogLevel currentLogLevel = LogLevel::DEBUG;
 #else
         LogLevel currentLogLevel = LogLevel::ERROR;
