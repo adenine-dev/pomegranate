@@ -104,6 +104,9 @@
 #include "graphics/gfx/shader.hpp"
 #include "graphics/gfx/texture.hpp"
 
+// TODO: docs
+#include "graphics/mesh.hpp"
+
 // TODO: if vulkan
 /// @defgroup vulkan Vulkan Implementation
 /// @ingroup gfx

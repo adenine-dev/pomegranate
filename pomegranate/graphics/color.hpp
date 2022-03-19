@@ -11,7 +11,7 @@ namespace pom {
 
     /// Standard shader parsable color. `r` `g` `b` and `a` are the channels, where 0.0f is the minimum value and 1.0f
     /// is the maximum value for a given channel.
-    struct Color {
+    struct POM_API Color {
         /// @private
         union {
             f32 data[4];

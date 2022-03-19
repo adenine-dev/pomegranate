@@ -15,12 +15,6 @@
 
 #include "components.hpp"
 
-struct Vertex {
-    pom::maths::vec3 pos;
-    pom::Color color;
-    pom::maths::vec2 uv;
-};
-
 struct ArcballCamera {
     ArcballCamera(f32 width, f32 height) : width(width), height(height)
     {
@@ -110,32 +104,6 @@ struct UniformMVP {
     pom::maths::mat4 projection;
 };
 
-// clang-format off
-static Vertex VERTEX_DATA[] = {
-    { { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
-    { {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-    { {  0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 1.f, 0.f } },
-    { {  0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-    { { -0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 1.f } },
-};
-
-
-// static Vertex VERTEX_DATA[] = {
-//     { { -0.5f, -0.5f,  0 }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.f, 0.f } },
-//     { {  0.5f, -0.5f,  0 }, { 1.0f, 0.0f, 1.0f, 1.0f }, { 1.f, 0.f } },
-//     { {  0.5f,  0.5f,  0 }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 1.f, 1.f } },
-//     { { -0.5f,  0.5f,  0 }, { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.f, 1.f } },
-// };
-
-// clang-format on
-
-// static const u16 INDEX_DATA[] = { 0, 1, 2, 0, 2, 3 };
-static const u16 INDEX_DATA[]
-    = { 0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1, 7, 6, 5, 5, 4, 7, 4, 0, 3, 3, 7, 4, 4, 5, 1, 1, 0, 4, 3, 2, 6, 6, 7, 3 };
-
 struct GridConfig {
     pom::Color xColor;
     pom::Color zColor;
@@ -150,9 +118,7 @@ struct GameState {
     // instance
     pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
     // vertex buffer
-    pom::Ref<pom::gfx::Buffer> vertexBuffers[POM_MAX_FRAMES_IN_FLIGHT];
-    pom::Ref<pom::gfx::Buffer> scaleBuffer;
-    pom::Ref<pom::gfx::Buffer> indexBuffer;
+    pom::geometry::GPUMesh<pom::geometry::MeshVertex> cube;
 
     // uniform buffers
     pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
@@ -304,19 +270,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     // command buffer
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
-    // vertex buffer
-    for (auto& vertexBuffer : gamestate->vertexBuffers) {
-        vertexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::VERTEX,
-                                                pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                sizeof(VERTEX_DATA),
-                                                VERTEX_DATA);
-    }
-
-    // index buffer
-    gamestate->indexBuffer = pom::gfx::Buffer::create(pom::gfx::BufferUsage::INDEX,
-                                                      pom::gfx::BufferMemoryAccess::GPU_ONLY,
-                                                      sizeof(INDEX_DATA),
-                                                      INDEX_DATA);
+    gamestate->cube = pom::geometry::cube();
 
     // plane test
     pom::Ref<pom::gfx::ShaderModule> planeVertShader
@@ -409,15 +363,15 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             gs->commandBuffer->setScissor({ 0, 0 },
                                           { context->swapchainExtent.width, context->swapchainExtent.height });
 
-            gs->commandBuffer->bindVertexBuffer(gs->vertexBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT]);
-            gs->commandBuffer->bindIndexBuffer(gs->indexBuffer, pom::gfx::IndexType::U16);
+            gs->commandBuffer->bindVertexBuffer(gs->cube.vertexBuffer);
+            gs->commandBuffer->bindIndexBuffer(gs->cube.indexBuffer, gs->cube.indexType);
             gs->commandBuffer->bindPipeline(gs->pipeline);
 
             gs->commandBuffer->bindDescriptorSet(gs->pipelineLayout,
                                                  0,
                                                  gs->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-            gs->commandBuffer->drawIndexed(gs->indexBuffer->getSize() / sizeof(u16));
+            gs->commandBuffer->drawIndexed(gs->cube.indexBuffer->getSize() / sizeof(u16));
 
             pom::Ref<pom::gfx::Buffer> gridConfigBuffer = gs->gridConfigBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
             auto* config = (GridConfig*)gridConfigBuffer->map();

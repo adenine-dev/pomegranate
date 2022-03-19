@@ -188,11 +188,11 @@ namespace pom::maths {
 
         IMPL_COMMON_VECTOR_FUNCS(T, 2)
 
-        Vector<T, 2>(T x) : data { x, x }
+        constexpr Vector<T, 2>(T x) : data { x, x }
         {
         }
 
-        Vector<T, 2>(T x, T y) : data { x, y }
+        constexpr Vector<T, 2>(T x, T y) : data { x, y }
         {
         }
     };
@@ -221,10 +221,10 @@ namespace pom::maths {
 
         IMPL_COMMON_VECTOR_FUNCS(T, 3)
 
-        Vector<T, 3>(T x) : data { x, x, x }
+        constexpr Vector<T, 3>(T x) : data { x, x, x }
         {
         }
-        Vector<T, 3>(T x, T y, T z) : data { x, y, z }
+        constexpr Vector<T, 3>(T x, T y, T z) : data { x, y, z }
         {
         }
     };
@@ -257,17 +257,19 @@ namespace pom::maths {
 
         IMPL_COMMON_VECTOR_FUNCS(T, 4);
 
-        Vector<T, 4>(T x) : data { x, x, x, x }
+        constexpr Vector<T, 4>(T x) : data { x, x, x, x }
         {
         }
 
-        Vector<T, 4>(T x, T y, T z, T w) : data { x, y, z, w }
+        constexpr Vector<T, 4>(T x, T y, T z, T w) : data { x, y, z, w }
         {
         }
 
-        Vector<T, 4>(Vector<T, 3> v, T w) : data { v.x, v.y, v.z, w }
+        constexpr Vector<T, 4>(Vector<T, 3> v, T w) : data { v.x, v.y, v.z, w }
         {
         }
+
+        // TODO: prob the rest of the constructors...
     };
 
     template <typename T, POM_VECTOR_SIZE_TYPE N>
