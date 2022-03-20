@@ -22,4 +22,6 @@ namespace pom::geometry {
 
     POM_API GPUMesh<MeshVertex> cube(Color color = Color::WHITE);
 
+    POM_API GPUMesh<MeshVertex> sphere(Color color = Color::WHITE);
+
 } // namespace pom::geometry

@@ -118,7 +118,7 @@ struct GameState {
     // instance
     pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
     // vertex buffer
-    pom::geometry::GPUMesh<pom::geometry::MeshVertex> cube;
+    pom::geometry::GPUMesh<pom::geometry::MeshVertex> sphere;
 
     // uniform buffers
     pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
@@ -253,7 +253,8 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     gamestate->pipeline = pom::gfx::Pipeline::create(
         {
-            .cullMode = pom::gfx::CullMode::NONE
+            // .topology = pom::gfx::PrimitiveTopology::POINTS,
+            // .cullMode = pom::gfx::CullMode::NONE,
         },
         shader,
         pom::Application::get()->getMainWindow().getContext()->getSwapchainRenderPass(),
@@ -270,7 +271,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     // command buffer
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
-    gamestate->cube = pom::geometry::cube();
+    gamestate->sphere = pom::geometry::sphere();
 
     // plane test
     pom::Ref<pom::gfx::ShaderModule> planeVertShader
@@ -363,15 +364,15 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             gs->commandBuffer->setScissor({ 0, 0 },
                                           { context->swapchainExtent.width, context->swapchainExtent.height });
 
-            gs->commandBuffer->bindVertexBuffer(gs->cube.vertexBuffer);
-            gs->commandBuffer->bindIndexBuffer(gs->cube.indexBuffer, gs->cube.indexType);
+            gs->commandBuffer->bindVertexBuffer(gs->sphere.vertexBuffer);
+            gs->commandBuffer->bindIndexBuffer(gs->sphere.indexBuffer, gs->sphere.indexType);
             gs->commandBuffer->bindPipeline(gs->pipeline);
 
             gs->commandBuffer->bindDescriptorSet(gs->pipelineLayout,
                                                  0,
                                                  gs->descriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
 
-            gs->commandBuffer->drawIndexed(gs->cube.indexBuffer->getSize() / sizeof(u16));
+            gs->commandBuffer->drawIndexed(gs->sphere.indexBuffer->getSize() / sizeof(u16));
 
             pom::Ref<pom::gfx::Buffer> gridConfigBuffer = gs->gridConfigBuffers[frame % POM_MAX_FRAMES_IN_FLIGHT];
             auto* config = (GridConfig*)gridConfigBuffer->map();
