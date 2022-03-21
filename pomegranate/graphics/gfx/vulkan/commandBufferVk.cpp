@@ -258,6 +258,25 @@ namespace pom::gfx {
                                 nullptr);
     }
 
+    void CommandBufferVk::setPushConstants(Ref<PipelineLayout> pipelineLayout,
+                                           ShaderStageFlags stages,
+                                           usize size,
+                                           const void* data,
+                                           usize offset)
+    {
+        POM_PROFILE_FUNCTION();
+        POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN, "Attempting to use mismatched buffer api");
+        POM_ASSERT(size % 4 == 0, "size parameter must be a multiple of 4 bytes")
+        POM_ASSERT(offset % 4 == 0, "size parameter must be a multiple of 4 bytes")
+
+        vkCmdPushConstants(getCurrentCommandBuffer(),
+                           dynamic_cast<PipelineLayoutVk*>(pipelineLayout.get())->getVkPipelineLayout(),
+                           toVkShaderStageFlags(stages),
+                           offset,
+                           size,
+                           data);
+    }
+
     void CommandBufferVk::copyBufferToTexture(Buffer* src,
                                               Texture* dst,
                                               usize size,

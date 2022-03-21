@@ -51,6 +51,12 @@ namespace pom::gfx {
 
         void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet) final;
 
+        void setPushConstants(Ref<PipelineLayout> pipelineLayout,
+                              ShaderStageFlags stages,
+                              usize size,
+                              const void* data,
+                              usize offset = 0) final;
+
         void copyBufferToBuffer(Buffer* src, Buffer* dst, usize size, usize srcOffset, usize dstOffset) final;
 
         void copyBufferToTexture(Buffer* src,

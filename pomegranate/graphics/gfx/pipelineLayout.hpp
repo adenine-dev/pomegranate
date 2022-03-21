@@ -46,6 +46,9 @@ namespace pom::gfx {
     };
 
     struct PushConstant {
+        ShaderStageFlags stages;
+        u32 size;
+        u32 offset;
     };
 
     class POM_API PipelineLayout {
@@ -53,7 +56,8 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this pipeline layout.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Ref<PipelineLayout> create(std::initializer_list<Descriptor> descriptors);
+        [[nodiscard]] static Ref<PipelineLayout> create(std::initializer_list<Descriptor> descriptors,
+                                                        std::initializer_list<PushConstant> pushConstants);
 
         // [[nodiscard]] virtual u32 getDescriptorSets() const = 0;
 

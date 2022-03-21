@@ -225,20 +225,27 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     pom::Ref<pom::gfx::Shader> shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
-    gamestate->pipelineLayout = pom::gfx::PipelineLayout::create({
+    gamestate->pipelineLayout = pom::gfx::PipelineLayout::create(
         {
-            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-            .set = 0,
-            .binding = 0,
-            .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 0,
+                .binding = 0,
+                .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            },
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 0,
+                .binding = 1,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
         },
         {
-            .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
-            .set = 0,
-            .binding = 1,
-            .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-        },
-    });
+            {
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+                .size = sizeof(f32),
+            },
+        });
 
     // descriptor set
     for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
@@ -286,20 +293,22 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     pom::Ref<pom::gfx::Shader> planeShader = pom::gfx::Shader::create({ planeVertShader, planeFragShader });
 
-    gamestate->planePipelineLayout = pom::gfx::PipelineLayout::create({
+    gamestate->planePipelineLayout = pom::gfx::PipelineLayout::create(
         {
-            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-            .set = 0,
-            .binding = 0,
-            .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 0,
+                .binding = 0,
+                .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            },
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 0,
+                .binding = 1,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
         },
-        {
-            .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-            .set = 0,
-            .binding = 1,
-            .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-        },
-    });
+        {});
 
     for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
         gamestate->planeDescriptorSets[i] = pom::gfx::DescriptorSet::create(gamestate->planePipelineLayout, 0);
@@ -367,6 +376,12 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             gs->commandBuffer->bindVertexBuffer(gs->sphere.vertexBuffer);
             gs->commandBuffer->bindIndexBuffer(gs->sphere.indexBuffer, gs->sphere.indexType);
             gs->commandBuffer->bindPipeline(gs->pipeline);
+
+            const f32 a = abs(sinf((f32)frame / 100.f));
+            gs->commandBuffer->setPushConstants(gs->pipelineLayout,
+                                                pom::gfx::ShaderStageFlags::FRAGMENT,
+                                                sizeof(f32),
+                                                &a);
 
             gs->commandBuffer->bindDescriptorSet(gs->pipelineLayout,
                                                  0,

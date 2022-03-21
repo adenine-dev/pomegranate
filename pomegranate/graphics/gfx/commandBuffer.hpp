@@ -5,6 +5,7 @@
 #include "gfx.hpp"
 
 #include "maths/vector.hpp"
+#include "pipelineLayout.hpp"
 
 namespace pom::gfx {
 
@@ -13,7 +14,6 @@ namespace pom::gfx {
     class Pipeline;
     class Context;
     class Texture;
-    class PipelineLayout;
     class DescriptorSet;
 
     /// @addtogroup gfx
@@ -112,6 +112,13 @@ namespace pom::gfx {
         virtual void bindPipeline(Ref<Pipeline> pipeline) = 0;
 
         virtual void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
+            = 0;
+
+        virtual void setPushConstants(Ref<PipelineLayout> pipelineLayout,
+                                      ShaderStageFlags stages,
+                                      usize size,
+                                      const void* data,
+                                      usize offset = 0)
             = 0;
 
         /// Copies the contents of `src` to `dst`.

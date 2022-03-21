@@ -8,7 +8,9 @@
 #include "textureVk.hpp"
 
 namespace pom::gfx {
-    PipelineLayoutVk::PipelineLayoutVk(InstanceVk* instance, std::initializer_list<Descriptor> descriptors) :
+    PipelineLayoutVk::PipelineLayoutVk(InstanceVk* instance,
+                                       std::initializer_list<Descriptor> descriptors,
+                                       std::initializer_list<PushConstant> pushConstants) :
         instance(instance)
     {
         POM_PROFILE_FUNCTION();
@@ -76,11 +78,15 @@ namespace pom::gfx {
             descSetLayouts[i] = descriptorSetLayouts[i];
         }
 
-        // VkPushConstantRange pushConstant = {
-        //     .stageFlags =,
-        //     .offset =,
-        //     .size =,
-        // };
+        std::vector<VkPushConstantRange> pushConstantRanges;
+        pushConstantRanges.reserve(pushConstants.size());
+        for (const auto& pc : pushConstants) {
+            pushConstantRanges.push_back({
+                .stageFlags = toVkShaderStageFlags(pc.stages),
+                .offset = pc.offset,
+                .size = pc.size,
+            });
+        }
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -88,13 +94,14 @@ namespace pom::gfx {
             .flags = 0,
             .setLayoutCount = static_cast<u32>(descSetLayouts.size()),
             .pSetLayouts = descSetLayouts.data(),
-            .pushConstantRangeCount = 0, // TODO: push constants
-            .pPushConstantRanges = nullptr,
+            .pushConstantRangeCount = static_cast<u32>(pushConstantRanges.size()),
+            .pPushConstantRanges = pushConstantRanges.data(),
         };
 
         POM_CHECK_VK(
             vkCreatePipelineLayout(instance->getVkDevice(), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout),
             "failed to create pipeline");
+        POM_DEBUG("hi");
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()

@@ -16,7 +16,9 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        PipelineLayoutVk(InstanceVk* instance, std::initializer_list<Descriptor> descriptors);
+        PipelineLayoutVk(InstanceVk* instance,
+                         std::initializer_list<Descriptor> descriptors,
+                         std::initializer_list<PushConstant> pushConstants);
 
         ~PipelineLayoutVk() final;
 
