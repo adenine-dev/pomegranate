@@ -6,6 +6,18 @@ file(GLOB_RECURSE SOURCES
 add_library(pomegranate SHARED ${SOURCES})
 set_target_properties(pomegranate PROPERTIES LINKER_LANGUAGE CXX)
 
+file(GLOB_RECURSE SHADER_MODULES
+    # valid glslc extensions
+    ./embed/shaders/**/*.vert
+    ./embed/shaders/**/*.frag
+    ./embed/shaders/**/*.comp
+    ./embed/shaders/**/*.geom
+    ./embed/shaders/**/*.tesc
+    ./embed/shaders/**/*.tese
+)
+
+add_shader_modules(pomegranate ${SHADER_MODULES})
+
 target_include_directories(pomegranate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_include_directories(pomegranate PUBLIC ${POM_VENDOR_DIRECTORY}/SDL2/include)

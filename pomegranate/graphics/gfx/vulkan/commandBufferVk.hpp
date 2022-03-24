@@ -41,6 +41,8 @@ namespace pom::gfx {
 
         void draw(u32 vertexCount, u32 vertexOffset = 0) final;
 
+        void drawInstanced(u32 vertexCount, u32 instanceCount, u32 vertexOffset = 0, u32 instanceOffset = 0) final;
+
         void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) final;
 
         void bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint = 0, usize offset = 0) final;

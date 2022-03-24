@@ -107,6 +107,9 @@
 // TODO: docs
 #include "graphics/mesh.hpp"
 
+// TOOD: docs
+#include "graphics/renderer/spriteRenderer.hpp"
+
 // TODO: if vulkan
 /// @defgroup vulkan Vulkan Implementation
 /// @ingroup gfx

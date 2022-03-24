@@ -166,6 +166,15 @@ namespace pom::gfx {
         vkCmdDraw(getCurrentCommandBuffer(), vertexCount, 1, vertexOffset, 0);
     }
 
+    void CommandBufferVk::drawInstanced(u32 vertexCount, u32 instanceCount, u32 vertexOffset, u32 instanceOffset)
+    {
+        POM_PROFILE_FUNCTION();
+        POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
+                   "Attempting to use graphics command with a command buffer without that ability.");
+
+        vkCmdDraw(getCurrentCommandBuffer(), vertexCount, instanceCount, vertexOffset, instanceOffset);
+    }
+
     void CommandBufferVk::drawIndexed(u32 indexCount, u32 firstIndex, i32 vertexOffset)
     {
         POM_PROFILE_FUNCTION();

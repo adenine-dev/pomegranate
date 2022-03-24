@@ -15,7 +15,7 @@ namespace pom::gfx {
     private:
         // Theoretically this is completely wrong, queue family indices can be any valid u32 including u32max.
         // Practically no device will have more than a few queue families, much less 2^32-1 of them.
-        static const u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
+        static constexpr u32 INVALID_QUEUE_FAMILY_INDEX = UINT32_MAX;
 
     public:
         [[nodiscard]] constexpr GraphicsAPI getAPI() const final

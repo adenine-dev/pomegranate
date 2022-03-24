@@ -101,7 +101,6 @@ namespace pom::gfx {
         POM_CHECK_VK(
             vkCreatePipelineLayout(instance->getVkDevice(), &pipelineLayoutCreateInfo, nullptr, &pipelineLayout),
             "failed to create pipeline");
-        POM_DEBUG("hi");
     }
 
     PipelineLayoutVk::~PipelineLayoutVk()

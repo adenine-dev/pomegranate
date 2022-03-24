@@ -98,6 +98,9 @@ namespace pom::gfx {
         /// `CommandBufferSpecialization::GRAPHICS`
         virtual void drawIndexed(u32 indexCount, u32 firstIndex = 0, i32 vertexOffset = 0) = 0;
 
+        virtual void drawInstanced(u32 vertexCount, u32 instanceCount, u32 vertexOffset = 0, u32 instanceOffset = 0)
+            = 0;
+
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
         /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`

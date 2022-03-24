@@ -13,6 +13,8 @@ layout(location = 0) out vec4 outColor;
 const float near = 0.01;
 const float far = 150.0;
 
+const float FLOOR_Y = 0.00001; // prevent z fighting with things at y=0 as is more common than this.
+
 layout(set = 0, binding = 1) uniform GridConfig {
     vec4 xColor;
     vec4 zColor;
@@ -51,7 +53,7 @@ float computeLinearDepth(vec3 pos) {
 }
 
 void main() {
-    float t = -nearPoint.y / (farPoint.y - nearPoint.y);
+    float t = FLOOR_Y - nearPoint.y / (farPoint.y - nearPoint.y);
     vec3 fragPos3D = nearPoint + t * (farPoint - nearPoint);
 
     gl_FragDepth = computeDepth(fragPos3D);
