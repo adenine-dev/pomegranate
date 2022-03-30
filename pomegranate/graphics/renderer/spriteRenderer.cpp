@@ -30,12 +30,12 @@ namespace pom {
     SpriteRenderer::SpriteRenderer(gfx::Context* context, Store& store) : store(store)
     {
         Ref<gfx::ShaderModule> vertShader = gfx::ShaderModule::create(
-            gfx::ShaderStage::VERTEX,
+            gfx::ShaderStageFlags::VERTEX,
             spriteRenderer_vert_spv_size,
             reinterpret_cast<const u32*>(spriteRenderer_vert_spv_data)); // NOLINT, spv data is always 32 bit aligned.
 
         Ref<gfx::ShaderModule> fragShader = gfx::ShaderModule::create(
-            gfx::ShaderStage::FRAGMENT,
+            gfx::ShaderStageFlags::FRAGMENT,
             spriteRenderer_frag_spv_size,
             reinterpret_cast<const u32*>(spriteRenderer_frag_spv_data)); // NOLINT, spv data is always 32 bit aligned.
 
@@ -61,7 +61,7 @@ namespace pom {
             uniformMappings[i] = static_cast<SpriteRendererComponent*>(uniformBuffers[i]->map());
 
             descriptorSets[i] = gfx::DescriptorSet::create(pipelineLayout, 0);
-            descriptorSets[i]->setBuffer(0, uniformBuffers[i]);
+            descriptorSets[i]->setBuffer(gfx::DescriptorType::UNIFORM_BUFFER, 0, uniformBuffers[i]);
         }
 
         Ref<gfx::Shader> shader = gfx::Shader::create({ vertShader, fragShader });
@@ -91,7 +91,7 @@ namespace pom {
         commandBuffer->setScissor({ 0, 0 }, context->getSwapchainExtent());
 
         commandBuffer->bindPipeline(pipeline);
-        commandBuffer->bindDescriptorSet(pipelineLayout, 0, descriptorSets[frameIdx]);
+        commandBuffer->bindDescriptorSet(gfx::PipelineBindPoint::GRAPHICS, pipelineLayout, 0, descriptorSets[frameIdx]);
         PushConstantData pcData = {
             .viewProjection = viewProjection,
         };

@@ -143,6 +143,9 @@
 #include "scene/ecs/type.hpp"
 #include "scene/ecs/view.hpp"
 
+// TODO: docs
+#include "assets/assets.hpp"
+
 /// @defgroup core Core
 /// @brief Core functionality.
 #include "core/application.hpp"

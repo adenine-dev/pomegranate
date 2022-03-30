@@ -31,6 +31,17 @@ namespace pom::gfx {
         }
     }
 
+    [[nodiscard]] Ref<TextureView> TextureView::create(Ref<Texture> texture, TextureViewCreateInfo createInfo)
+    {
+        POM_PROFILE_FUNCTION();
+        switch (Instance::get()->getAPI()) {
+        case GraphicsAPI::VULKAN: {
+            POM_ASSERT(texture->getAPI() == GraphicsAPI::VULKAN, "mismatched graphics apis, expected Vulkan");
+            return Ref<TextureView>(new TextureViewVk(texture.dynCast<TextureVk>(), createInfo));
+        }
+        }
+    }
+
     Texture::Texture(TextureCreateInfo createInfo, u32 width, u32 height, u32 depth) :
         extent(width, height, depth), createInfo(createInfo)
     {

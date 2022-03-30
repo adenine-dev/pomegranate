@@ -41,4 +41,21 @@ namespace pom::gfx {
         }
         }
     }
+
+    Ref<Pipeline> Pipeline::createCompute(const Ref<Shader>& shader, const Ref<PipelineLayout>& pipelineLayout)
+    {
+        POM_PROFILE_FUNCTION();
+        switch (Instance::get()->getAPI()) {
+        case GraphicsAPI::VULKAN: {
+            POM_ASSERT(shader->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
+            POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN, "mismatched api");
+
+            auto* instance = dynamic_cast<InstanceVk*>(Instance::get());
+
+            return Ref<Pipeline>(
+                new PipelineVk(instance, shader.dynCast<ShaderVk>(), pipelineLayout.dynCast<PipelineLayoutVk>()));
+        }
+        }
+    }
+
 } // namespace pom::gfx

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "base.hpp"
 
 #include "gfx.hpp"
@@ -27,21 +29,30 @@ namespace pom::gfx {
 
     enum class TextureType {
         IMAGE_1D,
-        IMAGE_2D, // NOTE: this type is compatable with both VK_IMAGE_TYPE_2D and VK_IMAGE_TYPE_3D, default to 2D?
+        IMAGE_2D,
         IMAGE_3D,
-        // TEXTURE_1D_ARRAY,
-        // TEXTURE_2D_ARRAY, // NOTE: this type is compatable with VK_IMAGE_TYPE_2D and VK_IMAGE_TYPE_3D, default to 3D?
-        // TEXTURE_3D_ARRAY,
-        // CUBE,
-        // CUBE_ARRAY,
+    };
+
+    enum class TextureViewType {
+        VIEW_1D,
+        VIEW_2D,
+        VIEW_3D,
+        CUBE,
+        VIEW_1D_ARRAY,
+        VIEW_2D_ARRAY,
+        CUBE_ARRAY,
     };
 
     struct TextureCreateInfo {
         TextureType type;
         TextureUsage usage;
-        Format textureFormat;
-        Format viewFormat;
-        // TODO: swizzle, subresource range, sampler params, etc
+        Format format;
+    };
+
+    struct TextureViewCreateInfo {
+        TextureViewType type;
+        Format format;
+        // TODO: component mapping, subresource
     };
 
     class POM_API Texture {
@@ -92,5 +103,24 @@ namespace pom::gfx {
         maths::uvec3 extent;
 
         TextureCreateInfo createInfo;
+    };
+
+    class POM_API TextureView {
+    public:
+        /// Returns the GraphicsAPI associated with this texture view.
+        [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
+
+        [[nodiscard]] static Ref<TextureView> create(Ref<Texture> texture, TextureViewCreateInfo createInfo);
+
+        virtual ~TextureView() = default;
+
+    protected:
+        POM_NOCOPY(TextureView);
+
+        TextureView(TextureViewCreateInfo createInfo) : createInfo(createInfo)
+        {
+        }
+
+        TextureViewCreateInfo createInfo;
     };
 } // namespace pom::gfx

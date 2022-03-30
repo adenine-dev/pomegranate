@@ -8,11 +8,24 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
-    enum class ShaderStage {
-        VERTEX,
-        FRAGMENT,
-        // TODO: everything else
-    };
+#ifndef DOXYGEN // Hide this because technically it doesn't matter, the namespace is only really here so that the
+                // members of the enum do not pollute the namespace.
+    namespace ShaderStageFlagsNamespace {
+#endif
+        enum ShaderStageFlags {
+            VERTEX = 1 << 0,
+            // TESSELLATION_CONTROL,
+            // TESSELLATION_EVALUATION,
+            // GEOMETRY,
+            FRAGMENT = 1 << 1,
+            COMPUTE = 1 << 2,
+        };
+
+#ifndef DOXYGEN
+    } // namespace ShaderStageFlagsNamespace
+
+    using ShaderStageFlags = ShaderStageFlagsNamespace::ShaderStageFlags;
+#endif
 
     /// A single shader module for a given shader stage.
     class POM_API ShaderModule {
@@ -24,9 +37,9 @@ namespace pom::gfx {
         /// @param stage: The shader stage this module will be used for.
         /// @param size: The size of `spirvCode` **in bytes**
         /// @param spirvCode: Valid SPIR-V code this shader module will be used with.
-        [[nodiscard]] static Ref<ShaderModule> create(ShaderStage stage, usize size, const u32* spirvCode);
+        [[nodiscard]] static Ref<ShaderModule> create(ShaderStageFlags stage, usize size, const u32* spirvCode);
 
-        [[nodiscard]] inline ShaderStage getStage() const
+        [[nodiscard]] inline ShaderStageFlags getStage() const
         {
             return stage;
         };
@@ -34,9 +47,9 @@ namespace pom::gfx {
         virtual ~ShaderModule() = default;
 
     protected:
-        ShaderModule(ShaderStage stage);
+        ShaderModule(ShaderStageFlags stage);
 
-        ShaderStage stage;
+        ShaderStageFlags stage;
     };
 
     /// A collection of shader modules

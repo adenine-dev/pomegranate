@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SOURCES
-    ./test.cpp
+    ./sandbox.cpp
 )
 
 add_library(sandbox SHARED ${SOURCES})

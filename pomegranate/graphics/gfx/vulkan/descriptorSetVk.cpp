@@ -31,7 +31,11 @@ namespace pom::gfx {
         vkFreeDescriptorSets(instance->getVkDevice(), layout->pool, 1, &descriptorSet);
     }
 
-    void DescriptorSetVk::setBuffer(u32 binding, const Ref<Buffer>& buffer, u32 offset, u32 size)
+    void DescriptorSetVk::setBuffer(DescriptorType descriptorType,
+                                    u32 binding,
+                                    const Ref<Buffer>& buffer,
+                                    u32 offset,
+                                    u32 size)
     {
         POM_PROFILE_FUNCTION();
         VkDescriptorBufferInfo bufferInfo = {
@@ -47,7 +51,7 @@ namespace pom::gfx {
             .dstBinding = binding,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorType = toVkDescriptorType(descriptorType),
             .pImageInfo = nullptr,
             .pBufferInfo = &bufferInfo,
             .pTexelBufferView = nullptr,
@@ -56,15 +60,16 @@ namespace pom::gfx {
         vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
     }
 
-    void DescriptorSetVk::setTexture(u32 binding, const Ref<Texture>& texture)
+    void
+    DescriptorSetVk::setTextureView(DescriptorType descriptorType, u32 binding, const Ref<TextureView>& textureView)
     {
         POM_PROFILE_FUNCTION();
-        Ref<TextureVk> tex = texture.dynCast<TextureVk>();
+        Ref<TextureViewVk> texView = textureView.dynCast<TextureViewVk>();
 
         VkDescriptorImageInfo imageInfo = {
-            .sampler = tex->getVkSampler(),
-            .imageView = tex->getVkImageView(),
-            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .sampler = texView->getVkSampler(),
+            .imageView = texView->getVkImageView(),
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
         };
 
         VkWriteDescriptorSet descriptorSetWrite = {
@@ -74,7 +79,7 @@ namespace pom::gfx {
             .dstBinding = binding,
             .dstArrayElement = 0,
             .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorType = toVkDescriptorType(descriptorType),
             .pImageInfo = &imageInfo,
             .pBufferInfo = nullptr,
             .pTexelBufferView = nullptr,

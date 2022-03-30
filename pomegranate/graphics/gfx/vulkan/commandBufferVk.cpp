@@ -184,6 +184,13 @@ namespace pom::gfx {
         vkCmdDrawIndexed(getCurrentCommandBuffer(), indexCount, 1, firstIndex, vertexOffset, 0);
     }
 
+    void CommandBufferVk::dispatch(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
+    {
+        POM_PROFILE_FUNCTION();
+
+        vkCmdDispatch(getCurrentCommandBuffer(), groupCountX, groupCountY, groupCountZ);
+    }
+
     void CommandBufferVk::bindVertexBuffer(Ref<Buffer> vertexBuffer, u32 bindPoint, usize offset)
     {
         POM_PROFILE_FUNCTION();
@@ -219,9 +226,12 @@ namespace pom::gfx {
         POM_ASSERT(specialization == CommandBufferSpecialization::GRAPHICS,
                    "Attempting to use graphics command with a command buffer without that ability.");
 
+        auto pipelineVk = dynamic_cast<PipelineVk*>(pipeline.get());
+
         vkCmdBindPipeline(getCurrentCommandBuffer(),
-                          VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          dynamic_cast<PipelineVk*>(pipeline.get())->getHandle());
+                          pipelineVk->getRenderPass() ? VK_PIPELINE_BIND_POINT_GRAPHICS
+                                                      : VK_PIPELINE_BIND_POINT_COMPUTE,
+                          pipelineVk->getHandle());
     }
 
     void CommandBufferVk::copyBufferToBuffer(Buffer* src, Buffer* dst, usize size, usize srcOffset, usize dstOffset)
@@ -244,8 +254,10 @@ namespace pom::gfx {
         vkCmdCopyBuffer(getCurrentCommandBuffer(), srcBuffer, dstBuffer, 1, &region);
     }
 
-    void
-    CommandBufferVk::bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
+    void CommandBufferVk::bindDescriptorSet(PipelineBindPoint bindPoint,
+                                            Ref<PipelineLayout> pipelineLayout,
+                                            u32 set,
+                                            Ref<DescriptorSet> descriptorSet)
     {
         POM_PROFILE_FUNCTION();
         POM_ASSERT(pipelineLayout->getAPI() == GraphicsAPI::VULKAN,
@@ -258,7 +270,7 @@ namespace pom::gfx {
         VkDescriptorSet descSetVk = descSet->getVkDescriptorSet();
 
         vkCmdBindDescriptorSets(getCurrentCommandBuffer(),
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                toVkPipelineBindPoint(bindPoint),
                                 layout->getVkPipelineLayout(),
                                 set,
                                 1,
@@ -326,9 +338,7 @@ namespace pom::gfx {
                                1,
                                &region);
 
-        VkImageLayout l = getTheoreticallyIdealImageLayout(TextureUsage::TRANSFER_DST ^ texture->getUsage());
-
-        transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, l);
+        transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
     }
 
     void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout)
@@ -391,6 +401,7 @@ namespace pom::gfx {
                            | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; // NOTE: there may be an better stage for this
         } break;
         default: {
+            srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         }
         }
 
@@ -422,11 +433,17 @@ namespace pom::gfx {
 
             dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
         } break;
+        case VK_IMAGE_LAYOUT_GENERAL: {
+            // FIXME: pretty sure this isn't right..
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } break;
         case VK_IMAGE_LAYOUT_UNDEFINED:
         case VK_IMAGE_LAYOUT_PREINITIALIZED: {
             POM_FATAL("bad new image layout, cannot transition into undefined or preinitialized.");
         } break;
         default: {
+            dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         }
         }
 

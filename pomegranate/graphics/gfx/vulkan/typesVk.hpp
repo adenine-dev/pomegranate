@@ -43,12 +43,6 @@ namespace pom::gfx {
     /// Converts a `VkIndexType` to a `IndexType`.
     POM_API constexpr IndexType fromVkIndexType(VkIndexType t);
 
-    /// Converts a `ShaderStage` to a `VkShaderStageFlagBits`.
-    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStage s);
-
-    /// Converts a `VkShaderStageFlagBits` to a `ShaderStage`.
-    POM_API constexpr ShaderStage fromVkShaderStageFlagBits(VkShaderStageFlagBits s);
-
     /// Converts a `PrimitiveTopology` to a `VkPrimitiveTopology`.
     POM_API constexpr VkPrimitiveTopology toVkPrimitiveTopology(PrimitiveTopology t);
 
@@ -73,11 +67,11 @@ namespace pom::gfx {
     /// Converts a `VkImageType` to a `TextureType`.
     POM_API constexpr TextureType fromVkImageType(VkImageType t);
 
-    /// Converts a `TextureType` to a `VkImageViewType`.
-    POM_API constexpr VkImageViewType toVkImageViewType(TextureType t);
+    /// Converts a `TextureViewType` to a `VkImageViewType`.
+    POM_API constexpr VkImageViewType toVkImageViewType(TextureViewType t);
 
-    /// Converts a `VkImageViewType` to a `TextureType`.
-    POM_API constexpr TextureType fromVkImageViewType(VkImageViewType t);
+    /// Converts a `VkImageViewType` to a `TextureViewType`.
+    POM_API constexpr TextureViewType fromVkImageViewType(VkImageViewType t);
 
     // FIXME: This is probably dumb because it can toVkImageUsageFlags(fromVkImageUsageFlags(t)) != t
 
@@ -98,6 +92,18 @@ namespace pom::gfx {
 
     /// Converts a `VkShaderStageFlags` to a `ShaderStageFlags`.
     POM_API constexpr ShaderStageFlags fromVkShaderStageFlags(VkShaderStageFlags f);
+
+    /// Converts a `ShaderStageFlags` to a `VkShaderStageFlagBits`.
+    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStageFlags f);
+
+    /// Converts a `VkShaderStageFlagBits` to a `ShaderStageFlags`.
+    POM_API constexpr ShaderStageFlags fromVkShaderStageFlagBits(VkShaderStageFlagBits f);
+
+    /// Converts a `PipelineBindPoint` to a `VkPipelineBindPoint`.
+    POM_API constexpr VkPipelineBindPoint toVkPipelineBindPoint(PipelineBindPoint p);
+
+    /// Converts a `VkPipelineBindPoint` to a `PipelineBindPoint`.
+    POM_API constexpr PipelineBindPoint fromVkPipelineBindPoint(VkPipelineBindPoint p);
 
     /// Returns the theoretically ideal image layout from a `TextureUsage`. This may vary from the actual best layout
     /// for a given image at a given time but its good enough.

@@ -87,6 +87,9 @@ namespace pom::gfx {
                                                   std::initializer_list<VertexBinding> vertexBindings,
                                                   const Ref<PipelineLayout>& pipelineLayout
                                                   = Ref<PipelineLayout>(nullptr));
+
+        [[nodiscard]] static Ref<Pipeline> createCompute(const Ref<Shader>& shader,
+                                                         const Ref<PipelineLayout>& pipelineLayout);
         Pipeline() = default;
         virtual ~Pipeline() = default;
 

@@ -34,6 +34,37 @@ namespace pom::gfx {
             return image;
         }
 
+        [[nodiscard]] inline VkImageLayout getVkImageLayout()
+        {
+            return imageLayout;
+        }
+
+    protected:
+        POM_NOCOPY(TextureVk);
+
+        friend class CommandBufferVk;
+        friend class TextureViewVk;
+
+        InstanceVk* instance;
+
+        VkImageLayout imageLayout;
+
+        VkImage image = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+
+        usize memorySize = 0;
+    };
+
+    class POM_API TextureViewVk final : public TextureView {
+    public:
+        [[nodiscard]] constexpr GraphicsAPI getAPI() const final
+        {
+            return GraphicsAPI::VULKAN;
+        }
+
+        TextureViewVk(Ref<TextureVk> texture, TextureViewCreateInfo createInfo);
+        ~TextureViewVk() final;
+
         [[nodiscard]] VkImageView getVkImageView()
         {
             return view;
@@ -44,24 +75,12 @@ namespace pom::gfx {
             return sampler;
         }
 
-        [[nodiscard]] inline VkImageLayout getVkImageLayout()
-        {
-            return imageLayout;
-        }
-
     protected:
-        POM_NOCOPY(TextureVk);
-
+        POM_NOCOPY(TextureViewVk);
         friend class CommandBufferVk;
 
-        InstanceVk* instance;
-
-        VkImageLayout imageLayout;
-
-        VkImage image = VK_NULL_HANDLE;
-        VkDeviceMemory memory = VK_NULL_HANDLE;
+        Ref<TextureVk> texture;
         VkImageView view = VK_NULL_HANDLE;
         VkSampler sampler = VK_NULL_HANDLE;
-        usize memorySize = 0;
     };
 } // namespace pom::gfx

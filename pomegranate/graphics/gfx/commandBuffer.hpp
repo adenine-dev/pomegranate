@@ -41,6 +41,11 @@ namespace pom::gfx {
         U32 ///< The type is an unsigned 32bit integer.
     };
 
+    enum class PipelineBindPoint {
+        GRAPHICS,
+        COMPUTE,
+    };
+
     /// Command buffers are used to submit actions to the GPU.
     class POM_API CommandBuffer {
     public:
@@ -101,6 +106,8 @@ namespace pom::gfx {
         virtual void drawInstanced(u32 vertexCount, u32 instanceCount, u32 vertexOffset = 0, u32 instanceOffset = 0)
             = 0;
 
+        virtual void dispatch(u32 groupCountX, u32 groupCountY = 1, u32 groupCountZ = 1) = 0;
+
         /// Binds a vertex buffer to the given bind point, the Buffer **must** have been initialized with
         /// `BufferUsage::VERTEX`. The `offset` is the offset to the first byte that the shader will read. Requires the
         /// command buffer to have been created with `CommandBufferSpecialization::GRAPHICS`
@@ -114,7 +121,10 @@ namespace pom::gfx {
 
         virtual void bindPipeline(Ref<Pipeline> pipeline) = 0;
 
-        virtual void bindDescriptorSet(Ref<PipelineLayout> pipelineLayout, u32 set, Ref<DescriptorSet> descriptorSet)
+        virtual void bindDescriptorSet(PipelineBindPoint bindPoint,
+                                       Ref<PipelineLayout> pipelineLayout,
+                                       u32 set,
+                                       Ref<DescriptorSet> descriptorSet)
             = 0;
 
         virtual void setPushConstants(Ref<PipelineLayout> pipelineLayout,

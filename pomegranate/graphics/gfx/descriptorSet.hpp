@@ -6,11 +6,12 @@
 
 #include "gfx.hpp"
 
+#include "pipelineLayout.hpp"
+
 namespace pom::gfx {
 
-    class PipelineLayout;
     class Buffer;
-    class Texture;
+    class TextureView;
 
     /// @addtogroup gfx
     /// @{
@@ -22,8 +23,11 @@ namespace pom::gfx {
 
         [[nodiscard]] static Ref<DescriptorSet> create(const Ref<PipelineLayout>& layout, u32 set);
 
-        virtual void setBuffer(u32 binding, const Ref<Buffer>& buffer, u32 offset = 0, u32 size = 0) = 0;
-        virtual void setTexture(u32 binding, const Ref<Texture>& texture) = 0;
+        virtual void
+        setBuffer(DescriptorType descriptorType, u32 binding, const Ref<Buffer>& buffer, u32 offset = 0, u32 size = 0)
+            = 0;
+        virtual void setTextureView(DescriptorType descriptorType, u32 binding, const Ref<TextureView>& textureView)
+            = 0;
 
         virtual ~DescriptorSet() = default;
 

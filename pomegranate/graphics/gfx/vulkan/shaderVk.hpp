@@ -17,7 +17,7 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        ShaderModuleVk(InstanceVk* instance, ShaderStage stage, usize size, const u32* spirvCode);
+        ShaderModuleVk(InstanceVk* instance, ShaderStageFlags stage, usize size, const u32* spirvCode);
         ~ShaderModuleVk() final;
 
         [[nodiscard]] inline VkShaderModule getShaderModuleVk()

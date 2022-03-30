@@ -29,7 +29,7 @@ namespace pom::gfx {
             .pNext = nullptr,
             .flags = 0, // TODO
             .imageType = toVkImageType(createInfo.type),
-            .format = toVkFormat(createInfo.textureFormat),
+            .format = toVkFormat(createInfo.format),
             .extent = { width, height, depth },
             .mipLevels = 1, // TODO
             .arrayLayers = 1,
@@ -78,13 +78,55 @@ namespace pom::gfx {
 
         POM_CHECK_VK(vkBindImageMemory(instance->getVkDevice(), image, memory, 0), "Failed to bind image memory");
 
+        if (initialData) {
+            auto* transferBuffer = new BufferVk(instance,
+                                                BufferUsage::TRANSFER_SRC,
+                                                BufferMemoryAccess::CPU_WRITE,
+                                                getSize(),
+                                                initialData,
+                                                initialDataOffset,
+                                                initialDataSize);
+            auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
+            commandBuffer->begin();
+            commandBuffer->copyBufferToTexture(transferBuffer,
+                                               this,
+                                               initialDataSize,
+                                               initialDataOffset,
+                                               { 0, 0, 0 },
+                                               getExtent());
+            commandBuffer->end();
+            commandBuffer->submit();
+
+            delete commandBuffer;
+            delete transferBuffer;
+        } else {
+            auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
+            commandBuffer->begin();
+            commandBuffer->transitionImageLayoutVk(this, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+            commandBuffer->end();
+            commandBuffer->submit();
+
+            delete commandBuffer;
+        }
+    }
+
+    TextureVk::~TextureVk()
+    {
+        POM_PROFILE_FUNCTION();
+        vkDestroyImage(instance->getVkDevice(), image, nullptr);
+        vkFreeMemory(instance->getVkDevice(), memory, nullptr);
+    }
+
+    TextureViewVk::TextureViewVk(Ref<TextureVk> texture, TextureViewCreateInfo createInfo) : TextureView(createInfo)
+    {
+
         VkImageViewCreateInfo imageViewCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .image = image,
+            .image = texture->getVkImage(),
             .viewType = toVkImageViewType(createInfo.type),
-            .format = toVkFormat(createInfo.textureFormat),
+            .format = toVkFormat(createInfo.format),
             .components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -95,7 +137,7 @@ namespace pom::gfx {
             },
         };
 
-        POM_CHECK_VK(vkCreateImageView(instance->getVkDevice(), &imageViewCreateInfo, nullptr, &view),
+        POM_CHECK_VK(vkCreateImageView(texture->instance->getVkDevice(), &imageViewCreateInfo, nullptr, &view),
                      "failed to create image view");
 
         VkSamplerCreateInfo samplerCreateInfo = {
@@ -119,40 +161,14 @@ namespace pom::gfx {
             .unnormalizedCoordinates = VK_FALSE,
         };
 
-        POM_CHECK_VK(vkCreateSampler(instance->getVkDevice(), &samplerCreateInfo, nullptr, &sampler),
+        POM_CHECK_VK(vkCreateSampler(texture->instance->getVkDevice(), &samplerCreateInfo, nullptr, &sampler),
                      "failed to create sampler.");
-
-        if (initialData) {
-
-            auto* transferBuffer = new BufferVk(instance,
-                                                BufferUsage::TRANSFER_SRC,
-                                                BufferMemoryAccess::CPU_WRITE,
-                                                getSize(),
-                                                initialData,
-                                                initialDataOffset,
-                                                initialDataSize);
-            auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
-            commandBuffer->begin();
-            commandBuffer->copyBufferToTexture(transferBuffer,
-                                               this,
-                                               initialDataSize,
-                                               initialDataOffset,
-                                               { 0, 0, 0 },
-                                               getExtent());
-            commandBuffer->end();
-            commandBuffer->submit();
-
-            delete commandBuffer;
-            delete transferBuffer;
-        }
     }
 
-    TextureVk::~TextureVk()
+    TextureViewVk::~TextureViewVk()
     {
-        POM_PROFILE_FUNCTION();
-        vkDestroySampler(instance->getVkDevice(), sampler, nullptr);
-        vkDestroyImageView(instance->getVkDevice(), view, nullptr);
-        vkDestroyImage(instance->getVkDevice(), image, nullptr);
-        vkFreeMemory(instance->getVkDevice(), memory, nullptr);
+        vkDestroySampler(texture->instance->getVkDevice(), sampler, nullptr);
+        vkDestroyImageView(texture->instance->getVkDevice(), view, nullptr);
     }
+
 } // namespace pom::gfx

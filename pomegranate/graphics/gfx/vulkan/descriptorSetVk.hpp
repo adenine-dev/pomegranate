@@ -19,8 +19,12 @@ namespace pom::gfx {
 
         ~DescriptorSetVk() final;
 
-        void setBuffer(u32 binding, const Ref<Buffer>& buffer, u32 offset = 0, u32 size = 0) final;
-        void setTexture(u32 binding, const Ref<Texture>& texture) final;
+        void setBuffer(DescriptorType descriptorType,
+                       u32 binding,
+                       const Ref<Buffer>& buffer,
+                       u32 offset = 0,
+                       u32 size = 0) final;
+        void setTextureView(DescriptorType descriptorType, u32 binding, const Ref<TextureView>& textureViews) final;
 
         inline VkDescriptorSet getVkDescriptorSet()
         {

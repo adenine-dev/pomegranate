@@ -180,6 +180,29 @@ namespace pom::gfx {
                      "Failed to create graphics pipeline");
     }
 
+    PipelineVk::PipelineVk(InstanceVk* instance, Ref<ShaderVk> shader, Ref<PipelineLayoutVk> pipelineLayout) :
+        instance(instance), shader(shader), pipelineLayout(pipelineLayout)
+    {
+
+        VkComputePipelineCreateInfo computePipelineCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0, // TODO
+            .stage = *shader->getShaderStagesVk(),
+            .layout = pipelineLayout->getVkPipelineLayout(),
+            .basePipelineHandle = VK_NULL_HANDLE,
+            .basePipelineIndex = -1,
+        };
+
+        POM_CHECK_VK(vkCreateComputePipelines(instance->getVkDevice(),
+                                              VK_NULL_HANDLE,
+                                              1,
+                                              &computePipelineCreateInfo,
+                                              nullptr,
+                                              &pipeline),
+                     "Failed to create compute pipeline");
+    }
+
     PipelineVk::~PipelineVk()
     {
         POM_PROFILE_FUNCTION();

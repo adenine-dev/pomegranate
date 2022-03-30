@@ -16,6 +16,9 @@
 #    endif
 #endif
 
+// NOTE: currently not supporting msvc
+#define POM_UNREACHABLE() __builtin_unreachable()
+
 #define POM_NOCOPY(classname)                                                                                          \
     classname(const classname&) = delete;                                                                              \
     classname& operator=(const classname&) = delete;

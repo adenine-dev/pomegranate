@@ -556,6 +556,8 @@ namespace pom::gfx {
             return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     constexpr LoadOperation fromVkAttachmentLoadOp(VkAttachmentLoadOp o)
@@ -571,13 +573,13 @@ namespace pom::gfx {
             return LoadOperation::DONTCARE;
         } break;
         default: {
-            // FIXME: there has to be a better way to do this.
 #ifdef POM_DEBUG_SYMBOLS
-            POM_ERROR("Bad vk attachment load operation.");
+            POM_ERROR("Bad VkAttachmentLoadOp");
 #endif
-            return LoadOperation::LOAD;
         }
         }
+
+        POM_UNREACHABLE();
     }
 
     constexpr VkAttachmentStoreOp toVkAttachmentStoreOp(StoreOperation o)
@@ -590,6 +592,8 @@ namespace pom::gfx {
             return VK_ATTACHMENT_STORE_OP_DONT_CARE;
         } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     constexpr StoreOperation fromVkAttachmentStoreOp(VkAttachmentStoreOp o)
@@ -602,13 +606,13 @@ namespace pom::gfx {
             return StoreOperation::DONTCARE;
         } break;
         default: {
-            // FIXME: there has to be a better way to do this.
 #ifdef POM_DEBUG_SYMBOLS
-            POM_ERROR("Bad vk attachment store operation.");
+            POM_ERROR("Bad VkAttachmentStoreOp");
 #endif
-            return StoreOperation::STORE;
         }
         }
+
+        POM_UNREACHABLE();
     }
 
     constexpr VkBufferUsageFlags toVkBufferUsageFlags(BufferUsage u)
@@ -667,6 +671,8 @@ namespace pom::gfx {
             return VK_INDEX_TYPE_UINT32;
         } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     constexpr IndexType fromVkIndexType(VkIndexType t)
@@ -679,44 +685,13 @@ namespace pom::gfx {
             return IndexType::U32;
         } break;
         default: {
-            // FIXME: there has to be a better way to do this.
 #ifdef POM_DEBUG_SYMBOLS
-            POM_ERROR("Bad vk index type.");
+            POM_ERROR("Bad VkIndexType");
 #endif
-            return IndexType::U32;
         }
         }
-    }
 
-    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStage s)
-    {
-        switch (s) {
-        case ShaderStage::VERTEX: {
-            return VK_SHADER_STAGE_VERTEX_BIT;
-        } break;
-        case ShaderStage::FRAGMENT: {
-            return VK_SHADER_STAGE_FRAGMENT_BIT;
-        } break;
-        }
-    }
-
-    POM_API constexpr ShaderStage fromVkShaderStageFlagBits(VkShaderStageFlagBits s)
-    {
-        switch (s) {
-        case VK_SHADER_STAGE_VERTEX_BIT: {
-            return ShaderStage::VERTEX;
-        } break;
-        case VK_SHADER_STAGE_FRAGMENT_BIT: {
-            return ShaderStage::FRAGMENT;
-        } break;
-        default: {
-            // FIXME: there has to be a better way to do this.
-#ifdef POM_DEBUG_SYMBOLS
-            POM_ERROR("Bad vk Shader stage flags.");
-#endif
-            return ShaderStage::VERTEX;
-        }
-        }
+        POM_UNREACHABLE();
     }
 
     constexpr VkPrimitiveTopology toVkPrimitiveTopology(PrimitiveTopology t)
@@ -741,6 +716,8 @@ namespace pom::gfx {
             return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
         } break;
         };
+
+        POM_UNREACHABLE();
     }
 
     constexpr PrimitiveTopology fromVkPrimitiveTopology(VkPrimitiveTopology t)
@@ -765,10 +742,13 @@ namespace pom::gfx {
             return PrimitiveTopology::TRIANGLE_FAN;
         } break;
         default: {
-            POM_ERROR("Bad vk primitive topology.");
-            return PrimitiveTopology::POINTS;
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkPrimitiveTopology");
+#endif
         }
         };
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr VkCullModeFlags toVkCullMode(CullMode c)
@@ -787,6 +767,8 @@ namespace pom::gfx {
             return VK_CULL_MODE_FRONT_AND_BACK;
         } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr CullMode fromVkCullMode(VkCullModeFlagBits c)
@@ -805,10 +787,13 @@ namespace pom::gfx {
             return CullMode::BOTH;
         } break;
         default: {
-            POM_ERROR("Bad vk cull mode.");
-            return CullMode::BOTH;
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkCullModeFlagBits");
+#endif
         }
         }
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr VkViewport toVkViewport(const Viewport& v)
@@ -827,13 +812,15 @@ namespace pom::gfx {
         case TextureType::IMAGE_1D: {
             return VK_IMAGE_TYPE_1D;
         } break;
-        case TextureType::IMAGE_2D: {
+        case TextureType::IMAGE_2D: { // NOTE: cube maps are always 2d
             return VK_IMAGE_TYPE_2D;
         } break;
         case TextureType::IMAGE_3D: {
             return VK_IMAGE_TYPE_3D;
         } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr TextureType fromVkImageType(VkImageType t)
@@ -849,44 +836,75 @@ namespace pom::gfx {
             return TextureType::IMAGE_3D;
         } break;
         default: {
-            POM_FATAL("bad vkImageType");
-            return TextureType::IMAGE_2D;
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkImageType");
+#endif
+            POM_UNREACHABLE();
         }
         }
     }
 
-    POM_API constexpr VkImageViewType toVkImageViewType(TextureType t)
+    POM_API constexpr VkImageViewType toVkImageViewType(TextureViewType t)
     {
         switch (t) {
-        case TextureType::IMAGE_1D: {
+        case TextureViewType::VIEW_1D: {
             return VK_IMAGE_VIEW_TYPE_1D;
         } break;
-        case TextureType::IMAGE_2D: {
+        case TextureViewType::VIEW_2D: {
             return VK_IMAGE_VIEW_TYPE_2D;
         } break;
-        case TextureType::IMAGE_3D: {
+        case TextureViewType::VIEW_3D: {
             return VK_IMAGE_VIEW_TYPE_3D;
         } break;
+        case TextureViewType::CUBE: {
+            return VK_IMAGE_VIEW_TYPE_CUBE;
+        } break;
+        case TextureViewType::VIEW_1D_ARRAY: {
+            return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+        } break;
+        case TextureViewType::VIEW_2D_ARRAY: {
+            return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+        } break;
+        case TextureViewType::CUBE_ARRAY: {
+            return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+        } break;
         }
+
+        POM_UNREACHABLE();
     }
 
-    POM_API constexpr TextureType fromVkImageViewType(VkImageViewType t)
+    POM_API constexpr TextureViewType fromVkImageViewType(VkImageViewType t)
     {
         switch (t) {
-        case VK_IMAGE_VIEW_TYPE_1D: {
-            return TextureType::IMAGE_1D;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_1D: {
+            return TextureViewType::VIEW_1D;
         } break;
-        case VK_IMAGE_VIEW_TYPE_2D: {
-            return TextureType::IMAGE_2D;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_2D: {
+            return TextureViewType::VIEW_2D;
         } break;
-        case VK_IMAGE_VIEW_TYPE_3D: {
-            return TextureType::IMAGE_3D;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_3D: {
+            return TextureViewType::VIEW_3D;
+        } break;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE: {
+            return TextureViewType::CUBE;
+        } break;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY: {
+            return TextureViewType::VIEW_1D_ARRAY;
+        } break;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY: {
+            return TextureViewType::VIEW_2D_ARRAY;
+        } break;
+        case VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: {
+            return TextureViewType::CUBE_ARRAY;
         } break;
         default: {
-            POM_FATAL("bad vk image view type");
-            return TextureType::IMAGE_2D;
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkImageViewType");
+#endif
         }
         }
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr VkImageUsageFlags toVkImageUsageFlags(TextureUsage u)
@@ -1079,7 +1097,12 @@ namespace pom::gfx {
         case DescriptorType::UNIFORM_BUFFER: {
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         } break;
+        case DescriptorType::STORAGE_IMAGE: {
+            return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        } break;
         }
+
+        POM_UNREACHABLE();
     }
 
     POM_API constexpr DescriptorType fromVkDescriptorType(VkDescriptorType t)
@@ -1091,9 +1114,14 @@ namespace pom::gfx {
         case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
             return DescriptorType::UNIFORM_BUFFER;
         } break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: {
+            return DescriptorType::STORAGE_IMAGE;
+        } break;
         default: {
-            POM_FATAL("unknown vk descriptor type.");
-            return DescriptorType::UNIFORM_BUFFER;
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkDescriptorType");
+#endif
+            POM_UNREACHABLE();
         }
         }
     }
@@ -1108,6 +1136,10 @@ namespace pom::gfx {
 
         if (f & ShaderStageFlags::FRAGMENT) {
             ret |= VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+
+        if (f & ShaderStageFlags::COMPUTE) {
+            ret |= VK_SHADER_STAGE_COMPUTE_BIT;
         }
 
         return ret;
@@ -1125,7 +1157,85 @@ namespace pom::gfx {
             ret |= ShaderStageFlags::FRAGMENT;
         }
 
+        if (f & VK_SHADER_STAGE_COMPUTE_BIT) {
+            ret |= ShaderStageFlags::COMPUTE;
+        }
         return ret;
+    }
+
+    POM_API constexpr VkShaderStageFlagBits toVkShaderStageFlagBits(ShaderStageFlags f)
+    {
+        switch (f) {
+        case ShaderStageFlags::VERTEX: {
+            return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
+        } break;
+        case ShaderStageFlags::FRAGMENT: {
+            return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+        } break;
+        case ShaderStageFlags::COMPUTE: {
+            return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+        } break;
+        default: {
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad ShaderStageFlags, note that the ShaderStageFlags must be a single enum value, not a "
+                      "combination");
+#endif
+            POM_UNREACHABLE();
+        }
+        }
+    }
+
+    POM_API constexpr ShaderStageFlags fromVkShaderStageFlagBits(VkShaderStageFlagBits f)
+    {
+        switch (f) {
+        case VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT: {
+            return ShaderStageFlags::VERTEX;
+        } break;
+        case VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT: {
+            return ShaderStageFlags::FRAGMENT;
+        } break;
+        case VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT: {
+            return ShaderStageFlags::COMPUTE;
+        } break;
+        default: {
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkShaderStageFlagBits");
+#endif
+            POM_UNREACHABLE();
+        }
+        }
+    }
+
+    POM_API constexpr VkPipelineBindPoint toVkPipelineBindPoint(PipelineBindPoint p)
+    {
+        switch (p) {
+        case PipelineBindPoint::GRAPHICS: {
+            return VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS;
+        } break;
+        case PipelineBindPoint::COMPUTE: {
+            return VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE;
+        } break;
+        }
+
+        POM_UNREACHABLE();
+    }
+
+    POM_API constexpr PipelineBindPoint fromVkPipelineBindPoint(VkPipelineBindPoint p)
+    {
+        switch (p) {
+        case VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_GRAPHICS: {
+            return PipelineBindPoint::GRAPHICS;
+        } break;
+        case VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE: {
+            return PipelineBindPoint::COMPUTE;
+        } break;
+        default: {
+#ifdef POM_DEBUG_SYMBOLS
+            POM_ERROR("Bad VkPipelineBindPoint");
+#endif
+            POM_UNREACHABLE();
+        }
+        }
     }
 
 } // namespace pom::gfx

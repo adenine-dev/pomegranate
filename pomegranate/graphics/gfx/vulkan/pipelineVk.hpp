@@ -25,11 +25,18 @@ namespace pom::gfx {
                    std::initializer_list<VertexBinding> vertexBindings,
                    Ref<PipelineLayoutVk> pipelineLayout);
 
+        PipelineVk(InstanceVk* instance, Ref<ShaderVk> shader, Ref<PipelineLayoutVk> pipelineLayout);
+
         ~PipelineVk() final;
 
         VkPipeline getHandle()
         {
             return pipeline;
+        }
+
+        Ref<RenderPassVk> getRenderPass()
+        {
+            return renderPass;
         }
 
     private:

@@ -4,6 +4,8 @@
 
 #include "gfx.hpp"
 
+#include "shader.hpp"
+
 namespace pom::gfx {
 
     /// @addtogroup gfx
@@ -12,28 +14,10 @@ namespace pom::gfx {
     class Buffer;
     class Texture;
 
-#ifndef DOXYGEN // Hide this because technically it doesn't matter, the namespace is only really here so that the
-                // members of the enum do not pollute the namespace.
-    namespace ShaderStageFlagsNamespace {
-#endif
-        enum ShaderStageFlags {
-            VERTEX = 1 << 0,
-            // TESSELLATION_CONTROL,
-            // TESSELLATION_EVALUATION,
-            // GEOMETRY,
-            FRAGMENT = 1 << 1,
-            // COMPUTE,
-        };
-
-#ifndef DOXYGEN
-    } // namespace ShaderStageFlagsNamespace
-
-    using ShaderStageFlags = ShaderStageFlagsNamespace::ShaderStageFlags;
-#endif
-
     enum class DescriptorType {
         UNIFORM_BUFFER,
         COMBINED_TEXTURE_SAMPLER,
+        STORAGE_IMAGE,
         // TODO: the rest of these lol
     };
 

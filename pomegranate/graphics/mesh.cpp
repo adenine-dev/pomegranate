@@ -73,7 +73,7 @@ namespace pom::geometry {
         using namespace maths;
 
         const u32 latDetail = 32;
-        const u32 lonDetail = 24;
+        const u32 lonDetail = 32;
 
         MeshVertex vertices[(latDetail + 1) * (lonDetail + 1)];
         u16 indices[(latDetail - 1) * lonDetail * 6];
