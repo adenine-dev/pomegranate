@@ -62,7 +62,7 @@ namespace pom::gfx {
             return GraphicsAPI::VULKAN;
         }
 
-        TextureViewVk(Ref<TextureVk> texture, TextureViewCreateInfo createInfo);
+        TextureViewVk(const Ref<TextureVk>& texture, TextureViewCreateInfo createInfo);
         ~TextureViewVk() final;
 
         [[nodiscard]] VkImageView getVkImageView()

@@ -33,8 +33,10 @@ namespace pom::gfx {
             .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
 
-        clearColors[0] = { .depthStencil = { depthStencilAttachment.depthStencilClear.depth,
-                                             depthStencilAttachment.depthStencilClear.stencil } };
+        clearColors[0] = { .depthStencil = {
+                               depthStencilAttachment.depthStencilClear.depth,
+                               depthStencilAttachment.depthStencilClear.stencil,
+                           } };
 
         u32 i = 1;
         for (auto attachment : colorAttachments) {

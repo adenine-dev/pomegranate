@@ -47,12 +47,21 @@ namespace pom::gfx {
         TextureType type;
         TextureUsage usage;
         Format format;
+        u32 arrayLayers = 1;
+        bool cubeCompatable = false;
+    };
+
+    struct TextureSubresourceRange {
+        u32 baseArrayLayer = 0;
+        u32 layerCount = 1;
+        // TODO: the rest of this
     };
 
     struct TextureViewCreateInfo {
         TextureViewType type;
         Format format;
-        // TODO: component mapping, subresource
+        TextureSubresourceRange subresourceRange;
+        // TODO: component mapping
     };
 
     class POM_API Texture {
@@ -110,7 +119,7 @@ namespace pom::gfx {
         /// Returns the GraphicsAPI associated with this texture view.
         [[nodiscard]] constexpr virtual GraphicsAPI getAPI() const = 0;
 
-        [[nodiscard]] static Ref<TextureView> create(Ref<Texture> texture, TextureViewCreateInfo createInfo);
+        [[nodiscard]] static Ref<TextureView> create(const Ref<Texture>& texture, TextureViewCreateInfo createInfo);
 
         virtual ~TextureView() = default;
 

@@ -33,7 +33,8 @@ namespace pom::gfx {
         POM_NOCOPY(PipelineLayoutVk);
 
         VkDescriptorPool pool = VK_NULL_HANDLE; // TODO: global pools.
-
+        
+        std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
         std::unordered_map<u32, VkDescriptorSetLayout> descriptorSetLayouts;
 
         VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;

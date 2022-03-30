@@ -9,7 +9,7 @@
 
 namespace pom::gfx {
     DescriptorSetVk::DescriptorSetVk(InstanceVk* instance, Ref<PipelineLayoutVk> pipelineLayout, u32 set) :
-        instance(instance), layout(std::move(pipelineLayout))
+        instance(instance), set(set), layout(std::move(pipelineLayout))
     {
         POM_PROFILE_FUNCTION();
         // VkDescriptorSetLayout layouts[] = { layout->descriptorSetLayouts[set], layout->descriptorSetLayouts[set] };
@@ -86,5 +86,40 @@ namespace pom::gfx {
         };
 
         vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
+    }
+
+    void DescriptorSetVk::setTextureViews(DescriptorType descriptorType,
+                                          u32 binding,
+                                          const Ref<TextureView> textureViews[],
+                                          u32 numTextureViews)
+    {
+        POM_PROFILE_FUNCTION();
+
+        VkDescriptorImageInfo* imageInfos = new VkDescriptorImageInfo[numTextureViews];
+        for (u32 i = 0; i < numTextureViews; i++) {
+            Ref<TextureViewVk> texView = textureViews[i].dynCast<TextureViewVk>();
+            imageInfos[i] = {
+                .sampler = texView->getVkSampler(),
+                .imageView = texView->getVkImageView(),
+                .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+            };
+        }
+
+        VkWriteDescriptorSet descriptorSetWrite = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = nullptr,
+            .dstSet = descriptorSet,
+            .dstBinding = binding,
+            .dstArrayElement = 0,
+            .descriptorCount = numTextureViews,
+            .descriptorType = layout->descriptorSetBindings[set][binding].descriptorType,
+            .pImageInfo = imageInfos,
+            .pBufferInfo = nullptr,
+            .pTexelBufferView = nullptr,
+        };
+
+        vkUpdateDescriptorSets(instance->getVkDevice(), 1, &descriptorSetWrite, 0, nullptr);
+
+        delete[] imageInfos;
     }
 } // namespace pom::gfx

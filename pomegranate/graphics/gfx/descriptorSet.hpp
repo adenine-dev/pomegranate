@@ -28,6 +28,11 @@ namespace pom::gfx {
             = 0;
         virtual void setTextureView(DescriptorType descriptorType, u32 binding, const Ref<TextureView>& textureView)
             = 0;
+        virtual void setTextureViews(DescriptorType descriptorType,
+                                     u32 binding,
+                                     const Ref<TextureView> textureViews[],
+                                     u32 numTextureViews)
+            = 0;
 
         virtual ~DescriptorSet() = default;
 

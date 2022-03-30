@@ -25,6 +25,10 @@ namespace pom::gfx {
                        u32 offset = 0,
                        u32 size = 0) final;
         void setTextureView(DescriptorType descriptorType, u32 binding, const Ref<TextureView>& textureViews) final;
+        void setTextureViews(DescriptorType descriptorType,
+                             u32 binding,
+                             const Ref<TextureView> textureViews[],
+                             u32 numTextureViews) final;
 
         inline VkDescriptorSet getVkDescriptorSet()
         {
@@ -36,9 +40,9 @@ namespace pom::gfx {
 
         InstanceVk* instance;
 
+        u32 set;
         Ref<PipelineLayoutVk> layout;
 
-        // VkDescriptorSet descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
         VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
     };
 } // namespace pom::gfx

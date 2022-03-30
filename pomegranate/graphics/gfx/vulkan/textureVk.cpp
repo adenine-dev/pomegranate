@@ -27,12 +27,13 @@ namespace pom::gfx {
         VkImageCreateInfo imageCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
-            .flags = 0, // TODO
+            .flags = static_cast<VkImageCreateFlags>(createInfo.cubeCompatable ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+                                                                               : 0), // TODO
             .imageType = toVkImageType(createInfo.type),
             .format = toVkFormat(createInfo.format),
             .extent = { width, height, depth },
             .mipLevels = 1, // TODO
-            .arrayLayers = 1,
+            .arrayLayers = createInfo.arrayLayers,
             .samples = VK_SAMPLE_COUNT_1_BIT, // TODO
             .tiling = VK_IMAGE_TILING_OPTIMAL, // TODO: don't do this on CPU visible memory
             .usage = toVkImageUsageFlags(createInfo.usage),
@@ -117,9 +118,9 @@ namespace pom::gfx {
         vkFreeMemory(instance->getVkDevice(), memory, nullptr);
     }
 
-    TextureViewVk::TextureViewVk(Ref<TextureVk> texture, TextureViewCreateInfo createInfo) : TextureView(createInfo)
+    TextureViewVk::TextureViewVk(const Ref<TextureVk>& texture, TextureViewCreateInfo createInfo) :
+        TextureView(createInfo), texture(texture)
     {
-
         VkImageViewCreateInfo imageViewCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
@@ -132,8 +133,8 @@ namespace pom::gfx {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
                 .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
+                .baseArrayLayer = createInfo.subresourceRange.baseArrayLayer,
+                .layerCount = createInfo.subresourceRange.layerCount,
             },
         };
 
@@ -154,7 +155,7 @@ namespace pom::gfx {
             .anisotropyEnable = VK_FALSE, // FIXME: request this from physical device features
             .maxAnisotropy = 1.f, // FIXME: should be acquired from physical device caps
             .compareEnable = VK_FALSE,
-            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .compareOp = VK_COMPARE_OP_NEVER,
             .minLod = 0.f,
             .maxLod = 0.f,
             .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,

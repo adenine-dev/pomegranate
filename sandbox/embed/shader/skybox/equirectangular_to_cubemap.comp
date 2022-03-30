@@ -1,0 +1,46 @@
+#version 450
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0, rgba32f) uniform image2D equirectangular;
+
+layout(set = 0, binding = 1, rgba32f) uniform image2D cubemapLayers[1];
+
+const float pi = 3.1415926535897932384626433832795;
+
+vec2 sampleEquirectangular(vec3 v)
+{
+    const vec2 invAtan = vec2(0.1591, 0.3183);
+    vec2 uv = vec2(atan(v.y, v.x), asin(v.z));
+    uv *= invAtan;
+    uv += 0.5;
+    return uv;
+}
+
+void main()
+{
+    const vec2 localPos = (vec2(gl_GlobalInvocationID.xy) / (imageSize(equirectangular).x / 4.0) - 0.5) * 2;
+    vec3 dir;
+    //NOTE: z and y are switched because coordinate systems lmao.
+    if (gl_GlobalInvocationID.z == 0)      dir = vec3( 1.0,        -localPos.x,  localPos.y); // +X
+    else if (gl_GlobalInvocationID.z == 1) dir = vec3(-1.0,         localPos.x,  localPos.y); // -X
+    else if (gl_GlobalInvocationID.z == 2) dir = vec3( localPos.x,  localPos.y, -1.0);        // +Y
+    else if (gl_GlobalInvocationID.z == 3) dir = vec3( localPos.x, -localPos.y,  1.0);        // -Y
+    else if (gl_GlobalInvocationID.z == 4) dir = vec3( localPos.x,  1.0,         localPos.y); // +Z
+    else if (gl_GlobalInvocationID.z == 5) dir = vec3(-localPos.x, -1.0,         localPos.y); // -Z
+
+    const vec2 uvf = sampleEquirectangular(normalize(dir)) * imageSize(equirectangular);
+    const ivec2 iuv1 = ivec2(uvf);
+    const ivec2 iuv2 = iuv1 + 1;
+    const vec2 ff = fract(uvf);
+
+    vec4 p1 = imageLoad(equirectangular, ivec2(iuv1.x % imageSize(equirectangular).x, clamp(iuv1.y, 0, imageSize(equirectangular).y)));
+    vec4 p2 = imageLoad(equirectangular, ivec2(iuv2.x % imageSize(equirectangular).x, clamp(iuv1.y, 0, imageSize(equirectangular).y)));
+    vec4 p3 = imageLoad(equirectangular, ivec2(iuv1.x % imageSize(equirectangular).x, clamp(iuv2.y, 0, imageSize(equirectangular).y)));
+    vec4 p4 = imageLoad(equirectangular, ivec2(iuv2.x % imageSize(equirectangular).x, clamp(iuv2.y, 0, imageSize(equirectangular).y)));
+
+    imageStore(cubemapLayers[gl_GlobalInvocationID.z], 
+            ivec2(gl_GlobalInvocationID.xy), 
+            p1*(1-ff.x)*(1-ff.y) + p2*(ff.x)*(1-ff.y) + p3*(1-ff.x)*ff.y + p4*ff.x*ff.y);
+}
+

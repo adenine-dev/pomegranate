@@ -31,7 +31,7 @@ namespace pom::gfx {
         }
     }
 
-    [[nodiscard]] Ref<TextureView> TextureView::create(Ref<Texture> texture, TextureViewCreateInfo createInfo)
+    [[nodiscard]] Ref<TextureView> TextureView::create(const Ref<Texture>& texture, TextureViewCreateInfo createInfo)
     {
         POM_PROFILE_FUNCTION();
         switch (Instance::get()->getAPI()) {

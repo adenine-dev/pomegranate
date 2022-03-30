@@ -15,7 +15,6 @@ namespace pom::gfx {
     {
         POM_PROFILE_FUNCTION();
         std::unordered_map<DescriptorType, u32> descriptorTypes;
-        std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
 
         for (const auto& descriptor : descriptors) {
             descriptorTypes[descriptor.type] += descriptor.count;

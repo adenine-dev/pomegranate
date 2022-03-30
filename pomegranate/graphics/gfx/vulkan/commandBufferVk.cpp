@@ -325,7 +325,7 @@ namespace pom::gfx {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .mipLevel = 0,
                 .baseArrayLayer = 0,
-                .layerCount = 1,
+                .layerCount = texture->createInfo.arrayLayers,
             },
             .imageOffset = { dstOffset.x, dstOffset.y, dstOffset.z },
             .imageExtent = { dstExtent.x, dstExtent.y, dstExtent.z },
@@ -359,7 +359,7 @@ namespace pom::gfx {
                 .baseMipLevel = 0,
                 .levelCount = 1,
                 .baseArrayLayer = 0,
-                .layerCount = 1,
+                .layerCount = texture->createInfo.arrayLayers,
             },
         };
 
