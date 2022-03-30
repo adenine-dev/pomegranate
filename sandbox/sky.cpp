@@ -1,10 +1,12 @@
 #include <pomegranate/pomegranate.hpp>
 
-#include "embed/shader/basic_frag_spv.hpp"
-#include "embed/shader/basic_vert_spv.hpp"
+#include "embed/shader/basic/basic_frag_spv.hpp"
+#include "embed/shader/basic/basic_vert_spv.hpp"
 
-#include "embed/shader/plane_frag_spv.hpp"
-#include "embed/shader/plane_vert_spv.hpp"
+#include "embed/shader/plane/plane_frag_spv.hpp"
+#include "embed/shader/plane/plane_vert_spv.hpp"
+
+#include "embed/shader/skybox/gradient_comp_spv.hpp"
 
 #include "embed/img/empty_png.hpp"
 
@@ -120,6 +122,14 @@ struct GameState {
     // texture
     pom::Ref<pom::gfx::Texture> texture;
     pom::Ref<pom::gfx::TextureView> textureView;
+
+    pom::Ref<pom::gfx::Texture> genedTexture;
+    pom::Ref<pom::gfx::TextureView> genedTextureView;
+
+    pom::Ref<pom::gfx::PipelineLayout> compPipelineLayout;
+    pom::Ref<pom::gfx::DescriptorSet> compDescSet;
+    pom::Ref<pom::gfx::Pipeline> compPipeline;
+    pom::Ref<pom::gfx::CommandBuffer> compCommandBuffer;
 };
 
 POM_CLIENT_EXPORT const pom::AppCreateInfo* clientGetAppCreateInfo(int /*argc*/, char** /*argv*/)
@@ -171,14 +181,30 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                                .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
                                                            });
 
+    gamestate->genedTexture = pom::gfx::Texture::create(
+        {
+            .type = pom::gfx::TextureType::IMAGE_2D,
+            .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::STORAGE,
+            .format = pom::gfx::Format::R8G8B8A8_UNORM,
+        },
+        256,
+        256,
+        1);
+
+    gamestate->genedTextureView = pom::gfx::TextureView::create(gamestate->genedTexture,
+                                                                {
+                                                                    .type = pom::gfx::TextureViewType::VIEW_2D,
+                                                                    .format = pom::gfx::Format::R8G8B8A8_UNORM,
+                                                                });
+
     // pipeline
     pom::Ref<pom::gfx::ShaderModule> vertShader
-        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::VERTEX,
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::VERTEX,
                                          basic_vert_spv_size,
                                          reinterpret_cast<const u32*>(basic_vert_spv_data));
 
     pom::Ref<pom::gfx::ShaderModule> fragShader
-        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStage::FRAGMENT,
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::FRAGMENT,
                                          basic_frag_spv_size,
                                          reinterpret_cast<const u32*>(basic_frag_spv_data));
 
@@ -208,8 +234,12 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                                 sizeof(UniformMVP));
 
         gamestate->descriptorSets[i] = pom::gfx::DescriptorSet::create(gamestate->pipelineLayout, 0);
-        gamestate->descriptorSets[i]->setBuffer(0, gamestate->uniformBuffers[i]);
-        gamestate->descriptorSets[i]->setTextureView(1, gamestate->textureView);
+        gamestate->descriptorSets[i]->setBuffer(pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                                                0,
+                                                gamestate->uniformBuffers[i]);
+        gamestate->descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                                                     1,
+                                                     gamestate->textureView);
     }
 
     gamestate->pipeline = pom::gfx::Pipeline::create(
@@ -232,6 +262,42 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
 
     gamestate->sphere = pom::geometry::sphere();
+
+    pom::Ref<pom::gfx::ShaderModule> graidentCompShader
+        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::COMPUTE,
+                                         gradient_comp_spv_size,
+                                         reinterpret_cast<const u32*>(gradient_comp_spv_data));
+
+    pom::Ref<pom::gfx::Shader> compShader = pom::gfx::Shader::create({ graidentCompShader });
+
+    gamestate->compPipelineLayout = pom::gfx::PipelineLayout::create(
+        {
+            {
+                .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
+                .set = 0,
+                .binding = 0,
+                .stages = pom::gfx::ShaderStageFlags::COMPUTE,
+            },
+        },
+        {});
+
+    gamestate->compDescSet = pom::gfx::DescriptorSet::create(gamestate->compPipelineLayout, 0);
+    gamestate->compDescSet->setTextureView(pom::gfx::DescriptorType::STORAGE_IMAGE, 0, gamestate->genedTextureView);
+
+    gamestate->compPipeline = pom::gfx::Pipeline::createCompute(compShader, gamestate->compPipelineLayout);
+
+    gamestate->compCommandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GENERAL, 1);
+
+    gamestate->compCommandBuffer->begin();
+    gamestate->compCommandBuffer->bindPipeline(gamestate->compPipeline);
+    gamestate->compCommandBuffer->bindDescriptorSet(pom::gfx::PipelineBindPoint::COMPUTE,
+                                                    gamestate->compPipelineLayout,
+                                                    0,
+                                                    gamestate->compDescSet);
+
+    gamestate->compCommandBuffer->dispatch(256 / 16, 256 / 16);
+    gamestate->compCommandBuffer->end();
+    gamestate->compCommandBuffer->submit();
 }
 
 POM_CLIENT_EXPORT void clientMount(GameState* gamestate)
