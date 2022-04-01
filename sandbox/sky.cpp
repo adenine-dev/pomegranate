@@ -117,12 +117,13 @@ struct GameState {
     pom::Ref<pom::gfx::Buffer> uniformBuffers[POM_MAX_FRAMES_IN_FLIGHT];
     ArcballCamera camera = ArcballCamera(720.f, 480.f);
 
-    // pipeline
+    pom::Ref<pom::gfx::Texture> emptyTexture;
+    pom::Ref<pom::gfx::TextureView> emptyTextureView;
+
     pom::Ref<pom::gfx::PipelineLayout> pipelineLayout;
     pom::Ref<pom::gfx::DescriptorSet> descriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::Ref<pom::gfx::Pipeline> pipeline;
 
-    // texture
     pom::Ref<pom::gfx::Texture> equirectangularMap;
     pom::Ref<pom::gfx::TextureView> equirectangularMapView;
 
@@ -253,6 +254,37 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                             .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
                                         });
 
+    const byte* emptyPixels = stbi_load_from_memory(empty_png_data,
+                                                    static_cast<int>(empty_png_size),
+                                                    &width,
+                                                    &height,
+                                                    &channels,
+                                                    STBI_rgb_alpha);
+
+    gamestate->emptyTexture = pom::gfx::Texture::create(
+        {
+            .type = pom::gfx::TextureType::IMAGE_2D,
+            .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::TRANSFER_DST,
+            .format = pom::gfx::Format::R8G8B8A8_SRGB,
+        },
+        width,
+        height,
+        1,
+        emptyPixels);
+
+    gamestate->emptyTextureView = pom::gfx::TextureView::create(gamestate->emptyTexture,
+                                                                {
+                                                                    .type = pom::gfx::TextureViewType::VIEW_2D,
+                                                                    .format = pom::gfx::Format::R8G8B8A8_SRGB,
+                                                                });
+
+    gamestate->equirectangularMapView
+        = pom::gfx::TextureView::create(gamestate->equirectangularMap,
+                                        {
+                                            .type = pom::gfx::TextureViewType::VIEW_2D,
+                                            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
+                                        });
+
     // pipeline
     pom::Ref<pom::gfx::ShaderModule> vertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::VERTEX,
@@ -295,7 +327,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                 gamestate->uniformBuffers[i]);
         gamestate->descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                      1,
-                                                     gamestate->equirectangularMapView);
+                                                     gamestate->emptyTextureView);
     }
 
     gamestate->pipeline = pom::gfx::Pipeline::create(

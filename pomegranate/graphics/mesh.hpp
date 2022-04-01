@@ -9,6 +9,7 @@
 namespace pom::geometry {
     struct MeshVertex {
         maths::vec3 position;
+        maths::vec3 normal;
         Color color;
         maths::vec2 uv;
         // TODO: normals
