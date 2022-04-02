@@ -1,7 +1,6 @@
 #pragma once
 
 #include "base.hpp"
-#include "memory"
 
 namespace pom {
     template <typename T> class Ref {

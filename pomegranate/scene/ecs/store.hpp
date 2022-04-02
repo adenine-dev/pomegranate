@@ -11,7 +11,8 @@ namespace pom {
     /// @addtogroup ecs
     /// @{
 
-    template <Component... Cs> requires(are_distinct<Cs...>) class View;
+    template <Component... Cs>
+    requires(are_distinct<Cs...>) class View;
 
     /// @brief Creates and contains all entity and component data.
     class POM_API Store {
@@ -92,8 +93,13 @@ namespace pom {
                            (byte*)oldRecord.archetype->componentBuffers[i2].data + (component.size * oldRecord.idx),
                            component.size);
                     i2++;
-                } else
+                } else {
+                    // zero initialize new data.
+                    memset((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
+                           0,
+                           component.size);
                     i = i1;
+                }
 
                 i1++;
             }
@@ -147,14 +153,16 @@ namespace pom {
 
         /// Returns a view into the store with the requested components.
         /// @warning moving an entity while iterating over a view invalidates that view.
-        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] View<Cs...> view()
+        template <Component... Cs>
+        requires(are_distinct<Cs...>) [[nodiscard]] View<Cs...> view()
         {
             POM_PROFILE_FUNCTION();
             return View<Cs...>(this);
         }
 
     private:
-        template <Component... Cs> requires(are_distinct<Cs...>) Archetype* findOrCreateArchetype()
+        template <Component... Cs>
+        requires(are_distinct<Cs...>) Archetype* findOrCreateArchetype()
         {
             return findOrCreateArchetype(Type::fromPack<Cs...>());
         }
@@ -168,7 +176,8 @@ namespace pom {
         }
 
         friend class Archetype;
-        template <Component... Cs> requires(are_distinct<Cs...>) friend class View;
+        template <Component... Cs>
+        requires(are_distinct<Cs...>) friend class View;
 
         std::unordered_map<Entity, Record> records;
         std::vector<Archetype*> archetypes;
