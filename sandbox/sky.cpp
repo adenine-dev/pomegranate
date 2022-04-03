@@ -331,17 +331,16 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     }
 
     gamestate->pipeline = pom::gfx::Pipeline::create(
-        {
-            .cullMode = pom::gfx::CullMode::NONE,
-        },
+        {},
         shader,
         pom::Application::get()->getMainWindow().getContext()->getSwapchainRenderPass(),
         {
             {
                 .binding = 0,
                 .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
-                             { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },
-                             { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, },
+                             { .location = 1, .format = pom::gfx::Format::R32G32B32_SFLOAT },
+                             { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, 
+                             { .location = 3, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },},
             },
         },
         gamestate->pipelineLayout);
@@ -393,7 +392,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
         gamestate->skyboxDescriptorSets[i] = pom::gfx::DescriptorSet::create(gamestate->skyboxPipelineLayout, 0);
         gamestate->skyboxDescriptorSets[i]->setBuffer(pom::gfx::DescriptorType::UNIFORM_BUFFER,
                                                       0,
-                                                      gamestate->uniformBuffers[i]);
+                                                      gamestate->uniformBuffers[i],
+                                                      sizeof(pom::maths::mat4),
+                                                      sizeof(pom::maths::mat4) * 2);
         gamestate->skyboxDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                            1,
                                                            gamestate->cubemapTextureView);

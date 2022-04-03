@@ -17,6 +17,7 @@ namespace pom::gfx {
         }
 
         PipelineLayoutVk(InstanceVk* instance,
+                         u32 numDescSets,
                          std::initializer_list<Descriptor> descriptors,
                          std::initializer_list<PushConstant> pushConstants);
 
@@ -33,7 +34,7 @@ namespace pom::gfx {
         POM_NOCOPY(PipelineLayoutVk);
 
         VkDescriptorPool pool = VK_NULL_HANDLE; // TODO: global pools.
-        
+
         std::unordered_map<u32, std::vector<VkDescriptorSetLayoutBinding>> descriptorSetBindings;
         std::unordered_map<u32, VkDescriptorSetLayout> descriptorSetLayouts;
 

@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SOURCES
-    ./sky.cpp
+    ./pbr.cpp
 )
 
 add_library(sandbox SHARED ${SOURCES})
