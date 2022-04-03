@@ -39,20 +39,20 @@ namespace pom {
             spriteRenderer_frag_spv_size,
             reinterpret_cast<const u32*>(spriteRenderer_frag_spv_data)); // NOLINT, spv data is always 32 bit aligned.
 
-        pipelineLayout = gfx::PipelineLayout::create(
-            {
-                {
-                    .type = gfx::DescriptorType::UNIFORM_BUFFER,
-                    .set = 0,
-                    .binding = 0,
-                    .stages = gfx::ShaderStageFlags::VERTEX,
-                },
-            },
-            { {
-                .stages = gfx::ShaderStageFlags::VERTEX,
-                .size = sizeof(PushConstantData),
-                .offset = 0,
-            } });
+        pipelineLayout = gfx::PipelineLayout::create(POM_MAX_FRAMES_IN_FLIGHT,
+                                                     {
+                                                         {
+                                                             .type = gfx::DescriptorType::UNIFORM_BUFFER,
+                                                             .set = 0,
+                                                             .binding = 0,
+                                                             .stages = gfx::ShaderStageFlags::VERTEX,
+                                                         },
+                                                     },
+                                                     { {
+                                                         .stages = gfx::ShaderStageFlags::VERTEX,
+                                                         .size = sizeof(PushConstantData),
+                                                         .offset = 0,
+                                                     } });
 
         for (u8 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
             uniformBuffers[i] = gfx::Buffer::create(gfx::BufferUsage::UNIFORM,

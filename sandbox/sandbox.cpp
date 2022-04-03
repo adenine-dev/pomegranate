@@ -96,7 +96,7 @@ struct ArcballCamera {
     }
 };
 
-struct UniformMVP {
+struct Scene {
     pom::maths::mat4 model;
     pom::maths::mat4 view;
     pom::maths::mat4 projection;
@@ -159,18 +159,6 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gamestate, pom::DeltaTime dt);
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 {
-    POM_WARN("... --- ... ... --- ... ... --- ...");
-    // gamestate->camera
-    //     = ArcballCamera(pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().width
-    //                     / pom::Application::get()->getMainWindow().getContext()->getSwapchainViewport().height);
-
-    // gamestate->otherWindow = new pom::Window("other window", pom::gfx::GraphicsAPI::VULKAN, true);
-    // gamestate->otherWindow->setEventHandler([gamestate](pom::InputEvent ev) {
-    //     if (ev.type == pom::InputEventType::WINDOW_RESIZE) {
-    //         clientUpdate(gamestate, {});
-    //     }
-    // });
-
     // texture
     i32 width, height, channels;
     const unsigned char* pixels = stbi_load_from_memory(empty_png_data,
@@ -254,9 +242,10 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
             {
                 .binding = 0,
                 .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
-                             { .location = 1, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },
-                             { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, },
-            },
+                             { .location = 1, .format = pom::gfx::Format::R32G32B32_SFLOAT },
+                             { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, 
+                             { .location = 3, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },},
+            }
         },
         gamestate->pipelineLayout);
 

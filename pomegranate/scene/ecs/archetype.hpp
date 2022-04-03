@@ -109,7 +109,7 @@ namespace pom {
             POM_PROFILE_FUNCTION();
 
             i32 i = type.indexOf<C>();
-            if (i != -1)
+            if (i == -1)
                 return nullptr;
 
             return &((C*)componentBuffers[i].data)[idx];
@@ -130,7 +130,8 @@ namespace pom {
 
     private:
         friend class Store;
-        template <Component... Cs> requires(are_distinct<Cs...>) friend class View;
+        template <Component... Cs>
+        requires(are_distinct<Cs...>) friend class View;
 
         constexpr static const usize INITIAL_LENGTH = 4;
 

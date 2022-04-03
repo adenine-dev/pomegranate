@@ -9,6 +9,7 @@
 
 namespace pom::gfx {
     PipelineLayoutVk::PipelineLayoutVk(InstanceVk* instance,
+                                       u32 numDescSets,
                                        std::initializer_list<Descriptor> descriptors,
                                        std::initializer_list<PushConstant> pushConstants) :
         instance(instance)
@@ -33,7 +34,7 @@ namespace pom::gfx {
             for (auto [type, count] : descriptorTypes) {
                 poolSizes[i] = {
                     .type = toVkDescriptorType(type),
-                    .descriptorCount = POM_MAX_FRAMES_IN_FLIGHT * count,
+                    .descriptorCount = count * numDescSets, // FIXME: passable
                 };
                 i++;
             }
@@ -44,7 +45,7 @@ namespace pom::gfx {
                 // NOTE: idk how to fix it but this is prob dumb to use
                 .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
                 // FIXME: more than 2 descriptor sets will be bound.
-                .maxSets = static_cast<u32>(POM_MAX_FRAMES_IN_FLIGHT * descriptorSetBindings.size()),
+                .maxSets = static_cast<u32>(descriptorSetBindings.size()) * numDescSets, // FIXME: passable
                 .poolSizeCount = static_cast<u32>(descriptorTypes.size()),
                 .pPoolSizes = poolSizes,
             };

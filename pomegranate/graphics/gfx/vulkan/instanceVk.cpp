@@ -417,7 +417,7 @@ namespace pom::gfx {
         POM_CHECK_VK(vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &transferCommandPool),
                      "Failed to create transfer command pool.");
 
-        emptyPipelineLayout = Ref<PipelineLayoutVk>(new PipelineLayoutVk(this, {}, {}));
+        emptyPipelineLayout = Ref<PipelineLayoutVk>(new PipelineLayoutVk(this, 0, {}, {}));
     }
 
     void InstanceVk::update()

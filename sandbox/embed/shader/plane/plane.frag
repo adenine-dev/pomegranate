@@ -33,7 +33,7 @@ vec4 grid(vec3 fragPos3D, float scale) {
     float minz = min(derivative.y, 2);
     float minx = min(derivative.x, 2);
     vec4 color = config.gridColor;
-    color.w -=min(line, 1.0);
+    color.w -= min(line, 1.0);
 
     if(fragPos3D.x > -0.1 * minx && fragPos3D.x < 0.1 * minx) color = config.zColor;
     if(fragPos3D.z > -0.1 * minz && fragPos3D.z < 0.1 * minz) color = config.xColor;
@@ -56,12 +56,12 @@ void main() {
     float t = FLOOR_Y - nearPoint.y / (farPoint.y - nearPoint.y);
     vec3 fragPos3D = nearPoint + t * (farPoint - nearPoint);
 
-    gl_FragDepth = computeDepth(fragPos3D);
-
     float linearDepth = computeLinearDepth(fragPos3D);
     float fading = max(0, (config.fadeStrength - linearDepth));
 
     outColor = (grid(fragPos3D, config.majorLineScale) + grid(fragPos3D, config.minorLineScale)) * float(t > 0);
 
     outColor.a *= fading;
+
+    gl_FragDepth = computeDepth(fragPos3D);
 }

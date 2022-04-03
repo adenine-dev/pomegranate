@@ -43,7 +43,8 @@ namespace pom {
 
     // FIXME: this only needs to be trivial, eventually type hash.
     template <typename T>
-    concept Component = std::is_trivially_copyable<T>::value&& std::is_trivially_destructible<T>::value&& requires
+    // concept Component = std::is_trivially_copyable<T>::value && std::is_trivially_destructible<T>::value && requires
+    concept Component = requires
     {
         std::same_as<decltype(T::ecsComponentId), ComponentId>;
     };
