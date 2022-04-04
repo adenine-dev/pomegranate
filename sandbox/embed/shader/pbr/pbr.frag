@@ -42,8 +42,7 @@ float specularD(vec3 N, vec3 H, float roughness)
 // Using the Schlick model approximating the smith model.
 float G1(vec3 N, vec3 V, float roughness)
 {
-    const float k
-        = pow(roughness + 1, 2) / 8; // k = (Roughness + 1)² / 8 // NOTE: roughness shouldn't be +1ed with IBL
+    const float k = pow(roughness + 1, 2) / 8; // k = (Roughness + 1)² / 8 // NOTE: roughness shouldn't be +1ed with IBL
     const float NdotV = max(dot(N, V), 0);
 
     // G₁(V) = (N • V) / ((N • V)(1 - k) + k)
