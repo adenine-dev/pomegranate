@@ -10,22 +10,23 @@ namespace pom::gfx {
                                std::initializer_list<RenderPassAttachment> colorAttachments,
                                RenderPassAttachment depthStencilAttachment) :
         instance(instance),
-        renderPass(VK_NULL_HANDLE), clearColors(colorAttachments.size() + 1)
+        renderPass(VK_NULL_HANDLE), clearColors(colorAttachments.size() + 2)
     {
+        // FIXME: this whole thing really just needs to get refactored
         POM_PROFILE_FUNCTION();
-        std::vector<VkAttachmentDescription> attachmentDescs(colorAttachments.size() + 1);
+        std::vector<VkAttachmentDescription> attachmentDescs(colorAttachments.size() + 2);
         std::vector<VkAttachmentReference> colorAttachmentRefs;
 
         attachmentDescs[0] = {
             .flags = 0,
             .format = toVkFormat(depthStencilAttachment.format),
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = VK_SAMPLE_COUNT_4_BIT,
             .loadOp = toVkAttachmentLoadOp(depthStencilAttachment.loadOperation),
             .storeOp = toVkAttachmentStoreOp(depthStencilAttachment.storeOperation),
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
 
         VkAttachmentReference depthStencilAttachmentRef = {
@@ -33,13 +34,30 @@ namespace pom::gfx {
             .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         };
 
+        VkAttachmentReference resolveAttachmentRef = {
+            .attachment = 1,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        };
+
         clearColors[0] = { .depthStencil = {
                                depthStencilAttachment.depthStencilClear.depth,
                                depthStencilAttachment.depthStencilClear.stencil,
                            } };
 
-        u32 i = 1;
+        u32 i = 2;
         for (auto attachment : colorAttachments) {
+            attachmentDescs[1] = {
+                .flags = 0,
+                .format = toVkFormat(attachment.format),
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .loadOp = toVkAttachmentLoadOp(attachment.loadOperation),
+                .storeOp = toVkAttachmentStoreOp(attachment.storeOperation),
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            };
+
             clearColors[i] = {
                 .color = { attachment.colorClear.r,
                            attachment.colorClear.g,
@@ -50,13 +68,13 @@ namespace pom::gfx {
             attachmentDescs[i] = {
                 .flags = 0,
                 .format = toVkFormat(attachment.format),
-                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .samples = VK_SAMPLE_COUNT_4_BIT,
                 .loadOp = toVkAttachmentLoadOp(attachment.loadOperation),
                 .storeOp = toVkAttachmentStoreOp(attachment.storeOperation),
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             };
 
             colorAttachmentRefs.push_back({
@@ -74,7 +92,7 @@ namespace pom::gfx {
             .pInputAttachments = nullptr,
             .colorAttachmentCount = static_cast<u32>(colorAttachmentRefs.size()),
             .pColorAttachments = colorAttachmentRefs.data(),
-            .pResolveAttachments = nullptr,
+            .pResolveAttachments = &resolveAttachmentRef,
             .pDepthStencilAttachment = &depthStencilAttachmentRef,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = nullptr,

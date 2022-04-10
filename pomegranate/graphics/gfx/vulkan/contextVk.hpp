@@ -96,6 +96,10 @@ namespace pom::gfx {
         std::vector<VkImageView> swapchainImageViews;
         std::vector<VkFramebuffer> swapchainFramebuffers;
 
+        VkImage resolveImage;
+        VkDeviceMemory resolveImageMemory;
+        VkImageView resolveImageView;
+
         VkImage depthImage;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;

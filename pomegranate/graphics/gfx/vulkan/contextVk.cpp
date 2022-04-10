@@ -60,6 +60,10 @@ namespace pom::gfx {
         POM_PROFILE_FUNCTION();
         vkDeviceWaitIdle(instance->device);
 
+        vkDestroyImageView(instance->device, resolveImageView, nullptr);
+        vkDestroyImage(instance->device, resolveImage, nullptr);
+        vkFreeMemory(instance->device, resolveImageMemory, nullptr);
+
         vkDestroyImageView(instance->device, depthImageView, nullptr);
         vkDestroyImage(instance->device, depthImage, nullptr);
         vkFreeMemory(instance->device, depthImageMemory, nullptr);
@@ -169,8 +173,6 @@ namespace pom::gfx {
             }
         }
 
-        // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &support.capabilities);
-
         swapchainExtent = swapchainSupport.capabilities.currentExtent;
         if (swapchainExtent.width == UINT32_MAX) {
             swapchainExtent = extent;
@@ -251,83 +253,158 @@ namespace pom::gfx {
             POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &swapchainImageViews[i]),
                          "Failed to create swapchain image view");
         }
+        {
+            depthImageFormat = findSupportedFormat(
+                { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+            VkImageCreateInfo imageInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .imageType = VK_IMAGE_TYPE_2D,
+                .format = depthImageFormat,
+                .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
+                .mipLevels = 1,
+                .arrayLayers = 1,
+                .samples = VK_SAMPLE_COUNT_4_BIT,
+                .tiling = VK_IMAGE_TILING_OPTIMAL,
+                .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .queueFamilyIndexCount = 0,
+                .pQueueFamilyIndices = nullptr,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            };
 
-        depthImageFormat
-            = findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
-                                  VK_IMAGE_TILING_OPTIMAL,
-                                  VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-        VkImageCreateInfo imageInfo = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = depthImageFormat,
-            .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
-            .mipLevels = 1,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        };
+            POM_CHECK_VK(vkCreateImage(instance->device, &imageInfo, nullptr, &depthImage),
+                         "Failed to create depth image.");
 
-        POM_CHECK_VK(vkCreateImage(instance->device, &imageInfo, nullptr, &depthImage),
-                     "Failed to create depth image.");
+            VkMemoryRequirements memoryReqs;
+            vkGetImageMemoryRequirements(instance->device, depthImage, &memoryReqs);
+            VkPhysicalDeviceMemoryProperties physicalMemoryProps;
+            vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
 
-        VkMemoryRequirements memoryReqs;
-        vkGetImageMemoryRequirements(instance->device, depthImage, &memoryReqs);
-        VkPhysicalDeviceMemoryProperties physicalMemoryProps;
-        vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
+            u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
 
-        u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
+            VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-        VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-        for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
-            if (memoryReqs.memoryTypeBits & (1 << i)
-                && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
-                memoryTypeIndex = i;
-                break;
+            for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
+                if (memoryReqs.memoryTypeBits & (1 << i)
+                    && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
+                    memoryTypeIndex = i;
+                    break;
+                }
             }
+
+            POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
+
+            VkMemoryAllocateInfo allocInfo {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                .pNext = nullptr,
+                .allocationSize = memoryReqs.size,
+                .memoryTypeIndex = memoryTypeIndex,
+            };
+
+            POM_CHECK_VK(vkAllocateMemory(instance->device, &allocInfo, nullptr, &depthImageMemory),
+                         "unable to allocate depth image memory.");
+
+            vkBindImageMemory(instance->device, depthImage, depthImageMemory, 0);
+
+            VkImageViewCreateInfo imageViewCreateInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .image = depthImage,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = depthImageFormat,
+                .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+                .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                                      .baseMipLevel = 0,
+                                      .levelCount = 1,
+                                      .baseArrayLayer = 0,
+                                      .layerCount = 1 },
+            };
+
+            POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &depthImageView),
+                         "Failed to create depth image view")
         }
+        {
+            VkImageCreateInfo imageInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .imageType = VK_IMAGE_TYPE_2D,
+                .format = swapchainImageFormat,
+                .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
+                .mipLevels = 1,
+                .arrayLayers = 1,
+                .samples = VK_SAMPLE_COUNT_4_BIT,
+                .tiling = VK_IMAGE_TILING_OPTIMAL,
+                .usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+                .queueFamilyIndexCount = 0,
+                .pQueueFamilyIndices = nullptr,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            };
 
-        POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
+            POM_CHECK_VK(vkCreateImage(instance->device, &imageInfo, nullptr, &resolveImage),
+                         "Failed to create color image.");
 
-        VkMemoryAllocateInfo allocInfo {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .allocationSize = memoryReqs.size,
-            .memoryTypeIndex = memoryTypeIndex,
-        };
+            VkMemoryRequirements memoryReqs;
+            vkGetImageMemoryRequirements(instance->device, resolveImage, &memoryReqs);
+            VkPhysicalDeviceMemoryProperties physicalMemoryProps;
+            vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
 
-        POM_CHECK_VK(vkAllocateMemory(instance->device, &allocInfo, nullptr, &depthImageMemory),
-                     "unable to allocate depth image memory.");
+            u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
 
-        vkBindImageMemory(instance->device, depthImage, depthImageMemory, 0);
+            VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-        VkImageViewCreateInfo imageViewCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = depthImage,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = depthImageFormat,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
-                                  .baseMipLevel = 0,
-                                  .levelCount = 1,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 },
-        };
+            for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
+                if (memoryReqs.memoryTypeBits & (1 << i)
+                    && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
+                    memoryTypeIndex = i;
+                    break;
+                }
+            }
 
-        POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &depthImageView),
-                     "Failed to create depth image view")
+            POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
+
+            VkMemoryAllocateInfo allocInfo {
+                .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                .pNext = nullptr,
+                .allocationSize = memoryReqs.size,
+                .memoryTypeIndex = memoryTypeIndex,
+            };
+
+            POM_CHECK_VK(vkAllocateMemory(instance->device, &allocInfo, nullptr, &resolveImageMemory),
+                         "unable to allocate color image memory.");
+
+            vkBindImageMemory(instance->device, resolveImage, resolveImageMemory, 0);
+
+            VkImageViewCreateInfo imageViewCreateInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .image = resolveImage,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = swapchainImageFormat,
+                .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+                .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                      .baseMipLevel = 0,
+                                      .levelCount = 1,
+                                      .baseArrayLayer = 0,
+                                      .layerCount = 1 },
+            };
+
+            POM_CHECK_VK(vkCreateImageView(instance->device, &imageViewCreateInfo, nullptr, &resolveImageView),
+                         "Failed to create color image view")
+        }
 
         if (firstTime) {
             swapchainRenderPass = RenderPass::create({ {
@@ -349,13 +426,13 @@ namespace pom::gfx {
         swapchainFramebuffers.resize(swapchainImageViews.size());
 
         for (u32 i = 0; i < swapchainFramebuffers.size(); i++) {
-            VkImageView attachments[2] = { depthImageView, swapchainImageViews[i] };
+            VkImageView attachments[] = { depthImageView, swapchainImageViews[i], resolveImageView };
             VkFramebufferCreateInfo framebufferCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .renderPass = swapchainRenderPass->getHandle(),
-                .attachmentCount = 2,
+                .attachmentCount = 3,
                 .pAttachments = attachments,
                 .width = swapchainExtent.width,
                 .height = swapchainExtent.height,

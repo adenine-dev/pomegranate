@@ -10,6 +10,27 @@ namespace pom::gfx {
     /// @addtogroup gfx
     /// @{
 
+#ifndef DOXYGEN // Hide this because technically it doesn't matter, the namespace is only really here so that the
+    // members of the enum do not pollute the namespace.
+    namespace impl {
+#endif
+
+        enum FrameBufferSamples : u8 {
+            COUNT_1 = 1 << 0,
+            COUNT_2 = 1 << 1,
+            COUNT_4 = 1 << 2,
+            COUNT_8 = 1 << 3,
+            COUNT_16 = 1 << 4,
+            COUNT_32 = 1 << 5,
+            COUNT_64 = 1 << 6,
+        };
+
+#ifndef DOXYGEN
+    } // namespace impl
+
+    using FrameBufferSamples = impl::FrameBufferSamples;
+#endif
+
     /// Corresponds to a hardware Graphics device, may not be strictly a GPU for example integrated CPU graphics.
     struct GPU {
         /// Human readable name of the device.
@@ -18,6 +39,8 @@ namespace pom::gfx {
         bool discrete;
         /// Graphics API dependent handle.
         void* handle;
+        /// Bitmask of available framebuffer sample counts.
+        FrameBufferSamples frameBufferSampleCounts;
         // TODO: other device properties and capabilities
     };
 

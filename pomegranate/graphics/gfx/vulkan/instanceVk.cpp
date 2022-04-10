@@ -210,10 +210,12 @@ namespace pom::gfx {
             vkGetPhysicalDeviceProperties(device, &props);
 
             // TODO: other properties.
-            GPUs.push_back({
+            GPUs.push_back(GPU {
                 .name = props.deviceName,
                 .discrete = props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
                 .handle = device,
+                .frameBufferSampleCounts = (FrameBufferSamples)(props.limits.framebufferColorSampleCounts
+                                                                & props.limits.framebufferDepthSampleCounts),
             });
         }
     }
