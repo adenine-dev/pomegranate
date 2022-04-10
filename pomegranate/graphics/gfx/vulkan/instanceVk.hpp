@@ -44,11 +44,12 @@ namespace pom::gfx {
             return currentFrame;
         }
 
-    private:
+    public:
         friend class Instance;
         friend class ContextVk;
         friend class CommandBufferVk;
         friend class Pipeline;
+        friend class TextureVk;
 
         POM_NOCOPY(InstanceVk);
         InstanceVk(const char* appname);

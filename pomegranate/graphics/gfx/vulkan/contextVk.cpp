@@ -453,6 +453,10 @@ namespace pom::gfx {
         // TODO: once deletion queues are implemented, this will not be needed.
         vkDeviceWaitIdle(instance->device);
 
+        vkDestroyImageView(instance->device, resolveImageView, nullptr);
+        vkDestroyImage(instance->device, resolveImage, nullptr);
+        vkFreeMemory(instance->device, resolveImageMemory, nullptr);
+
         vkDestroyImageView(instance->device, depthImageView, nullptr);
         vkDestroyImage(instance->device, depthImage, nullptr);
         vkFreeMemory(instance->device, depthImageMemory, nullptr);

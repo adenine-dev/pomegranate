@@ -127,8 +127,8 @@ struct GameState {
     pom::Ref<pom::gfx::Texture> equirectangularMap;
     pom::Ref<pom::gfx::TextureView> equirectangularMapView;
 
-    pom::Ref<pom::gfx::Texture> cubemapTexture;
-    pom::Ref<pom::gfx::TextureView> cubemapTextureView;
+    pom::Ref<pom::gfx::Texture> skyboxTexture;
+    pom::Ref<pom::gfx::TextureView> skyboxTextureView;
 
     pom::Ref<pom::gfx::PipelineLayout> skyboxPipelineLayout;
     pom::Ref<pom::gfx::DescriptorSet> skyboxDescriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
@@ -350,14 +350,14 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     gamestate->sphere = pom::geometry::sphere();
 
-    gamestate->cubemapTexture
+    gamestate->skyboxTexture
         = equirectangularToCubemap(gamestate->equirectangularMap, gamestate->equirectangularMapView);
-    gamestate->cubemapTextureView = pom::gfx::TextureView::create(gamestate->cubemapTexture,
-                                                                  {
-                                                                      .type = pom::gfx::TextureViewType::CUBE,
-                                                                      .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                                      .subresourceRange = { .layerCount = 6 },
-                                                                  });
+    gamestate->skyboxTextureView = pom::gfx::TextureView::create(gamestate->skyboxTexture,
+                                                                 {
+                                                                     .type = pom::gfx::TextureViewType::CUBE,
+                                                                     .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
+                                                                     .subresourceRange = { .layerCount = 6 },
+                                                                 });
 
     pom::Ref<pom::gfx::ShaderModule> skyboxVertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::VERTEX,
@@ -397,7 +397,7 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                       sizeof(pom::maths::mat4) * 2);
         gamestate->skyboxDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                            1,
-                                                           gamestate->cubemapTextureView);
+                                                           gamestate->skyboxTextureView);
     }
 
     gamestate->skyboxPipeline

@@ -1,0 +1,56 @@
+#version 450
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0, rgba32f) uniform image2D equirectangular;
+layout(set = 0, binding = 1, rgba32f) uniform image2D cubemapLayers[6];
+
+const float pi = 3.1415926535897932384626433832795;
+
+vec2 sampleEquirectangular(vec3 v)
+{
+    const vec2 invAtan = vec2(0.1591, 0.3183);
+    vec2 uv = vec2(atan(v.y, v.x), asin(v.z));
+    uv *= invAtan;
+    uv += 0.5;
+    return uv;
+}
+
+void main() {
+    const vec2 localPos = (vec2(gl_GlobalInvocationID.xy) / (imageSize(equirectangular).x / 4.0) - 0.5) * 2;
+    vec3 normal;
+    //NOTE: z and y are switched because coordinate systems lmao.
+    if (gl_GlobalInvocationID.z == 0)      normal = vec3( 1.0,        -localPos.x,  localPos.y); // +X
+    else if (gl_GlobalInvocationID.z == 1) normal = vec3(-1.0,         localPos.x,  localPos.y); // -X
+    else if (gl_GlobalInvocationID.z == 2) normal = vec3( localPos.x,  localPos.y, -1.0);        // +Y
+    else if (gl_GlobalInvocationID.z == 3) normal = vec3( localPos.x, -localPos.y,  1.0);        // -Y
+    else if (gl_GlobalInvocationID.z == 4) normal = vec3( localPos.x,  1.0,         localPos.y); // +Z
+    else if (gl_GlobalInvocationID.z == 5) normal = vec3(-localPos.x, -1.0,         localPos.y); // -Z
+
+    vec3 irradiance = vec3(1.0, 0, 1);
+
+    const vec3 right = normalize(cross(vec3(0, 1, 0), normal));
+    const vec3 up = normalize(cross(normal, right));
+
+    const float deltaPhi = 0.05; // 2 * pi / 180;
+    const float deltaTheta = 0.05; // 0.5 * pi / 64;
+    float nrSamples = 0.0; 
+
+    for(float phi = 0.0; phi < 2.0 * pi; phi += deltaPhi) {
+        for(float theta = 0.0; theta < 0.5 * pi; theta += deltaTheta) {
+            // spherical to cartesian (in tangent space)
+            vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+            // tangent space to world
+            vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * normal; 
+            const vec2 uvf = sampleEquirectangular(normalize(sampleVec)) * imageSize(equirectangular);
+
+            irradiance += imageLoad(equirectangular, ivec2(uvf)).rgb * cos(theta) * sin(theta);
+            nrSamples++;
+        }
+    }
+    irradiance = pi * irradiance * (1.0 / float(nrSamples));
+
+    imageStore(cubemapLayers[gl_GlobalInvocationID.z], 
+        ivec2(gl_GlobalInvocationID.xy), 
+        vec4(irradiance, 1.0));
+}

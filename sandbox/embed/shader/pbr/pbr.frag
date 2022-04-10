@@ -26,6 +26,8 @@ layout(set = 0, binding = 1, std140) uniform Light
 }
 light;
 
+layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
+
 const float pi = 3.1415926535897932384626433832795;
 
 // Normal Distribution Function
@@ -92,8 +94,14 @@ void main()
         // fᵣ(p, ωᵢ, ωₒ) L(p, ωᵢ) n·ωᵢ
         Lo += (kD * material.albedo / pi + kS * specular) * Li * max(dot(N, L), 0); // NOTE: F (=kS) is added here.
     }
+    
+    vec3 kS = specularF(N, V, F0);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - material.metallic;	  
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * material.albedo;
+    vec3 ambient = (kD * diffuse);
 
-    const vec3 ambient = vec3(0.03) * material.albedo; // TODO: ibl, this is temp
     vec3 color = ambient + Lo;
 
     // gamma correction.
