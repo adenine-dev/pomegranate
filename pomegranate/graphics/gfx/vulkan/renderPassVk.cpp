@@ -10,17 +10,18 @@ namespace pom::gfx {
                                std::initializer_list<RenderPassAttachment> colorAttachments,
                                RenderPassAttachment depthStencilAttachment) :
         instance(instance),
-        renderPass(VK_NULL_HANDLE), clearColors(colorAttachments.size() + 2)
+        renderPass(VK_NULL_HANDLE),
+        clearColors(colorAttachments.size() + (instance->msaa == VK_SAMPLE_COUNT_1_BIT ? 1 : 2))
     {
         // FIXME: this whole thing really just needs to get refactored
         POM_PROFILE_FUNCTION();
-        std::vector<VkAttachmentDescription> attachmentDescs(colorAttachments.size() + 2);
+        std::vector<VkAttachmentDescription> attachmentDescs(clearColors.size());
         std::vector<VkAttachmentReference> colorAttachmentRefs;
 
         attachmentDescs[0] = {
             .flags = 0,
             .format = toVkFormat(depthStencilAttachment.format),
-            .samples = VK_SAMPLE_COUNT_4_BIT,
+            .samples = instance->msaa,
             .loadOp = toVkAttachmentLoadOp(depthStencilAttachment.loadOperation),
             .storeOp = toVkAttachmentStoreOp(depthStencilAttachment.storeOperation),
             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
@@ -35,7 +36,7 @@ namespace pom::gfx {
         };
 
         VkAttachmentReference resolveAttachmentRef = {
-            .attachment = 1,
+            .attachment = 2,
             .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         };
 
@@ -44,19 +45,21 @@ namespace pom::gfx {
                                depthStencilAttachment.depthStencilClear.stencil,
                            } };
 
-        u32 i = 2;
+        u32 i = 1;
         for (auto attachment : colorAttachments) {
-            attachmentDescs[1] = {
-                .flags = 0,
-                .format = toVkFormat(attachment.format),
-                .samples = VK_SAMPLE_COUNT_1_BIT,
-                .loadOp = toVkAttachmentLoadOp(attachment.loadOperation),
-                .storeOp = toVkAttachmentStoreOp(attachment.storeOperation),
-                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
-                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            };
+            if (instance->msaa != VK_SAMPLE_COUNT_1_BIT) {
+                attachmentDescs[2] = {
+                    .flags = 0,
+                    .format = toVkFormat(attachment.format),
+                    .samples = VK_SAMPLE_COUNT_1_BIT,
+                    .loadOp = toVkAttachmentLoadOp(attachment.loadOperation),
+                    .storeOp = toVkAttachmentStoreOp(attachment.storeOperation),
+                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
+                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                    .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                };
+            }
 
             clearColors[i] = {
                 .color = { attachment.colorClear.r,
@@ -68,13 +71,14 @@ namespace pom::gfx {
             attachmentDescs[i] = {
                 .flags = 0,
                 .format = toVkFormat(attachment.format),
-                .samples = VK_SAMPLE_COUNT_4_BIT,
+                .samples = instance->msaa,
                 .loadOp = toVkAttachmentLoadOp(attachment.loadOperation),
                 .storeOp = toVkAttachmentStoreOp(attachment.storeOperation),
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // FIXME: stencil buffer support.
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                .finalLayout = instance->msaa == VK_SAMPLE_COUNT_1_BIT ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+                                                                       : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             };
 
             colorAttachmentRefs.push_back({
@@ -92,7 +96,7 @@ namespace pom::gfx {
             .pInputAttachments = nullptr,
             .colorAttachmentCount = static_cast<u32>(colorAttachmentRefs.size()),
             .pColorAttachments = colorAttachmentRefs.data(),
-            .pResolveAttachments = &resolveAttachmentRef,
+            .pResolveAttachments = instance->msaa != VK_SAMPLE_COUNT_1_BIT ? &resolveAttachmentRef : nullptr,
             .pDepthStencilAttachment = &depthStencilAttachmentRef,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = nullptr,

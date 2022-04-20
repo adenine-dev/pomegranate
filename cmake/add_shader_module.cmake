@@ -12,7 +12,7 @@ function(add_shader_modules TARGET)
 
         add_custom_command(
             OUTPUT ${spv_output_file}
-            COMMAND ${GLSLC} -o ${spv_output_file} ${input_file}
+            COMMAND ${GLSLC} -g -O0 -o ${spv_output_file} ${input_file}
             MAIN_DEPENDENCY ${input_file}
             IMPLICIT_DEPENDS CXX ${input_file}
             VERBATIM)

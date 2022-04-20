@@ -341,7 +341,10 @@ namespace pom::gfx {
         transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
     }
 
-    void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout)
+    void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture,
+                                                  VkImageLayout oldLayout,
+                                                  VkImageLayout newLayout,
+                                                  u32 mips)
     {
         POM_PROFILE_FUNCTION();
         VkImageMemoryBarrier barrier = {
@@ -357,7 +360,7 @@ namespace pom::gfx {
             .subresourceRange = { //FIXME: whenever this is implemented
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
-                .levelCount = 1,
+                .levelCount = mips,
                 .baseArrayLayer = 0,
                 .layerCount = texture->createInfo.arrayLayers,
             },

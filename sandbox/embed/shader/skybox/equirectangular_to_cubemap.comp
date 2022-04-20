@@ -10,11 +10,8 @@ const float pi = 3.1415926535897932384626433832795;
 
 vec2 sampleEquirectangular(vec3 v)
 {
-    const vec2 invAtan = vec2(0.1591, 0.3183);
-    vec2 uv = vec2(atan(v.y, v.x), asin(v.z));
-    uv *= invAtan;
-    uv += 0.5;
-    return uv;
+    const vec2 invAtan = vec2(1/(2*pi), 1/(pi));
+    return (vec2(atan(v.y, v.x), asin(v.z)) * invAtan) + 0.5;
 }
 
 void main()

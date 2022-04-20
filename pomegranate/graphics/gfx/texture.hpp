@@ -47,6 +47,7 @@ namespace pom::gfx {
         TextureType type;
         TextureUsage usage;
         Format format;
+        u32 mipLevels = 1;
         u32 arrayLayers = 1;
         bool cubeCompatable = false;
     };
@@ -54,6 +55,8 @@ namespace pom::gfx {
     struct TextureSubresourceRange {
         u32 baseArrayLayer = 0;
         u32 layerCount = 1;
+        u32 baseMip = 0;
+        u32 mipCount = 1;
         // TODO: the rest of this
     };
 

@@ -73,7 +73,8 @@ namespace pom::gfx {
                                  const maths::ivec3& dstOffset,
                                  const maths::uvec3& dstExtent) final;
 
-        void transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void
+        transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout, u32 mips = 1);
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {

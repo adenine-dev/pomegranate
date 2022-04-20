@@ -27,6 +27,8 @@ layout(set = 0, binding = 1, std140) uniform Light
 light;
 
 layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
+layout(set = 0, binding = 3) uniform samplerCube prefilteredEnvMap;
+layout(set = 0, binding = 4) uniform sampler2D brdfLut;
 
 const float pi = 3.1415926535897932384626433832795;
 
@@ -66,15 +68,32 @@ vec3 specularF(vec3 V, vec3 H, vec3 F0)
     return F0 + (1 - F0) * pow(2, -5.55473 * VdotH - 6.98316 * VdotH);
 }
 
+vec3 specularFR(vec3 V, vec3 H, vec3 F0, float roughness)
+{
+    const float VdotH = clamp(dot(H, V), 0, 1);
+
+    // F(V, H) = F₀ + (1 − F₀) 2^((-5.55473(V · H) - 6.98316(V · H))
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(2, -5.55473 * VdotH - 6.98316 * VdotH);
+}
+
+vec3 getPrefilteredEnvColor(vec3 R, float roughness) {
+    const float MAX_REFLECTION_LOD = 5.0;
+    const float lod = roughness * MAX_REFLECTION_LOD;
+    const float lodf = floor(lod);
+    const float lodc = ceil(lod);
+    return mix(textureLod(prefilteredEnvMap, R, lodf).rgb, textureLod(prefilteredEnvMap, R, lodc).rgb, lod - lodf);
+}
+
 void main()
 {
     const vec3 N = normalize(vertexNormal); // TODO: texture mapped normals
     const vec3 V = normalize(cameraPos - worldPos);
+    const vec3 R = reflect(-V, N); 
 
     const vec3 F0 = mix(vec3(0.04), material.albedo, material.metallic);
 
     vec3 Lo = vec3(0);
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 1; ++i) {
         const vec3 L = normalize(light.positions[i].xyz - worldPos);
         const vec3 H = normalize(V + L);
 
@@ -95,12 +114,16 @@ void main()
         Lo += (kD * material.albedo / pi + kS * specular) * Li * max(dot(N, L), 0); // NOTE: F (=kS) is added here.
     }
     
-    vec3 kS = specularF(N, V, F0);
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - material.metallic;	  
+    vec3 kS = specularFR(N, V, F0, material.roughness);
+    vec3 kD = (1.0 - kS) * (1.0 - material.metallic);
+    	  
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * material.albedo;
-    vec3 ambient = (kD * diffuse);
+
+    const vec2 brdf = texture(brdfLut, vec2(max(dot(N, V), 0.0), material.roughness)).rg;
+    const vec3 specular = getPrefilteredEnvColor(R, material.roughness) * (kS * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specular);
 
     vec3 color = ambient + Lo;
 

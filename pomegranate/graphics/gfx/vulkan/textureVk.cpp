@@ -24,6 +24,10 @@ namespace pom::gfx {
             createInfo.usage |= TextureUsage::TRANSFER_DST;
         }
 
+        if (createInfo.mipLevels) {
+            createInfo.usage |= TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST;
+        }
+
         VkImageCreateInfo imageCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
@@ -32,7 +36,7 @@ namespace pom::gfx {
             .imageType = toVkImageType(createInfo.type),
             .format = toVkFormat(createInfo.format),
             .extent = { width, height, depth },
-            .mipLevels = 1, // TODO
+            .mipLevels = createInfo.mipLevels,
             .arrayLayers = createInfo.arrayLayers,
             .samples = VK_SAMPLE_COUNT_1_BIT, // TODO
             .tiling = VK_IMAGE_TILING_OPTIMAL, // TODO: don't do this on CPU visible memory
@@ -103,7 +107,10 @@ namespace pom::gfx {
         } else {
             auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
             commandBuffer->begin();
-            commandBuffer->transitionImageLayoutVk(this, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+            commandBuffer->transitionImageLayoutVk(this,
+                                                   VK_IMAGE_LAYOUT_UNDEFINED,
+                                                   VK_IMAGE_LAYOUT_GENERAL,
+                                                   createInfo.mipLevels);
             commandBuffer->end();
             commandBuffer->submit();
 
@@ -131,8 +138,8 @@ namespace pom::gfx {
             .components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
+                .baseMipLevel = createInfo.subresourceRange.baseMip,
+                .levelCount = createInfo.subresourceRange.mipCount,
                 .baseArrayLayer = createInfo.subresourceRange.baseArrayLayer,
                 .layerCount = createInfo.subresourceRange.layerCount,
             },
@@ -145,20 +152,20 @@ namespace pom::gfx {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .magFilter = VK_FILTER_NEAREST,
-            .minFilter = VK_FILTER_NEAREST,
+            .magFilter = VK_FILTER_LINEAR,
+            .minFilter = VK_FILTER_LINEAR,
             .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
             .mipLodBias = 0.f,
             .anisotropyEnable = VK_FALSE, // FIXME: request this from physical device features
             .maxAnisotropy = 1.f, // FIXME: should be acquired from physical device caps
             .compareEnable = VK_FALSE,
             .compareOp = VK_COMPARE_OP_NEVER,
-            .minLod = 0.f,
-            .maxLod = 0.f,
-            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            .minLod = static_cast<f32>(createInfo.subresourceRange.baseMip),
+            .maxLod = static_cast<f32>(createInfo.subresourceRange.baseMip + createInfo.subresourceRange.mipCount),
+            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
             .unnormalizedCoordinates = VK_FALSE,
         };
 

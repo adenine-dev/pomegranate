@@ -267,7 +267,7 @@ namespace pom::gfx {
                 .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
                 .mipLevels = 1,
                 .arrayLayers = 1,
-                .samples = VK_SAMPLE_COUNT_4_BIT,
+                .samples = instance->msaa,
                 .tiling = VK_IMAGE_TILING_OPTIMAL,
                 .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -341,7 +341,7 @@ namespace pom::gfx {
                 .extent = { swapchainExtent.width, swapchainExtent.height, 1 },
                 .mipLevels = 1,
                 .arrayLayers = 1,
-                .samples = VK_SAMPLE_COUNT_4_BIT,
+                .samples = instance->msaa,
                 .tiling = VK_IMAGE_TILING_OPTIMAL,
                 .usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
@@ -426,13 +426,17 @@ namespace pom::gfx {
         swapchainFramebuffers.resize(swapchainImageViews.size());
 
         for (u32 i = 0; i < swapchainFramebuffers.size(); i++) {
-            VkImageView attachments[] = { depthImageView, swapchainImageViews[i], resolveImageView };
+            VkImageView attachments[] = { depthImageView, resolveImageView, swapchainImageViews[i] };
+            if (instance->msaa == VK_SAMPLE_COUNT_1_BIT) {
+                attachments[1] = swapchainImageViews[i];
+                attachments[2] = resolveImageView;
+            }
             VkFramebufferCreateInfo framebufferCreateInfo = {
                 .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .renderPass = swapchainRenderPass->getHandle(),
-                .attachmentCount = 3,
+                .attachmentCount = (u32)(instance->msaa == VK_SAMPLE_COUNT_1_BIT ? 2 : 3),
                 .pAttachments = attachments,
                 .width = swapchainExtent.width,
                 .height = swapchainExtent.height,

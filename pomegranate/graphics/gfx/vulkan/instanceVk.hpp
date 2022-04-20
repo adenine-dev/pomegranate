@@ -69,6 +69,8 @@ namespace pom::gfx {
 #endif
         VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
+        VkSampleCountFlagBits msaa = VK_SAMPLE_COUNT_1_BIT;
+
         // TODO: compute stuffs
         u32 graphicsQueueFamilyIndex = INVALID_QUEUE_FAMILY_INDEX;
         u32 presentQueueFamilyIndex = INVALID_QUEUE_FAMILY_INDEX;
