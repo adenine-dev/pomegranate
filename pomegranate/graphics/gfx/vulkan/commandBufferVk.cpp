@@ -302,6 +302,7 @@ namespace pom::gfx {
                                               Texture* dst,
                                               usize size,
                                               usize srcOffset,
+                                              u32 mipLevel,
                                               const maths::ivec3& dstOffset,
                                               const maths::uvec3& dstExtent)
     {
@@ -315,7 +316,7 @@ namespace pom::gfx {
         auto* buffer = dynamic_cast<BufferVk*>(src);
         auto* texture = dynamic_cast<TextureVk*>(dst);
 
-        transitionImageLayoutVk(texture, texture->getVkImageLayout(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        transitionImageLayoutVk(texture, texture->getVkImageLayout(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevel);
 
         VkBufferImageCopy region = {
             .bufferOffset = srcOffset,
@@ -323,7 +324,7 @@ namespace pom::gfx {
             .bufferImageHeight = 0,
             .imageSubresource = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .mipLevel = 0,
+                .mipLevel = mipLevel,
                 .baseArrayLayer = 0,
                 .layerCount = texture->createInfo.arrayLayers,
             },
@@ -338,12 +339,13 @@ namespace pom::gfx {
                                1,
                                &region);
 
-        transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+        transitionImageLayoutVk(texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, mipLevel);
     }
 
     void CommandBufferVk::transitionImageLayoutVk(TextureVk* texture,
                                                   VkImageLayout oldLayout,
                                                   VkImageLayout newLayout,
+                                                  u32 baseMip,
                                                   u32 mips)
     {
         POM_PROFILE_FUNCTION();
@@ -359,7 +361,7 @@ namespace pom::gfx {
             .image = texture->getVkImage(),
             .subresourceRange = { //FIXME: whenever this is implemented
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
+                .baseMipLevel = baseMip,
                 .levelCount = mips,
                 .baseArrayLayer = 0,
                 .layerCount = texture->createInfo.arrayLayers,

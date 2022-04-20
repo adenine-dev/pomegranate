@@ -80,6 +80,13 @@ namespace pom::gfx {
                                                  usize initialDataOffset = 0,
                                                  usize initialDataSize = 0);
 
+        [[nodiscard]] static Ref<Texture> createDirect(TextureCreateInfo createInfo,
+                                                       u32 width,
+                                                       u32 height,
+                                                       u32 depth,
+                                                       usize initialDataSize,
+                                                       const void* initialData);
+
         [[nodiscard]] inline TextureUsage getUsage() const
         {
             return createInfo.usage;
@@ -98,6 +105,11 @@ namespace pom::gfx {
             return extent.z;
         }
 
+        [[nodiscard]] inline u32 getMipCount() const
+        {
+            return createInfo.mipLevels;
+        }
+
         [[nodiscard]] const maths::uvec3& getExtent() const
         {
             return extent;
@@ -106,6 +118,9 @@ namespace pom::gfx {
         [[nodiscard]] virtual inline usize getSize() const = 0;
 
         virtual ~Texture() = default;
+
+        [[nodiscard]] virtual void* map(usize offset = 0, usize size = 0) = 0;
+        virtual void unmap() = 0;
 
     protected:
         POM_NOCOPY(Texture);
@@ -125,6 +140,11 @@ namespace pom::gfx {
         [[nodiscard]] static Ref<TextureView> create(const Ref<Texture>& texture, TextureViewCreateInfo createInfo);
 
         virtual ~TextureView() = default;
+
+        [[nodiscard]] inline Format getFormat() const
+        {
+            return createInfo.format;
+        }
 
     protected:
         POM_NOCOPY(TextureView);

@@ -70,11 +70,15 @@ namespace pom::gfx {
                                  Texture* dst,
                                  usize size,
                                  usize srcOffset,
+                                 u32 mipLevel,
                                  const maths::ivec3& dstOffset,
                                  const maths::uvec3& dstExtent) final;
 
-        void
-        transitionImageLayoutVk(TextureVk* texture, VkImageLayout oldLayout, VkImageLayout newLayout, u32 mips = 1);
+        void transitionImageLayoutVk(TextureVk* texture,
+                                     VkImageLayout oldLayout,
+                                     VkImageLayout newLayout,
+                                     u32 baseMip = 0,
+                                     u32 mips = 1);
 
         [[nodiscard]] inline VkCommandBuffer& getCurrentCommandBuffer()
         {

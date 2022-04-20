@@ -142,6 +142,7 @@ namespace pom::gfx {
                                          Texture* dst,
                                          usize size,
                                          usize srcOffset,
+                                         u32 mipLevel,
                                          const maths::ivec3& dstOffset,
                                          const maths::uvec3& dstExtent)
             = 0;

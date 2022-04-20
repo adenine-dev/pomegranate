@@ -22,6 +22,8 @@ namespace pom::platform {
     /// Waits at least the specified number of milliseconds, may wait longer due to OS scheduling.
     POM_API void sleep(u32 ms);
 
+    POM_API std::string getUserPath();
+
     /// Reference to a shared object file (.dll or .so depending on platform) that holds all functions loaded by it.
     /// This code is *extremely* not threadsafe.
     /// @warning Do not attempt to load the same shared object file more than once, it will not work.

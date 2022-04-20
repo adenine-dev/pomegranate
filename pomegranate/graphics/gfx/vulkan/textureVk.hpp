@@ -22,6 +22,15 @@ namespace pom::gfx {
                   const void* initialData,
                   usize initialDataOffset,
                   usize initialDataSize);
+
+        TextureVk(InstanceVk* instance,
+                  TextureCreateInfo createInfo,
+                  u32 width,
+                  u32 height,
+                  u32 depth,
+                  usize initialDataSize,
+                  const void* initialData);
+
         ~TextureVk() final;
 
         [[nodiscard]] inline usize getSize() const final
@@ -38,6 +47,9 @@ namespace pom::gfx {
         {
             return imageLayout;
         }
+
+        [[nodiscard]] void* map(usize offset = 0, usize size = 0) final;
+        void unmap() final;
 
     protected:
         POM_NOCOPY(TextureVk);

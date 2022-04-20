@@ -145,19 +145,11 @@ struct GameState {
     GridConfig gridConfig;
 
     // sky
-    pom::Ref<pom::gfx::Texture> skyboxTexture;
-    pom::Ref<pom::gfx::TextureView> skyboxTextureView;
-
+    pom::IBLEnvironment environment;
     pom::Ref<pom::gfx::PipelineLayout> skyboxPipelineLayout;
     pom::Ref<pom::gfx::DescriptorSet> skyboxDescriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::Ref<pom::gfx::Pipeline> skyboxPipeline;
 
-    pom::Ref<pom::gfx::Texture> irradianceMapTexture;
-    pom::Ref<pom::gfx::TextureView> irradianceMapTextureView;
-
-    pom::Ref<pom::gfx::Texture> prefilteredEnvMapTexture;
-    pom::Ref<pom::gfx::TextureView> prefilteredEnvMapTextureView;
-    pom::Ref<pom::gfx::TextureView> prefilteredEnvMapTextureViews[5];
     u32 tex = 0;
     u32 lod = 0;
 
@@ -273,233 +265,6 @@ void initGrid(GameState* gs)
                                      gs->planePipelineLayout);
 }
 
-pom::Ref<pom::gfx::Texture> equirectangularToCubemap(const pom::Ref<pom::gfx::Texture>& equirectangular,
-                                                     const pom::Ref<pom::gfx::TextureView>& equirectangularView)
-{
-    POM_ASSERT(equirectangular->getWidth() == 2 * equirectangular->getHeight(), "equirectangular image must be 2:1");
-    pom::Ref<pom::gfx::Texture> cubemap = pom::gfx::Texture::create(
-        {
-            .type = pom::gfx::TextureType::IMAGE_2D,
-            .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::STORAGE,
-            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-            .arrayLayers = 6,
-            .cubeCompatable = true,
-        },
-        equirectangular->getWidth() / 4,
-        equirectangular->getWidth() / 4);
-
-    pom::Ref<pom::gfx::TextureView> cubemapArrayViews[6];
-    for (u8 i = 0; i < 6; ++i) {
-        cubemapArrayViews[i] = pom::gfx::TextureView::create(cubemap,
-                                                             {
-                                                                 .type = pom::gfx::TextureViewType::VIEW_2D,
-                                                                 .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                                 .subresourceRange = { .baseArrayLayer = i },
-                                                             });
-    }
-
-    auto converterComputeShader = pom::gfx::ShaderModule::create(
-        pom::gfx::ShaderStageFlags::COMPUTE,
-        equirectangular_to_cubemap_comp_spv_size,
-        reinterpret_cast<const u32*>(equirectangular_to_cubemap_comp_spv_data)); // NOLINT
-    auto converterShader = pom::gfx::Shader::create({ converterComputeShader });
-    auto converterPipelineLayout
-        = pom::gfx::PipelineLayout::create(1,
-                                           {
-                                               {
-                                                   .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                                                   .set = 0,
-                                                   .binding = 0,
-                                                   .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                                                   .set = 0,
-                                                   .binding = 1,
-                                                   .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                                                   .count = 6,
-                                               },
-                                           },
-                                           {});
-
-    auto converterPipeline = pom::gfx::Pipeline::createCompute(converterShader, converterPipelineLayout);
-    auto converterDescriptorSet = pom::gfx::DescriptorSet::create(converterPipelineLayout, 0);
-    converterDescriptorSet->setTextureView(pom::gfx::DescriptorType::STORAGE_IMAGE, 0, equirectangularView);
-    converterDescriptorSet->setTextureViews(pom::gfx::DescriptorType::STORAGE_IMAGE, 1, cubemapArrayViews, 6);
-
-    auto commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GENERAL, 1);
-    commandBuffer->begin();
-    commandBuffer->bindPipeline(converterPipeline);
-    commandBuffer->bindDescriptorSet(pom::gfx::PipelineBindPoint::COMPUTE,
-                                     converterPipelineLayout,
-                                     0,
-                                     converterDescriptorSet);
-    commandBuffer->dispatch(equirectangular->getWidth() / 4 / 16, equirectangular->getWidth() / 4 / 16, 6);
-
-    commandBuffer->end();
-    commandBuffer->submit();
-    return cubemap;
-}
-
-pom::Ref<pom::gfx::Texture> equirectangularToIrradianceMap(const pom::Ref<pom::gfx::Texture>& equirectangular,
-                                                           const pom::Ref<pom::gfx::TextureView>& equirectangularView)
-{
-    POM_ASSERT(equirectangular->getWidth() == 2 * equirectangular->getHeight(), "equirectangular image must be 2:1");
-    pom::Ref<pom::gfx::Texture> cubemap = pom::gfx::Texture::create(
-        {
-            .type = pom::gfx::TextureType::IMAGE_2D,
-            .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::STORAGE,
-            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-            .arrayLayers = 6,
-            .cubeCompatable = true,
-        },
-        equirectangular->getWidth() / 4,
-        equirectangular->getWidth() / 4);
-
-    pom::Ref<pom::gfx::TextureView> cubemapArrayViews[6];
-    for (u8 i = 0; i < 6; ++i) {
-        cubemapArrayViews[i] = pom::gfx::TextureView::create(cubemap,
-                                                             {
-                                                                 .type = pom::gfx::TextureViewType::VIEW_2D,
-                                                                 .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                                 .subresourceRange = { .baseArrayLayer = i },
-                                                             });
-    }
-
-    auto converterComputeShader
-        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::COMPUTE,
-                                         irradiance_comp_spv_size,
-                                         reinterpret_cast<const u32*>(irradiance_comp_spv_data)); // NOLINT
-    auto converterShader = pom::gfx::Shader::create({ converterComputeShader });
-    auto converterPipelineLayout = pom::gfx::PipelineLayout::create(
-        1,
-        {
-            {
-                .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                .set = 0,
-                .binding = 0,
-                .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-            },
-            {
-                .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                .set = 0,
-                .binding = 1,
-                .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                .count = 6,
-            },
-        },
-        { { .stages = pom::gfx::ShaderStageFlags::COMPUTE, .size = sizeof(f32) * 2 } });
-
-    auto converterPipeline = pom::gfx::Pipeline::createCompute(converterShader, converterPipelineLayout);
-    auto converterDescriptorSet = pom::gfx::DescriptorSet::create(converterPipelineLayout, 0);
-    converterDescriptorSet->setTextureView(pom::gfx::DescriptorType::STORAGE_IMAGE, 0, equirectangularView);
-    converterDescriptorSet->setTextureViews(pom::gfx::DescriptorType::STORAGE_IMAGE, 1, cubemapArrayViews, 6);
-
-    auto commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GENERAL, 1);
-    commandBuffer->begin();
-    commandBuffer->bindPipeline(converterPipeline);
-    const f32 pc[2] = { 0.05f, 0.05f };
-    commandBuffer->setPushConstants(converterPipelineLayout, pom::gfx::ShaderStageFlags::COMPUTE, sizeof(f32) * 2, pc);
-    commandBuffer->bindDescriptorSet(pom::gfx::PipelineBindPoint::COMPUTE,
-                                     converterPipelineLayout,
-                                     0,
-                                     converterDescriptorSet);
-    commandBuffer->dispatch(equirectangular->getWidth() / 4 / 16, equirectangular->getWidth() / 4 / 16, 6);
-    commandBuffer->end();
-    commandBuffer->submit();
-
-    return cubemap;
-}
-
-pom::Ref<pom::gfx::Texture>
-equirectangularToPrefilteredEnvMap(const pom::Ref<pom::gfx::Texture>& equirectangular,
-                                   const pom::Ref<pom::gfx::TextureView>& equirectangularView,
-                                   u8 mips)
-{
-    POM_ASSERT(equirectangular->getWidth() == 2 * equirectangular->getHeight(), "equirectangular image must be 2:1");
-    pom::Ref<pom::gfx::Texture> cubemap = pom::gfx::Texture::create(
-        {
-            .type = pom::gfx::TextureType::IMAGE_2D,
-            .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::STORAGE,
-            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-            .mipLevels = mips,
-            .arrayLayers = 6,
-            .cubeCompatable = true,
-        },
-        equirectangular->getWidth() / 4,
-        equirectangular->getWidth() / 4);
-
-    pom::Ref<pom::gfx::TextureView> cubemapArrayViews[6 * mips];
-    for (u8 m = 0; m < mips; ++m) {
-        for (u8 i = 0; i < 6; ++i) {
-            cubemapArrayViews[i + (m * 6)]
-                = pom::gfx::TextureView::create(cubemap,
-                                                {
-                                                    .type = pom::gfx::TextureViewType::VIEW_2D,
-                                                    .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                    .subresourceRange = { .baseArrayLayer = i, .baseMip = m, },
-                                                });
-        }
-    }
-
-    auto converterComputeShader
-        = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::COMPUTE,
-                                         prefiltered_envmap_comp_spv_size,
-                                         reinterpret_cast<const u32*>(prefiltered_envmap_comp_spv_data)); // NOLINT
-    auto converterShader = pom::gfx::Shader::create({ converterComputeShader });
-    auto converterPipelineLayout
-        = pom::gfx::PipelineLayout::create(1,
-                                           {
-                                               {
-                                                   .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                                                   .set = 0,
-                                                   .binding = 0,
-                                                   .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::STORAGE_IMAGE,
-                                                   .set = 0,
-                                                   .binding = 1,
-                                                   .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                                                   .count = (u32)6 * mips,
-                                               },
-                                           },
-                                           { {
-                                               .stages = pom::gfx::ShaderStageFlags::COMPUTE,
-                                               .size = sizeof(f32) + sizeof(u32),
-                                               .offset = 0,
-                                           } });
-
-    auto converterPipeline = pom::gfx::Pipeline::createCompute(converterShader, converterPipelineLayout);
-    auto converterDescriptorSet = pom::gfx::DescriptorSet::create(converterPipelineLayout, 0);
-    converterDescriptorSet->setTextureView(pom::gfx::DescriptorType::STORAGE_IMAGE, 0, equirectangularView);
-    converterDescriptorSet->setTextureViews(pom::gfx::DescriptorType::STORAGE_IMAGE, 1, cubemapArrayViews, 6 * mips);
-
-    auto commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GENERAL, 1);
-    commandBuffer->begin();
-    commandBuffer->bindPipeline(converterPipeline);
-    commandBuffer->bindDescriptorSet(pom::gfx::PipelineBindPoint::COMPUTE,
-                                     converterPipelineLayout,
-                                     0,
-                                     converterDescriptorSet);
-
-    for (u32 m = 0; m < mips; ++m) {
-        struct PC {
-            f32 roughness;
-            u32 mip;
-        };
-        PC pc = { (f32)m / (mips - 1), m };
-        commandBuffer->setPushConstants(converterPipelineLayout, pom::gfx::ShaderStageFlags::COMPUTE, sizeof(PC), &pc);
-        commandBuffer->dispatch((equirectangular->getWidth() / 4 / pow(2, m)) / 16,
-                                (equirectangular->getWidth() / 4 / pow(2, m)) / 16,
-                                6);
-    }
-    commandBuffer->end();
-    commandBuffer->submit();
-
-    return cubemap;
-}
-
 void initBrdfLut(GameState* gs)
 {
     gs->brdfLutTexture = pom::gfx::Texture::create(
@@ -548,72 +313,7 @@ void initBrdfLut(GameState* gs)
 void initSkybox(GameState* gamestate)
 {
     // my computer isn't great so we use 2k to not crash
-    i32 width, height, channels;
-    const f32* pixels = stbi_loadf((pom::getAssetPath() + "kiara_1_dawn_2k.hdr").c_str(),
-                                   &width,
-                                   &height,
-                                   &channels,
-                                   4); // NOTE: my computer doesn't do 3 channel stuff annoyingly.
-
-    const usize textureSize = (usize)width * height * 4 * sizeof(f32);
-
-    auto equirectangularMap = pom::gfx::Texture::create(
-        {
-            .type = pom::gfx::TextureType::IMAGE_2D,
-            .usage
-            = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::TRANSFER_DST | pom::gfx::TextureUsage::STORAGE,
-            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-        },
-        width,
-        height,
-        1,
-        pixels,
-        0,
-        textureSize);
-
-    auto equirectangularMapView = pom::gfx::TextureView::create(equirectangularMap,
-                                                                {
-                                                                    .type = pom::gfx::TextureViewType::VIEW_2D,
-                                                                    .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                                });
-
-    gamestate->skyboxTexture = equirectangularToCubemap(equirectangularMap, equirectangularMapView);
-    gamestate->skyboxTextureView = pom::gfx::TextureView::create(gamestate->skyboxTexture,
-                                                                 {
-                                                                     .type = pom::gfx::TextureViewType::CUBE,
-                                                                     .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                                     .subresourceRange = { .layerCount = 6 },
-                                                                 });
-    gamestate->irradianceMapTexture = equirectangularToIrradianceMap(equirectangularMap, equirectangularMapView);
-    gamestate->irradianceMapTextureView
-        = pom::gfx::TextureView::create(gamestate->irradianceMapTexture,
-                                        {
-                                            .type = pom::gfx::TextureViewType::CUBE,
-                                            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                            .subresourceRange = { .layerCount = 6 },
-                                        });
-
-    // gamestate->irradianceMapTexture = gamestate->skyboxTexture;
-    // gamestate->irradianceMapTextureView = gamestate->skyboxTextureView;
-    const u8 mips = 5;
-    gamestate->prefilteredEnvMapTexture
-        = equirectangularToPrefilteredEnvMap(equirectangularMap, equirectangularMapView, mips);
-    gamestate->prefilteredEnvMapTextureView
-        = pom::gfx::TextureView::create(gamestate->prefilteredEnvMapTexture,
-                                        {
-                                            .type = pom::gfx::TextureViewType::CUBE,
-                                            .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                            .subresourceRange = { .layerCount = 6, .mipCount = mips },
-                                        });
-    for (u8 m = 0; m < mips; m++) {
-        gamestate->prefilteredEnvMapTextureViews[m]
-            = pom::gfx::TextureView::create(gamestate->prefilteredEnvMapTexture,
-                                            {
-                                                .type = pom::gfx::TextureViewType::CUBE,
-                                                .format = pom::gfx::Format::R32G32B32A32_SFLOAT,
-                                                .subresourceRange = { .layerCount = 6, .baseMip = m },
-                                            });
-    }
+    gamestate->environment = pom::loadIBLEnvironment("kiara_1_dawn_2k.hdr");
 
     pom::Ref<pom::gfx::ShaderModule> skyboxVertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::VERTEX,
@@ -652,7 +352,7 @@ void initSkybox(GameState* gamestate)
                                                       gamestate->cameraBuffers[i]);
         gamestate->skyboxDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                            1,
-                                                           gamestate->prefilteredEnvMapTextureViews[0]);
+                                                           gamestate->environment.irradianceMapView);
     }
 
     gamestate->skyboxPipeline
@@ -800,10 +500,10 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                                                      gamestate->lightBuffers[i]);
         gamestate->sceneDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                           2,
-                                                          gamestate->irradianceMapTextureView);
+                                                          gamestate->environment.irradianceMapView);
         gamestate->sceneDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                           3,
-                                                          gamestate->prefilteredEnvMapTextureView);
+                                                          gamestate->environment.prefilteredEnvMapView);
         gamestate->sceneDescriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                                                           4,
                                                           gamestate->brdfLutTextureView);
@@ -910,9 +610,9 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                 gs->skyboxDescriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]->setTextureView(
                     pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
                     1,
-                    gs->tex == 0   ? gs->skyboxTextureView
-                    : gs->tex == 1 ? gs->irradianceMapTextureView
-                                   : gs->prefilteredEnvMapTextureViews[gs->lod]);
+                    gs->tex == 0   ? gs->environment.skyboxView
+                    : gs->tex == 1 ? gs->environment.irradianceMapView
+                                   : gs->environment.prefilteredEnvMapView);
                 gs->commandBuffer->bindPipeline(gs->skyboxPipeline);
                 gs->commandBuffer->bindDescriptorSet(pom::gfx::PipelineBindPoint::GRAPHICS,
                                                      gs->skyboxPipelineLayout,

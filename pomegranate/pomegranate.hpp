@@ -105,6 +105,7 @@
 #include "graphics/gfx/texture.hpp"
 
 // TODO: docs
+#include "graphics/environment.hpp"
 #include "graphics/mesh.hpp"
 
 // TOOD: docs

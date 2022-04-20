@@ -39,7 +39,7 @@ namespace pom::gfx {
             .mipLevels = createInfo.mipLevels,
             .arrayLayers = createInfo.arrayLayers,
             .samples = VK_SAMPLE_COUNT_1_BIT, // TODO
-            .tiling = VK_IMAGE_TILING_OPTIMAL, // TODO: don't do this on CPU visible memory
+            .tiling = VK_IMAGE_TILING_LINEAR, // TODO: don't do this on CPU visible memory
             .usage = toVkImageUsageFlags(createInfo.usage),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE, // FIXME: probably an error here
             .queueFamilyIndexCount = 0,
@@ -97,6 +97,7 @@ namespace pom::gfx {
                                                this,
                                                initialDataSize,
                                                initialDataOffset,
+                                               0,
                                                { 0, 0, 0 },
                                                getExtent());
             commandBuffer->end();
@@ -110,6 +111,7 @@ namespace pom::gfx {
             commandBuffer->transitionImageLayoutVk(this,
                                                    VK_IMAGE_LAYOUT_UNDEFINED,
                                                    VK_IMAGE_LAYOUT_GENERAL,
+                                                   0,
                                                    createInfo.mipLevels);
             commandBuffer->end();
             commandBuffer->submit();
@@ -118,11 +120,117 @@ namespace pom::gfx {
         }
     }
 
+    TextureVk::TextureVk(InstanceVk* instance,
+                         TextureCreateInfo createInfo,
+                         u32 width,
+                         u32 height,
+                         u32 depth,
+                         usize initialDataSize,
+                         const void* initialData) :
+        Texture(createInfo, width, height, depth),
+        instance(instance), imageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+    {
+        POM_PROFILE_FUNCTION();
+        if (initialData) {
+            createInfo.usage |= TextureUsage::TRANSFER_DST;
+        }
+
+        if (createInfo.mipLevels) {
+            createInfo.usage |= TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST;
+        }
+
+        VkImageCreateInfo imageCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = static_cast<VkImageCreateFlags>(createInfo.cubeCompatable ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+                                                                               : 0), // TODO
+            .imageType = toVkImageType(createInfo.type),
+            .format = toVkFormat(createInfo.format),
+            .extent = { width, height, depth },
+            .mipLevels = createInfo.mipLevels,
+            .arrayLayers = createInfo.arrayLayers,
+            .samples = VK_SAMPLE_COUNT_1_BIT, // TODO
+            .tiling = VK_IMAGE_TILING_LINEAR, // TODO: don't do this on CPU visible memory
+            .usage = toVkImageUsageFlags(createInfo.usage),
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE, // FIXME: probably an error here
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        };
+
+        POM_CHECK_VK(vkCreateImage(instance->getVkDevice(), &imageCreateInfo, nullptr, &image),
+                     "failed to create image.");
+
+        VkMemoryRequirements memoryReqs;
+        vkGetImageMemoryRequirements(instance->getVkDevice(), image, &memoryReqs);
+        VkPhysicalDeviceMemoryProperties physicalMemoryProps;
+        vkGetPhysicalDeviceMemoryProperties(instance->getVkPhysicalDevice(), &physicalMemoryProps);
+
+        // FIXME: props should be gpu only
+        VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+        u32 memoryTypeIndex = VK_MAX_MEMORY_TYPES;
+
+        for (u32 i = 0; i < physicalMemoryProps.memoryTypeCount; i++) {
+            if (memoryReqs.memoryTypeBits & (1 << i)
+                && (physicalMemoryProps.memoryTypes[i].propertyFlags & props) == props) {
+                memoryTypeIndex = i;
+                break;
+            }
+        }
+
+        POM_ASSERT(memoryTypeIndex != VK_MAX_MEMORY_TYPES, "failed to find suitable memory type.");
+        memorySize = memoryReqs.size;
+
+        VkMemoryAllocateInfo imageAllocInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .allocationSize = memoryReqs.size,
+            .memoryTypeIndex = memoryTypeIndex,
+        };
+
+        POM_CHECK_VK(vkAllocateMemory(instance->getVkDevice(), &imageAllocInfo, nullptr, &memory),
+                     "failed to allocate texture memory");
+
+        POM_CHECK_VK(vkBindImageMemory(instance->getVkDevice(), image, memory, 0), "Failed to bind image memory");
+
+        if (initialData) {
+            void* data = map();
+            memcpy(data, initialData, initialDataSize);
+            unmap();
+        }
+
+        auto* commandBuffer = new CommandBufferVk(instance, CommandBufferSpecialization::GENERAL, 1);
+        commandBuffer->begin();
+        commandBuffer->transitionImageLayoutVk(this,
+                                               VK_IMAGE_LAYOUT_UNDEFINED,
+                                               VK_IMAGE_LAYOUT_GENERAL,
+                                               0,
+                                               createInfo.mipLevels);
+        commandBuffer->end();
+        commandBuffer->submit();
+
+        delete commandBuffer;
+    }
+
     TextureVk::~TextureVk()
     {
         POM_PROFILE_FUNCTION();
         vkDestroyImage(instance->getVkDevice(), image, nullptr);
         vkFreeMemory(instance->getVkDevice(), memory, nullptr);
+    }
+
+    [[nodiscard]] void* TextureVk::map(usize offset, usize size)
+    {
+        POM_PROFILE_FUNCTION();
+
+        void* data = nullptr;
+        vkMapMemory(instance->getVkDevice(), memory, offset, size == 0 ? VK_WHOLE_SIZE : size, 0, &data);
+        return data;
+    }
+    void TextureVk::unmap()
+    {
+        vkUnmapMemory(instance->getVkDevice(), memory);
     }
 
     TextureViewVk::TextureViewVk(const Ref<TextureVk>& texture, TextureViewCreateInfo createInfo) :

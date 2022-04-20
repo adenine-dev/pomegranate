@@ -46,6 +46,11 @@ namespace pom {
             return instance;
         }
 
+        [[nodiscard]] static const AppCreateInfo& getAppCreateInfo()
+        {
+            return *get()->createInfo;
+        }
+
     private:
         friend int ::main(int argc, char** argv);
 

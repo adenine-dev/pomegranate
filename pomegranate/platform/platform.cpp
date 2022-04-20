@@ -2,9 +2,13 @@
 
 #include "platform.hpp"
 
+#include "core/application.hpp"
+
 #include "terminal.hpp"
 
 namespace pom::platform {
+    static char* userPath = nullptr;
+
     bool init()
     {
         POM_PROFILE_FUNCTION();
@@ -29,6 +33,16 @@ namespace pom::platform {
     void sleep(u32 ms)
     {
         SDL_Delay(ms);
+    }
+
+    std::string getUserPath()
+    {
+        if (!userPath) {
+            POM_ASSERT(Application::get(), "Application must be initialized before requesting user path.");
+            userPath = SDL_GetPrefPath(Application::getAppCreateInfo().name, Application::getAppCreateInfo().name);
+        }
+
+        return userPath;
     }
 
     SharedObject::SharedObject(std::string soFilename) :
