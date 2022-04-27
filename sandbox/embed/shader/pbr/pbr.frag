@@ -6,8 +6,9 @@
 layout(location = 0) in vec4 vertexColor;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal;
-layout(location = 3) in vec3 worldPos;
-layout(location = 4) in vec3 cameraPos;
+layout(location = 3) in vec4 vertexTangent;
+layout(location = 4) in vec3 worldPos;
+layout(location = 5) in vec3 cameraPos;
 
 layout(location = 0) out vec4 fragColor;
 
@@ -29,6 +30,11 @@ light;
 layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
 layout(set = 0, binding = 3) uniform samplerCube prefilteredEnvMap;
 layout(set = 0, binding = 4) uniform sampler2D brdfLut;
+
+layout(set = 1, binding = 5) uniform sampler2D armMap;
+layout(set = 1, binding = 6) uniform sampler2D normalMap;
+layout(set = 1, binding = 7) uniform sampler2D albedoMap;
+
 
 const float pi = 3.1415926535897932384626433832795;
 
@@ -65,15 +71,14 @@ vec3 specularF(vec3 V, vec3 H, vec3 F0)
     const float VdotH = clamp(dot(H, V), 0, 1);
 
     // F(V, H) = F₀ + (1 − F₀) 2^((-5.55473(V · H) - 6.98316(V · H))
-    return F0 + (1 - F0) * pow(2, -5.55473 * VdotH - 6.98316 * VdotH);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 }
 
 vec3 specularFR(vec3 V, vec3 H, vec3 F0, float roughness)
 {
     const float VdotH = clamp(dot(H, V), 0, 1);
 
-    // F(V, H) = F₀ + (1 − F₀) 2^((-5.55473(V · H) - 6.98316(V · H))
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(2, -5.55473 * VdotH - 6.98316 * VdotH);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 }
 
 vec3 getPrefilteredEnvColor(vec3 R, float roughness) {
@@ -81,16 +86,40 @@ vec3 getPrefilteredEnvColor(vec3 R, float roughness) {
     const float lod = roughness * MAX_REFLECTION_LOD;
     const float lodf = floor(lod);
     const float lodc = ceil(lod);
-    return mix(textureLod(prefilteredEnvMap, R, lodf).rgb, textureLod(prefilteredEnvMap, R, lodc).rgb, lod - lodf);
+    return mix(pow(textureLod(prefilteredEnvMap, R, lodf).rgb, vec3(2.2)), pow(textureLod(prefilteredEnvMap, R, lodc).rgb, vec3(2.2)), lod - lodf);
 }
+
+vec3 getNormal() {
+    // return vertexNormal;
+
+	vec3 tangentNormal = texture(normalMap, vertexUV).xyz * 2.0 - 1.0;
+
+	vec3 N = normalize(vertexNormal);
+	vec3 T = normalize(vertexTangent.xyz);
+	vec3 B = normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+	return normalize(TBN * tangentNormal);
+}
+
 
 void main()
 {
-    const vec3 N = normalize(vertexNormal); // TODO: texture mapped normals
+    const vec3 N = getNormal();
     const vec3 V = normalize(cameraPos - worldPos);
     const vec3 R = reflect(-V, N); 
 
-    const vec3 F0 = mix(vec3(0.04), material.albedo, material.metallic);
+    const vec3 albedo = pow(texture(albedoMap, vertexUV).xyz, vec3(2.2)) * material.albedo;
+    const vec3 arm = texture(armMap, vertexUV).xyz * vec3(1, material.roughness, material.metallic);
+    const float ao = arm.x;
+    const float roughness = arm.y;
+    const float metallic = arm.z;
+
+    // const vec3 albedo = material.albedo;
+    // const float ao = 1;
+    // const float roughness = material.roughness;
+    // const float metallic = material.metallic;
+
+    const vec3 F0 = mix(albedo, vec3(0.04), metallic);
 
     vec3 Lo = vec3(0);
     for (int i = 0; i < 1; ++i) {
@@ -98,32 +127,31 @@ void main()
         const vec3 H = normalize(V + L);
 
         const vec3 Li = light.colors[i].xyz / pow(length(light.positions[i].xyz - worldPos), 2);
+        const vec3 kS = specularF(V, H, F0); // kS = F
 
         // Cook-Torrance
         // f(L, V) = D(H)F(V, H)G(L, V, H) / 4(N · L)(N · V)
-        const float specular = specularD(N, H, material.roughness)
-                                   * specularG(N, V, L, material.roughness) // NOTE: no F yet
+        const vec3 specular = (specularD(N, H, roughness) * kS * specularG(N, V, L, roughness))
                                    / 4 * max(dot(N, L), 0.0) * max(dot(N, V), 0.0)
                                + 0.0001; // prevent divide by zero
 
-        const vec3 kS = specularF(V, H, F0); // kS = F
 
-        const vec3 kD = (vec3(1) - kS) * (1 - material.metallic);
+        const vec3 kD = (vec3(1) - kS) * (1 - metallic);
 
         // fᵣ(p, ωᵢ, ωₒ) L(p, ωᵢ) n·ωᵢ
-        Lo += (kD * material.albedo / pi + kS * specular) * Li * max(dot(N, L), 0); // NOTE: F (=kS) is added here.
+        Lo += (kD * albedo / pi + specular) * Li * max(dot(N, L), 0);
     }
     
-    vec3 kS = specularFR(N, V, F0, material.roughness);
-    vec3 kD = (1.0 - kS) * (1.0 - material.metallic);
+    vec3 kS = specularFR(N, V, F0, roughness);
+    vec3 kD = (1.0 - kS) * (1.0 - metallic);
     	  
-    vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = irradiance * material.albedo;
+    vec3 irradiance = pow(texture(irradianceMap, N).rgb, vec3(2.2));
+    vec3 diffuse = irradiance * albedo;
 
-    const vec2 brdf = texture(brdfLut, vec2(max(dot(N, V), 0.0), material.roughness)).rg;
-    const vec3 specular = getPrefilteredEnvColor(R, material.roughness) * (kS * brdf.x + brdf.y);
+    const vec2 brdf = texture(brdfLut, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    const vec3 specular = getPrefilteredEnvColor(R, roughness) * (kS * brdf.x + brdf.y);
 
-    vec3 ambient = (kD * diffuse + specular);
+    vec3 ambient = (kD * diffuse + specular) * ao;
 
     vec3 color = ambient + Lo;
 

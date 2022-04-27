@@ -11,40 +11,40 @@ namespace pom::geometry {
         // clang-format off
         MeshVertex vertices[] = {
             // front
-            { vec3(-1, -1,  1), vec3(0, 0, 1), vec2(0, 0), Color::rgb(255, 0, 0) },
-            { vec3( 1, -1,  1), vec3(0, 0, 1), vec2(0, 1), Color::rgb(255, 0, 0) }, 
-            { vec3( 1,  1,  1), vec3(0, 0, 1), vec2(1, 1), Color::rgb(255, 0, 0) },
-            { vec3(-1,  1,  1), vec3(0, 0, 1), vec2(1, 0), Color::rgb(255, 0, 0) }, 
+            { vec3(-1, -1,  1), vec3(0, 0, 1), vec2(0, 0), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), },
+            { vec3( 1, -1,  1), vec3(0, 0, 1), vec2(0, 1), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), }, 
+            { vec3( 1,  1,  1), vec3(0, 0, 1), vec2(1, 1), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), },
+            { vec3(-1,  1,  1), vec3(0, 0, 1), vec2(1, 0), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), }, 
 
             // back
-            { vec3(-1, -1, -1), vec3(0, 0, -1), vec2(1, 0), Color::rgb(0, 255, 0) },
-            { vec3( 1, -1, -1), vec3(0, 0, -1), vec2(1, 1), Color::rgb(0, 255, 0) }, 
-            { vec3( 1,  1, -1), vec3(0, 0, -1), vec2(0, 1), Color::rgb(0, 255, 0) },
-            { vec3(-1,  1, -1), vec3(0, 0, -1), vec2(0, 0), Color::rgb(0, 255, 0) }, 
+            { vec3(-1, -1, -1), vec3(0, 0, -1), vec2(1, 0), Color::rgb(0, 255, 0), vec4(-1, 0, 0, 1), },
+            { vec3( 1, -1, -1), vec3(0, 0, -1), vec2(1, 1), Color::rgb(0, 255, 0), vec4(-1, 0, 0, 1), }, 
+            { vec3( 1,  1, -1), vec3(0, 0, -1), vec2(0, 1), Color::rgb(0, 255, 0), vec4(-1, 0, 0, 1), },
+            { vec3(-1,  1, -1), vec3(0, 0, -1), vec2(0, 0), Color::rgb(0, 255, 0), vec4(-1, 0, 0, 1), }, 
 
             // left
-            { vec3(-1, -1, -1), vec3(-1, 0, 0), vec2(1, 0), Color::rgb(0, 0, 255) },
-            { vec3(-1, -1,  1), vec3(-1, 0, 0), vec2(1, 1), Color::rgb(0, 0, 255) }, 
-            { vec3(-1,  1,  1), vec3(-1, 0, 0), vec2(0, 1), Color::rgb(0, 0, 255) },
-            { vec3(-1,  1, -1), vec3(-1, 0, 0), vec2(0, 0), Color::rgb(0, 0, 255) }, 
+            { vec3(-1, -1, -1), vec3(-1, 0, 0), vec2(1, 0), Color::rgb(0, 0, 255), vec4(0, 1, 0, 1), },
+            { vec3(-1, -1,  1), vec3(-1, 0, 0), vec2(1, 1), Color::rgb(0, 0, 255), vec4(0, 1, 0, 1), }, 
+            { vec3(-1,  1,  1), vec3(-1, 0, 0), vec2(0, 1), Color::rgb(0, 0, 255), vec4(0, 1, 0, 1), },
+            { vec3(-1,  1, -1), vec3(-1, 0, 0), vec2(0, 0), Color::rgb(0, 0, 255), vec4(0, 1, 0, 1), }, 
 
             // right
-            { vec3( 1, -1, -1), vec3(1, 0, 0), vec2(0, 0), Color::rgb(255, 255, 0) },
-            { vec3( 1, -1,  1), vec3(1, 0, 0), vec2(0, 1), Color::rgb(255, 255, 0) }, 
-            { vec3( 1,  1,  1), vec3(1, 0, 0), vec2(1, 1), Color::rgb(255, 255, 0) },
-            { vec3( 1,  1, -1), vec3(1, 0, 0), vec2(1, 0), Color::rgb(255, 255, 0) }, 
+            { vec3( 1, -1, -1), vec3(1, 0, 0), vec2(0, 0), Color::rgb(255, 255, 0), vec4(0, -1, 0, 1),},
+            { vec3( 1, -1,  1), vec3(1, 0, 0), vec2(0, 1), Color::rgb(255, 255, 0), vec4(0, -1, 0, 1),}, 
+            { vec3( 1,  1,  1), vec3(1, 0, 0), vec2(1, 1), Color::rgb(255, 255, 0), vec4(0, -1, 0, 1),},
+            { vec3( 1,  1, -1), vec3(1, 0, 0), vec2(1, 0), Color::rgb(255, 255, 0), vec4(0, -1, 0, 1),}, 
 
             // top
-            { vec3(-1,  1, -1), vec3(0, 1, 0), vec2(0, 0), Color::rgb(255, 0, 255) },
-            { vec3(-1,  1,  1), vec3(0, 1, 0), vec2(0, 1), Color::rgb(255, 0, 255) }, 
-            { vec3( 1,  1,  1), vec3(0, 1, 0), vec2(1, 1), Color::rgb(255, 0, 255) },
-            { vec3( 1,  1, -1), vec3(0, 1, 0), vec2(1, 0), Color::rgb(255, 0, 255) }, 
+            { vec3(-1,  1, -1), vec3(0, 1, 0), vec2(0, 0), Color::rgb(255, 0, 255), vec4(0, 0, 1, 1),},
+            { vec3(-1,  1,  1), vec3(0, 1, 0), vec2(0, 1), Color::rgb(255, 0, 255), vec4(0, 0, 1, 1),}, 
+            { vec3( 1,  1,  1), vec3(0, 1, 0), vec2(1, 1), Color::rgb(255, 0, 255), vec4(0, 0, 1, 1),},
+            { vec3( 1,  1, -1), vec3(0, 1, 0), vec2(1, 0), Color::rgb(255, 0, 255), vec4(0, 0, 1, 1),}, 
 
             // bottom
-            { vec3(-1, -1, -1), vec3(0, -1, 0), vec2(1, 0), Color::rgb(0, 255, 255) },
-            { vec3(-1, -1,  1), vec3(0, -1, 0), vec2(1, 1), Color::rgb(0, 255, 255) }, 
-            { vec3( 1, -1,  1), vec3(0, -1, 0), vec2(0, 1), Color::rgb(0, 255, 255) },
-            { vec3( 1, -1, -1), vec3(0, -1, 0), vec2(0, 0), Color::rgb(0, 255, 255) }, 
+            { vec3(-1, -1, -1), vec3(0, -1, 0), vec2(1, 0), Color::rgb(0, 255, 255), vec4(0, 0, -1, 1) },
+            { vec3(-1, -1,  1), vec3(0, -1, 0), vec2(1, 1), Color::rgb(0, 255, 255), vec4(0, 0, -1, 1) }, 
+            { vec3( 1, -1,  1), vec3(0, -1, 0), vec2(0, 1), Color::rgb(0, 255, 255), vec4(0, 0, -1, 1) },
+            { vec3( 1, -1, -1), vec3(0, -1, 0), vec2(0, 0), Color::rgb(0, 255, 255), vec4(0, 0, -1, 1) }, 
         };
 
         static constexpr u16 indices[] = {
@@ -94,11 +94,19 @@ namespace pom::geometry {
                 const f32 x = xz * sinf(theta);
                 const f32 z = xz * cosf(theta);
 
+                const vec3 normal = vec3(x, y, z);
+                // HACK
+                float r = 1.0f / (1.f / lonDetail * 1.f / latDetail);
+                maths::vec3 tangent
+                    = vec3(xz * sinf(theta + (f32)PI / 2.f), cosf(phi), xz * cosf(theta + (f32)PI / 2.f));
+                maths::vec3 bitangent = tangent.cross(normal);
+
                 vertices[lat * (lonDetail + 1) + lon] = {
                     .position = vec3(x, y, z),
-                    .normal = vec3(x, y, z),
+                    .normal = normal,
                     .uv = vec2((f32)lon / lonDetail, (f32)lat / latDetail),
                     .color = color,
+                    .tangent = vec4(tangent, normal.cross(tangent).dot(bitangent) < 0.f ? -1.f : 1.f),
                 };
 
                 if (lat != latDetail && lon != lonDetail) {
@@ -116,6 +124,34 @@ namespace pom::geometry {
                 }
             }
         }
+
+        return {
+            .vertexBuffer = gfx::Buffer::create(gfx::BufferUsage::VERTEX,
+                                                gfx::BufferMemoryAccess::GPU_ONLY,
+                                                sizeof(vertices),
+                                                vertices),
+            .indexBuffer
+            = gfx::Buffer::create(gfx::BufferUsage::INDEX, gfx::BufferMemoryAccess::GPU_ONLY, sizeof(indices), indices),
+            .indexType = gfx::IndexType::U16,
+        };
+    }
+
+    POM_API GPUMesh<MeshVertex> plane(Color color)
+    {
+        using namespace maths;
+
+        // clang-format off
+        MeshVertex vertices[] = {
+            { vec3(-1,  0, -1), vec3(0, 1, 0), vec2(0, 0), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), },
+            { vec3( 1,  0, -1), vec3(0, 1, 0), vec2(0, 1), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), }, 
+            { vec3( 1,  0,  1), vec3(0, 1, 0), vec2(1, 1), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), },
+            { vec3(-1,  0,  1), vec3(0, 1, 0), vec2(1, 0), Color::rgb(255, 0, 0), vec4(1, 0, 0, 1), }, 
+        };
+
+        static constexpr u16 indices[] = {
+             0,  1,  3,  3,  1,  2,
+        };
+        // clang-format on
 
         return {
             .vertexBuffer = gfx::Buffer::create(gfx::BufferUsage::VERTEX,

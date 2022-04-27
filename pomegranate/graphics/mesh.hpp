@@ -12,7 +12,7 @@ namespace pom::geometry {
         maths::vec3 normal;
         maths::vec2 uv;
         Color color;
-        // TODO: normals
+        maths::vec4 tangent;
     };
 
     template <typename Vertex> struct GPUMesh {
@@ -24,5 +24,7 @@ namespace pom::geometry {
     POM_API GPUMesh<MeshVertex> cube(Color color = Color::WHITE);
 
     POM_API GPUMesh<MeshVertex> sphere(Color color = Color::WHITE);
+
+    POM_API GPUMesh<MeshVertex> plane(Color color = Color::WHITE);
 
 } // namespace pom::geometry

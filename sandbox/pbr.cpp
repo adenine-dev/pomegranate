@@ -121,6 +121,75 @@ struct GridConfig {
     f32 axisIntensity;
 };
 
+struct PbrTextures {
+    pom::Ref<pom::gfx::Texture> armMap;
+    pom::Ref<pom::gfx::TextureView> armMapView;
+    pom::Ref<pom::gfx::Texture> albedoMap;
+    pom::Ref<pom::gfx::TextureView> albedoMapView;
+    pom::Ref<pom::gfx::Texture> normalMap;
+    pom::Ref<pom::gfx::TextureView> normalMapView;
+
+    static PbrTextures load(std::string dir)
+    {
+        PbrTextures res;
+        pom::ImageLoadResult armImg = pom::loadImage(dir + "/arm.png", 4);
+        res.armMap = pom::gfx::Texture::create(
+            {
+                .type = pom::gfx::TextureType::IMAGE_2D,
+                .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::TRANSFER_DST,
+                .format = pom::gfx::Format::R8G8B8A8_SRGB,
+            },
+            armImg.width,
+            armImg.height,
+            1,
+            armImg.pixels);
+        res.armMapView = pom::gfx::TextureView::create(res.armMap,
+                                                       {
+                                                           .type = pom::gfx::TextureViewType::VIEW_2D,
+                                                           .format = pom::gfx::Format::R8G8B8A8_SRGB,
+                                                       });
+        free(armImg.pixels);
+
+        pom::ImageLoadResult albedoImg = pom::loadImage(dir + "/albedo.png", 4);
+        res.albedoMap = pom::gfx::Texture::create(
+            {
+                .type = pom::gfx::TextureType::IMAGE_2D,
+                .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::TRANSFER_DST,
+                .format = pom::gfx::Format::R8G8B8A8_SRGB,
+            },
+            albedoImg.width,
+            albedoImg.height,
+            1,
+            albedoImg.pixels);
+        res.albedoMapView = pom::gfx::TextureView::create(res.albedoMap,
+                                                          {
+                                                              .type = pom::gfx::TextureViewType::VIEW_2D,
+                                                              .format = pom::gfx::Format::R8G8B8A8_SRGB,
+                                                          });
+        free(albedoImg.pixels);
+
+        pom::ImageLoadResult normalImg = pom::loadImage(dir + "/normal.png", 4);
+        res.normalMap = pom::gfx::Texture::create(
+            {
+                .type = pom::gfx::TextureType::IMAGE_2D,
+                .usage = pom::gfx::TextureUsage::SAMPLED | pom::gfx::TextureUsage::TRANSFER_DST,
+                .format = pom::gfx::Format::R8G8B8A8_SRGB,
+            },
+            normalImg.width,
+            normalImg.height,
+            1,
+            normalImg.pixels);
+        res.normalMapView = pom::gfx::TextureView::create(res.normalMap,
+                                                          {
+                                                              .type = pom::gfx::TextureViewType::VIEW_2D,
+                                                              .format = pom::gfx::Format::R8G8B8A8_SRGB,
+                                                          });
+        free(normalImg.pixels);
+
+        return res;
+    }
+};
+
 struct GameState {
     pom::Ref<pom::gfx::CommandBuffer> commandBuffer;
 
@@ -149,7 +218,8 @@ struct GameState {
     pom::Ref<pom::gfx::PipelineLayout> skyboxPipelineLayout;
     pom::Ref<pom::gfx::DescriptorSet> skyboxDescriptorSets[POM_MAX_FRAMES_IN_FLIGHT];
     pom::Ref<pom::gfx::Pipeline> skyboxPipeline;
-
+    f32 exposure = 0.3f;
+    f32 gamma = 1.f;
     u32 tex = 0;
     u32 lod = 0;
 
@@ -157,7 +227,8 @@ struct GameState {
     pom::Ref<pom::gfx::TextureView> brdfLutTextureView;
 
     f32 metalic = 0.0;
-    f32 roughness = 0.0;
+    f32 roughness = 1.0;
+    PbrTextures pbrTextures;
 };
 
 struct TransformComponent {
@@ -184,6 +255,8 @@ struct MaterialComponent {
     pom::maths::vec3 albedo;
     float metalic;
     float roughness;
+
+    PbrTextures* texturePtr;
 
     ECS_COMPONENT();
 };
@@ -312,8 +385,7 @@ void initBrdfLut(GameState* gs)
 
 void initSkybox(GameState* gamestate)
 {
-    // my computer isn't great so we use 2k to not crash
-    gamestate->environment = pom::loadIBLEnvironment("kiara_1_dawn_2k.hdr");
+    gamestate->environment = pom::loadIBLEnvironment("nebula_n0_rr.hdr");
 
     pom::Ref<pom::gfx::ShaderModule> skyboxVertShader
         = pom::gfx::ShaderModule::create(pom::gfx::ShaderStageFlags::VERTEX,
@@ -343,7 +415,7 @@ void initSkybox(GameState* gamestate)
                 .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
             },
         },
-        { { .stages = pom::gfx::ShaderStageFlags::FRAGMENT, .size = sizeof(u32), .offset = 0 } });
+        { { .stages = pom::gfx::ShaderStageFlags::FRAGMENT, .size = sizeof(u32) + (2 * sizeof(f32)), .offset = 0 } });
 
     for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
         gamestate->skyboxDescriptorSets[i] = pom::gfx::DescriptorSet::create(gamestate->skyboxPipelineLayout, 0);
@@ -372,15 +444,17 @@ void initStore(GameState* gamestate)
     auto createEntity = [](GameState* gs, pom::maths::vec3 albedo, f32 roughness, f32 metalness, f32 x, f32 y) {
         auto e = gs->store.createEntity();
         gs->store.addComponent<TransformComponent>(e) = {
-            pom::maths::mat4::translate({ (f32)x * 2.3f, (f32)y * 2.3f, 0.f }),
+            pom::maths::mat4::translate({ (f32)x * 2.3f, (f32)y * 2.3f, 0.f })
+                * pom::maths::mat4::scale(pom::maths::vec3(3, 3, 3)),
         };
         gs->store.addComponent<MeshComponent>(e) = {
             .meshptr = &gs->sphereMesh,
         };
-        gs->store.addComponent<MaterialComponent>(e) = {
+        auto& m = gs->store.addComponent<MaterialComponent>(e) = {
             .albedo = albedo,
             .metalic = metalness,
             .roughness = roughness,
+            .texturePtr = &gs->pbrTextures,
         };
         auto& r = gs->store.addComponent<RenderComponent>(e);
 
@@ -393,19 +467,29 @@ void initStore(GameState* gamestate)
 
             r.materialBuffers[i] = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
                                                             pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                            sizeof(MaterialComponent));
+                                                            sizeof(MaterialComponent) - sizeof(&gs->pbrTextures));
             r.descriptorSets[i]->setBuffer(pom::gfx::DescriptorType::UNIFORM_BUFFER, 1, r.materialBuffers[i]);
+
+            r.descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                                                5,
+                                                m.texturePtr->armMapView);
+            r.descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                                                6,
+                                                m.texturePtr->normalMapView);
+            r.descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                                                7,
+                                                m.texturePtr->albedoMapView);
         }
     };
 
     createEntity(gamestate, pom::maths::vec3(0.2), gamestate->roughness, gamestate->metalic, 0, 0);
 
-    createEntity(gamestate, pom::maths::vec3(1, 0.86, 0.57), 0, 0, 1, 0);
-    createEntity(gamestate, pom::maths::vec3(0.98, 0.82, 0.76), 0, 1, -1, 0);
-    createEntity(gamestate, pom::maths::vec3(0, 0, 1), 0.7, 0.3, 2, 0);
-    createEntity(gamestate, pom::maths::vec3(0.3, 0.0, 0.3), 0, 0, -2, 0);
-    createEntity(gamestate, pom::maths::vec3(0.7, 0, 0), 0.3, 1, 3, 0);
-    createEntity(gamestate, pom::maths::vec3(0, 0, 0), 0.4, 0, -3, 0);
+    // createEntity(gamestate, pom::maths::vec3(1, 0.86, 0.57), 0, 0, 1, 0);
+    // createEntity(gamestate, pom::maths::vec3(0.98, 0.82, 0.76), 0, 1, -1, 0);
+    // createEntity(gamestate, pom::maths::vec3(0, 0, 1), 0.7, 0.3, 2, 0);
+    // createEntity(gamestate, pom::maths::vec3(0.3, 0.0, 0.3), 0, 0, -2, 0);
+    // createEntity(gamestate, pom::maths::vec3(0.7, 0, 0), 0.3, 1, 3, 0);
+    // createEntity(gamestate, pom::maths::vec3(0, 0, 0), 0.4, 0, -3, 0);
 }
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
@@ -417,8 +501,8 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
     }
 
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
-    gamestate->sphereMesh = pom::geometry::sphere();
-
+    gamestate->sphereMesh = pom::geometry::plane();
+    gamestate->pbrTextures = PbrTextures::load(pom::getAssetPath() + "wood_table_001_2k/");
     initSkybox(gamestate);
     initBrdfLut(gamestate);
     initGrid(gamestate);
@@ -436,54 +520,73 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     pom::Ref<pom::gfx::Shader> shader = pom::gfx::Shader::create({ vertShader, fragShader });
 
-    gamestate->pipelineLayout
-        = pom::gfx::PipelineLayout::create(POM_MAX_FRAMES_IN_FLIGHT * 100,
-                                           {
-                                               {
-                                                   .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-                                                   .set = 0,
-                                                   .binding = 0,
-                                                   .stages = pom::gfx::ShaderStageFlags::VERTEX,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-                                                   .set = 0,
-                                                   .binding = 1,
-                                                   .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
-                                                   .set = 0,
-                                                   .binding = 2,
-                                                   .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-                                               },
+    gamestate->pipelineLayout = pom::gfx::PipelineLayout::create(
+        POM_MAX_FRAMES_IN_FLIGHT * 100,
+        {
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 0,
+                .binding = 0,
+                .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            },
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 0,
+                .binding = 1,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 0,
+                .binding = 2,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
 
-                                               {
-                                                   .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
-                                                   .set = 0,
-                                                   .binding = 3,
-                                                   .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
-                                                   .set = 0,
-                                                   .binding = 4,
-                                                   .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-                                                   .set = 1,
-                                                   .binding = 0,
-                                                   .stages = pom::gfx::ShaderStageFlags::VERTEX,
-                                               },
-                                               {
-                                                   .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
-                                                   .set = 1,
-                                                   .binding = 1,
-                                                   .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
-                                               },
-                                           },
-                                           {});
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 0,
+                .binding = 3,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 0,
+                .binding = 4,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 1,
+                .binding = 0,
+                .stages = pom::gfx::ShaderStageFlags::VERTEX,
+            },
+            {
+                .type = pom::gfx::DescriptorType::UNIFORM_BUFFER,
+                .set = 1,
+                .binding = 1,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 1,
+                .binding = 5,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 1,
+                .binding = 6,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+            {
+                .type = pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
+                .set = 1,
+                .binding = 7,
+                .stages = pom::gfx::ShaderStageFlags::FRAGMENT,
+            },
+        },
+        { { .stages = pom::gfx::ShaderStageFlags::FRAGMENT, .size = (2 * sizeof(f32)), .offset = 0 } });
 
     // descriptor set
     for (u32 i = 0; i < POM_MAX_FRAMES_IN_FLIGHT; i++) {
@@ -521,7 +624,8 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
                 .attribs = { { .location = 0, .format = pom::gfx::Format::R32G32B32_SFLOAT },
                              { .location = 1, .format = pom::gfx::Format::R32G32B32_SFLOAT },
                              { .location = 2, .format = pom::gfx::Format::R32G32_SFLOAT }, 
-                             { .location = 3, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },},
+                             { .location = 3, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },
+                             { .location = 4, .format = pom::gfx::Format::R32G32B32A32_SFLOAT },},
             }
         },
         gamestate->pipelineLayout);
@@ -555,13 +659,13 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             f32 f = frame;
             *((LightData*)lightBuffer->map()) = {
                 .positions = { 
-                    pom::maths::vec4(10, 10, 10, 0),
+                    pom::maths::vec4(4, 4, 4, 0),
                     // pom::maths::vec4(cos(f / 10.f + TAU * 0.f / 3.f), sin(f / 10.f + TAU * 0.f / 3.f), 1, 0) * 10.f,
                     pom::maths::vec4(cos(f / 10.f + TAU * 1.f / 3.f), sin(f / 10.f + TAU * 1.f / 3.f), 1, 0) * 10.f,
                     pom::maths::vec4(cos(f / 10.f + TAU * 2.f / 3.f), sin(f / 10.f + TAU * 2.f / 3.f), 1, 0) * 10.f, 
                 },
                 .colors = { 
-                    pom::maths::vec4(300, 300, 300, 0), 
+                    pom::maths::vec4(0, 0, 0, 0), 
                     // pom::maths::vec4(900, 0, 0, 0), 
                     pom::maths::vec4(0, 900, 0, 0), 
                     pom::maths::vec4(0, 0, 900, 0), 
@@ -583,6 +687,10 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                                                      gs->pipelineLayout,
                                                      0,
                                                      gs->sceneDescriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
+                gs->commandBuffer->setPushConstants(gs->skyboxPipelineLayout,
+                                                    pom::gfx::ShaderStageFlags::FRAGMENT,
+                                                    sizeof(f32) * 2,
+                                                    &gs->exposure); // lol don't do this at home
 
                 for (auto [e, t, r, m, a] :
                      gs->store.view<TransformComponent, RenderComponent, MeshComponent, MaterialComponent>()) {
@@ -618,10 +726,16 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
                                                      gs->skyboxPipelineLayout,
                                                      0,
                                                      gs->skyboxDescriptorSets[frame % POM_MAX_FRAMES_IN_FLIGHT]);
+                struct PC {
+                    u32 lod;
+                    f32 exposure;
+                    f32 gamma;
+                };
+                PC pc = { gs->lod, gs->exposure, gs->gamma };
                 gs->commandBuffer->setPushConstants(gs->skyboxPipelineLayout,
                                                     pom::gfx::ShaderStageFlags::FRAGMENT,
-                                                    sizeof(u32),
-                                                    &gs->lod);
+                                                    sizeof(PC),
+                                                    &pc);
                 gs->commandBuffer->draw(36);
 
                 // grid
@@ -670,8 +784,6 @@ POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
         }
         gs->lod = gs->lod < 0 ? 0 : gs->lod > 4 ? 4 : gs->lod;
         gs->tex = gs->tex < 0 ? 0 : gs->tex > 2 ? 2 : gs->tex;
-        POM_DEBUG("lod: ", gs->lod);
-        POM_DEBUG("tex: ", gs->tex);
 
         if (ev->getKeycode() == pom::Keycode::W) {
             gs->metalic += 0.01;
@@ -686,6 +798,18 @@ POM_CLIENT_EXPORT void clientOnInputEvent(GameState* gs, pom::InputEvent* ev)
         gs->roughness = std::clamp(gs->roughness, 0.f, 1.f);
         POM_DEBUG("metalic: ", gs->metalic);
         POM_DEBUG("roughness: ", gs->roughness);
+
+        if (ev->getKeycode() == pom::Keycode::H) {
+            gs->exposure += 0.01;
+        } else if (ev->getKeycode() == pom::Keycode::J) {
+            gs->exposure -= 0.01;
+        } else if (ev->getKeycode() == pom::Keycode::K) {
+            gs->gamma += 0.01;
+        } else if (ev->getKeycode() == pom::Keycode::L) {
+            gs->gamma -= 0.01;
+        }
+
+        POM_DEBUG("exposure: ", gs->exposure, ", gamma: ", gs->gamma);
     }
 }
 
