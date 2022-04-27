@@ -39,6 +39,11 @@ namespace pom {
         {
             return other.id == id; // NOTE: assumes a consistently constructed componet.
         }
+
+        bool operator<(const ComponentMetadata& other) const
+        {
+            return id < other.id;
+        }
     };
 
     // FIXME: this only needs to be trivial, eventually type hash.
@@ -66,6 +71,27 @@ namespace pom {
             .align = alignof(C),
         };
     }
+
+    constexpr ComponentMetadata getComponentMetadata(ComponentId c)
+    {
+        return {
+            .id = c,
+            .name = nullptr,
+            .size = 0,
+            .align = 0,
+        };
+    }
+
+    // Components are made up of 16 bits of flags followed by 48 bits of component ID:
+    // ```
+    //                                  |--- flags ----||---------------- Component ID ----------------|
+    //                                0bXXXXXXXXXXXXXXXXYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+    // ```
+    using ComponentFlag = u64;
+
+    constexpr ComponentFlag CHILDOF = 0b0000000000000001000000000000000000000000000000000000000000000000;
+
+    constexpr Entity NULL_ENTITY = 0;
 
     /// @}
 

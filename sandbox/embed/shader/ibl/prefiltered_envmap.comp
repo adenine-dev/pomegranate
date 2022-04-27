@@ -7,6 +7,14 @@ layout(set = 0, binding = 1, rgba32f) uniform image2D cubemapLayers[6 * 3];
 
 const float pi = 3.1415926535897932384626433832795;
 
+layout(push_constant) uniform PC
+{
+    float roughness;
+    uint mip;
+    uint sampleCount;
+}
+constants;
+
 vec2 sampleEquirectangular(vec3 v)
 {
     const vec2 invAtan = vec2(1 / (2 * pi), 1 / (pi));
@@ -40,14 +48,6 @@ vec3 specularD(vec2 Xi, vec3 N, float roughness)
 
     return normalize(tangent * H.x + bitangent * H.y + N * H.z);
 }
-
-layout(push_constant) uniform PC
-{
-    float roughness;
-    uint mip;
-    uint sampleCount;
-}
-constants;
 
 void main()
 {

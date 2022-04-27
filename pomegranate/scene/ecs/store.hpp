@@ -37,6 +37,9 @@ namespace pom {
         /// exists in the store.
         [[nodiscard]] const Type& getType(Entity entity) const;
 
+        void addParent(Entity parent, Entity child);
+        void removeParent(Entity parent, Entity child);
+
         /// @brief Returns true if the entity contains the component C
         /// @warning This crashes if the entity does not exist in this store, use Store::exists to check if an entity
         /// exists in the store.
@@ -63,93 +66,24 @@ namespace pom {
         /// component, use Store::exists to check if an entity exists in the store.
         template <Component C> C& addComponent(Entity entity)
         {
-            auto recordPair = records.find(entity);
-            POM_ASSERT(recordPair != records.end(), "Cannot add component to nonexistent entity ", entity);
-            POM_ASSERT(!recordPair->second.archetype->getType().contains<C>(),
-                       "entity",
-                       entity,
-                       " already has component ",
-                       typeName<C>());
-
-            Record oldRecord = recordPair->second;
-            Archetype* nextArchetype = oldRecord.archetype->addEdges.get(componentId<C>());
-            if (nextArchetype == nullptr) {
-                Type newType = oldRecord.archetype->type.add<C>();
-
-                // we don't call `createChildArchetype` here to create the canonical path for the archetype, then we
-                // assign it in this add table.
-                nextArchetype = oldRecord.archetype->addEdges.add(componentId<C>(), findOrCreateArchetype(newType));
-            }
-
-            Archetype* archetype = nextArchetype;
-            Record record = archetype->addEntity(entity);
-            records[entity] = record;
-            usize i1 = 0;
-            usize i2 = 0;
-            usize i = -1;
-            for (const ComponentMetadata& component : archetype->type) {
-                if (component.id != componentId<C>()) {
-                    memcpy((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
-                           (byte*)oldRecord.archetype->componentBuffers[i2].data + (component.size * oldRecord.idx),
-                           component.size);
-                    i2++;
-                } else {
-                    // zero initialize new data.
-                    memset((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
-                           0,
-                           component.size);
-                    i = i1;
-                }
-
-                i1++;
-            }
-
-            oldRecord.archetype->removeEntity(oldRecord.idx);
-
-            return ((C*)(archetype->componentBuffers[i].data))[record.idx];
+            return *((C*)addComponent(entity, getComponentMetadata<C>()));
         }
+
+        /// @brief Adds a component to the entity. Returns a mutable reference to the entity's component data as a
+        /// `void*`.
+        /// @warning This crashes if the entity does not exist in this store or if the entity already has the
+        /// component, use Store::exists to check if an entity exists in the store.
+        void* addComponent(Entity entity, const ComponentMetadata& component);
 
         /// @brief Adds a component to the entity. Returns a mutable reference to the entity's component `C`.
         /// @warning This crashes if the entity does not exist in this store or if the entity does not have the
         /// component, use Store::exists to check if an entity exists in the store.
         template <Component C> void removeComponent(Entity entity)
         {
-            auto recordPair = records.find(entity);
-            POM_ASSERT(recordPair != records.end(), "Cannot remove component from nonexistent entity ", entity);
-            POM_ASSERT(recordPair->second.archetype->getType().contains<C>(),
-                       "entity ",
-                       entity,
-                       " does not have component ",
-                       typeName<C>());
-
-            Record oldRecord = recordPair->second;
-            Archetype* nextArchetype = oldRecord.archetype->removeEdges.get(componentId<C>());
-            if (nextArchetype == nullptr) {
-                Type newType = oldRecord.archetype->getType().remove<C>();
-
-                // we don't call `createChildArchetype` here to create the canonical path for the archetype, then we
-                // assign it in this add table.
-                nextArchetype = oldRecord.archetype->removeEdges.add(componentId<C>(), findOrCreateArchetype(newType));
-            }
-
-            oldRecord = records[entity];
-
-            Archetype* archetype = nextArchetype;
-            Record record = records[entity] = archetype->addEntity(entity);
-            usize i1 = 0;
-            usize i2 = 0;
-            for (const ComponentMetadata& component : oldRecord.archetype->type) {
-                if (component.id != componentId<C>()) {
-                    memcpy((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
-                           (byte*)oldRecord.archetype->componentBuffers[i2].data + (component.size * oldRecord.idx),
-                           component.size);
-                    i1++;
-                }
-                i2++;
-            }
-
-            oldRecord.archetype->removeEntity(oldRecord.idx);
+            removeComponent(entity, getComponentMetadata<C>());
         }
+
+        void removeComponent(Entity entity, const ComponentMetadata& component);
 
         /// Returns a view into the store with the requested components.
         /// @warning moving an entity while iterating over a view invalidates that view.

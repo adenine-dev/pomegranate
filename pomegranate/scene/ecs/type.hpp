@@ -28,7 +28,7 @@ namespace pom {
             return t;
         }
 
-        [[nodiscard]] Type add(const ComponentMetadata& added) const
+        [[nodiscard]] inline Type add(const ComponentMetadata& added) const
         {
             POM_PROFILE_FUNCTION();
             Type newType = { components };
@@ -39,7 +39,7 @@ namespace pom {
             return newType;
         }
 
-        /// Creates a new type from a type having added a component. If the existing type does not contain the
+        /// Creates a new type from a type having added a component. If the existing type already contains the
         /// component, it returns the same type.
         template <Component C> [[nodiscard]] Type add() const
         {
@@ -49,14 +49,21 @@ namespace pom {
 
         /// Creates a new type from a type having removed a component. If the existing type does not contain the
         /// component, it returns the same type.
-        template <Component C> [[nodiscard]] Type remove() const
+        [[nodiscard]] inline Type remove(const ComponentMetadata& metatadata) const
         {
             POM_PROFILE_FUNCTION();
             Type newType = { components };
-            auto it = binaryFind(newType.components.begin(), newType.components.end(), componentId<C>());
+            auto it = binaryFind(newType.components.begin(), newType.components.end(), metatadata);
             if (it != newType.components.end())
                 newType.components.erase(it);
             return newType;
+        }
+
+        /// Creates a new type from a type having removed a component. If the existing type does not contain the
+        /// component, it returns the same type.
+        template <Component C> [[nodiscard]] Type remove() const
+        {
+            return remove(getComponentMetadata<C>());
         }
 
         /// Returns the index of a component within the type, if the component does not exist returns -1.
@@ -88,6 +95,14 @@ namespace pom {
             return indexOf<C>() != -1;
         }
 
+        /// Returns true if the type contains the component, false otherwise.
+        [[nodiscard]] inline bool contains(ComponentId c) const
+        {
+            POM_PROFILE_FUNCTION();
+
+            return indexOf(c) != -1;
+        }
+
         /// Returns the number of components within the type.
         [[nodiscard]] usize size() const
         {
@@ -100,7 +115,8 @@ namespace pom {
         }
 
         /// Returns true if the passed parameter pack could be used to construct this type.
-        template <Component... Cs> requires(are_distinct<Cs...>) [[nodiscard]] bool is() const
+        template <Component... Cs>
+        requires(are_distinct<Cs...>) [[nodiscard]] bool is() const
         {
             // TODO: compile time sorting
             // NOTE: this assumes Cs... is sorted

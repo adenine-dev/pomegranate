@@ -1,4 +1,5 @@
 #include "assets/assets.hpp"
+#include "maths/maths.hpp"
 #include "pch.hpp"
 
 #include "environment.hpp"
@@ -17,13 +18,6 @@
 
 namespace pom {
     const u8 PREFILTER_MIPS = 5;
-
-    const char* PADDING
-        = "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
-          "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
-          "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
-          "666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
-          "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666";
 
     Ref<gfx::Texture> cubemapFromEquirectangular(Ref<gfx::Texture> equirectangular,
                                                  Ref<gfx::TextureView> equirectangularView)
@@ -155,7 +149,7 @@ namespace pom {
         auto commandBuffer = gfx::CommandBuffer::create(gfx::CommandBufferSpecialization::GENERAL, 1);
         commandBuffer->begin();
         commandBuffer->bindPipeline(converterPipeline);
-        const f32 pc[2] = { 0.05f, 0.05f };
+        const f32 pc[2] = { (2.0f * PI) / 180.0f, (0.5f * PI) / 64.0f };
         commandBuffer->setPushConstants(converterPipelineLayout, gfx::ShaderStageFlags::COMPUTE, sizeof(f32) * 2, pc);
         commandBuffer->bindDescriptorSet(gfx::PipelineBindPoint::COMPUTE,
                                          converterPipelineLayout,
@@ -384,7 +378,7 @@ namespace pom {
                                        &height,
                                        &channels,
                                        4); // NOTE: my computer doesn't do 3 channel stuff annoyingly.
-
+        POM_DEBUG(width, "x", height);
         const usize textureSize = (usize)width * height * 4 * sizeof(f32);
 
         auto equirectangularMap = gfx::Texture::create(

@@ -15,4 +15,13 @@ namespace pom {
     {
         return platform::getUserPath() + "cache/";
     }
+
+    ImageLoadResult loadImage(std::string path, i32 desiredChannels)
+    {
+        ImageLoadResult res;
+        res.pixels = stbi_load(path.c_str(), &res.width, &res.height, &res.channels, desiredChannels);
+
+        return res;
+    }
+
 } // namespace pom

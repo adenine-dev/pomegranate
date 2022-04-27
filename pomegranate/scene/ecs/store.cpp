@@ -23,9 +23,9 @@ namespace pom {
         POM_PROFILE_FUNCTION();
 
         // TODO: replace this with a free list to reuse component ids.
-        static Entity counter = 0;
+        static Entity counter = NULL_ENTITY; // NOTE: 0 is reserved
 
-        Entity ret = counter++; // NOTE: 0 is reserved?
+        Entity ret = ++counter;
         records.insert({ ret, archetypes[0]->addEntity(ret) });
         return ret;
     }
@@ -54,6 +54,98 @@ namespace pom {
         auto recordPair = records.find(entity);
         POM_ASSERT(recordPair != records.end(), "Cannot get type of nonexistent entity ", entity);
         return recordPair->second.archetype->getType();
+    }
+
+    void Store::addParent(Entity parent, Entity child)
+    {
+        POM_PROFILE_FUNCTION();
+
+        addComponent(child, getComponentMetadata(CHILDOF | parent));
+    }
+
+    void* Store::addComponent(Entity entity, const ComponentMetadata& componentMetadata)
+    {
+        auto recordPair = records.find(entity);
+        POM_ASSERT(recordPair != records.end(), "Cannot add component to nonexistent entity ", entity);
+        POM_ASSERT(!recordPair->second.archetype->getType().contains(componentMetadata.id),
+                   "entity",
+                   entity,
+                   " already has component ",
+                   componentMetadata.name);
+
+        Record oldRecord = recordPair->second;
+        Archetype* nextArchetype = oldRecord.archetype->addEdges.get(componentMetadata.id);
+        if (nextArchetype == nullptr) {
+            Type newType = oldRecord.archetype->type.add(componentMetadata);
+
+            // we don't call `createChildArchetype` here to create the canonical path for the archetype, then we
+            // assign it in this add table.
+            nextArchetype = oldRecord.archetype->addEdges.add(componentMetadata.id, findOrCreateArchetype(newType));
+        }
+
+        Archetype* archetype = nextArchetype;
+        Record record = archetype->addEntity(entity);
+        records[entity] = record;
+        usize i1 = 0;
+        usize i2 = 0;
+        usize i = -1;
+        for (const ComponentMetadata& component : archetype->type) {
+            if (component.id != componentMetadata.id) {
+                memcpy((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
+                       (byte*)oldRecord.archetype->componentBuffers[i2].data + (component.size * oldRecord.idx),
+                       component.size);
+                i2++;
+            } else {
+                // zero initialize new data.
+                memset((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx), 0, component.size);
+                i = i1;
+            }
+
+            i1++;
+        }
+
+        oldRecord.archetype->removeEntity(oldRecord.idx);
+
+        return ((byte*)(archetype->componentBuffers[i].data)) + (componentMetadata.size * record.idx);
+    }
+
+    void Store::removeComponent(Entity entity, const ComponentMetadata& componentMetadata)
+    {
+        auto recordPair = records.find(entity);
+        POM_ASSERT(recordPair != records.end(), "Cannot remove component from nonexistent entity ", entity);
+        POM_ASSERT(recordPair->second.archetype->getType().contains(componentMetadata.id),
+                   "entity ",
+                   entity,
+                   " does not have component ",
+                   componentMetadata.name);
+
+        Record oldRecord = recordPair->second;
+        Archetype* nextArchetype = oldRecord.archetype->removeEdges.get(componentMetadata.id);
+        if (nextArchetype == nullptr) {
+            Type newType = oldRecord.archetype->getType().remove(componentMetadata);
+
+            // we don't call `createChildArchetype` here to create the canonical path for the archetype, then we
+            // assign it in this add table.
+            nextArchetype = oldRecord.archetype->removeEdges.add(componentMetadata.id, findOrCreateArchetype(newType));
+        }
+
+        oldRecord = records[entity];
+
+        Archetype* archetype = nextArchetype;
+        Record record = records[entity] = archetype->addEntity(entity);
+        usize i1 = 0;
+        usize i2 = 0;
+        for (const ComponentMetadata& component : oldRecord.archetype->type) {
+            if (component.id != componentMetadata.id) {
+                memcpy((byte*)archetype->componentBuffers[i1].data + (component.size * record.idx),
+                       (byte*)oldRecord.archetype->componentBuffers[i2].data + (component.size * oldRecord.idx),
+                       component.size);
+                i1++;
+            }
+            i2++;
+        }
+
+        oldRecord.archetype->removeEntity(oldRecord.idx);
     }
 
     Archetype* Store::createChildArchetype(Archetype* archetype, const ComponentMetadata& added)
