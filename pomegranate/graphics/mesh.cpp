@@ -96,9 +96,8 @@ namespace pom::geometry {
 
                 const vec3 normal = vec3(x, y, z);
                 // HACK
-                float r = 1.0f / (1.f / lonDetail * 1.f / latDetail);
-                maths::vec3 tangent
-                    = vec3(xz * sinf(theta + (f32)PI / 2.f), cosf(phi), xz * cosf(theta + (f32)PI / 2.f));
+                f32 r = 1.0f / (1.f / lonDetail * 1.f / latDetail);
+                maths::vec3 tangent = norm(vec3(0, 1, 0).cross(normal));
                 maths::vec3 bitangent = tangent.cross(normal);
 
                 vertices[lat * (lonDetail + 1) + lon] = {

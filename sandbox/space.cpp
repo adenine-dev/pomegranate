@@ -228,7 +228,8 @@ struct GameState {
 
     f32 metalic = 0.0;
     f32 roughness = 1.0;
-    PbrTextures pbrTextures;
+    PbrTextures earthTextures;
+    PbrTextures bhTextures;
 };
 
 struct TransformComponent {
@@ -452,6 +453,7 @@ void initIrradiance(GameState* gamestate)
 void initStore(GameState* gamestate)
 {
     auto createEntity = [](GameState* gs,
+                           PbrTextures* textures,
                            pom::maths::vec3 albedo,
                            f32 roughness,
                            f32 metalness,
@@ -474,7 +476,7 @@ void initStore(GameState* gamestate)
             .albedo = albedo,
             .metalic = metalness,
             .roughness = roughness,
-            .texturePtr = &gs->pbrTextures,
+            .texturePtr = textures,
         };
         auto& r = gs->store.addComponent<RenderComponent>(e);
 
@@ -487,7 +489,7 @@ void initStore(GameState* gamestate)
 
             r.materialBuffers[i] = pom::gfx::Buffer::create(pom::gfx::BufferUsage::UNIFORM,
                                                             pom::gfx::BufferMemoryAccess::CPU_WRITE,
-                                                            sizeof(MaterialComponent) - sizeof(&gs->pbrTextures));
+                                                            sizeof(MaterialComponent) - sizeof(PbrTextures*));
             r.descriptorSets[i]->setBuffer(pom::gfx::DescriptorType::UNIFORM_BUFFER, 1, r.materialBuffers[i]);
 
             r.descriptorSets[i]->setTextureView(pom::gfx::DescriptorType::COMBINED_TEXTURE_SAMPLER,
@@ -517,12 +519,68 @@ void initStore(GameState* gamestate)
     };
 
     auto* gs = gamestate;
-    const auto sun = createEntity(gs, pom::maths::vec3(0.7, 0.7, 0.6) * 1.f, 1.f, 0.f, 1, 0, 0, 0, 0, 0);
-    const auto e0 = createEntity(gs, pom::maths::vec3(1.0, 0.7, 0.7) * 1.f, 1.f, 0.f, 0.05, 0, 0, 3, 2, 2, sun);
-    const auto e1 = createEntity(gs, pom::maths::vec3(0.2, 0.6, 0.5) * 1.f, 1.f, 0.f, 0.2, 0, 0, 5, 1.4, 1.2, sun);
-    const auto e2 = createEntity(gs, pom::maths::vec3(0.2, 0.3, 0.2) * 1.f, 1.f, 0.f, 0.5, 0, 0, 8, 1.1, 0.3, sun);
-    const auto e3 = createEntity(gs, pom::maths::vec3(0.4, 0.4, 0.1) * 1.f, 1.f, 0.f, 0.25, 0, 0, 3, 5.21, 2.7, e2);
-    const auto e4 = createEntity(gs, pom::maths::vec3(0.5, 0.1, 0.5) * 1.f, 1.f, 0.f, 0.4, 0, 0, 3.8, 3.6, 3.3, e2);
+    const auto sun
+        = createEntity(gs, &gs->bhTextures, pom::maths::vec3(0.7, 0.7, 0.6) * 1.f, 1.f, 0.f, 1, 0, 0, 0, 0, 0);
+    const auto e0 = createEntity(gs,
+                                 &gs->earthTextures,
+                                 pom::maths::vec3(1.0, 0.7, 0.7) * 1.f,
+                                 1.f,
+                                 0.f,
+                                 0.05,
+                                 0,
+                                 0,
+                                 3,
+                                 2,
+                                 2,
+                                 sun);
+    const auto e1 = createEntity(gs,
+                                 &gs->earthTextures,
+                                 pom::maths::vec3(0.2, 0.6, 0.5) * 1.f,
+                                 1.f,
+                                 0.f,
+                                 0.2,
+                                 0,
+                                 0,
+                                 5,
+                                 1.4,
+                                 1.2,
+                                 sun);
+    const auto e2 = createEntity(gs,
+                                 &gs->earthTextures,
+                                 pom::maths::vec3(0.2, 0.3, 0.2) * 1.f,
+                                 1.f,
+                                 0.f,
+                                 0.5,
+                                 0,
+                                 0,
+                                 8,
+                                 1.1,
+                                 0.3,
+                                 sun);
+    const auto e3 = createEntity(gs,
+                                 &gs->earthTextures,
+                                 pom::maths::vec3(0.4, 0.4, 0.1) * 1.f,
+                                 1.f,
+                                 0.f,
+                                 0.25,
+                                 0,
+                                 0,
+                                 3,
+                                 5.21,
+                                 2.7,
+                                 e2);
+    const auto e4 = createEntity(gs,
+                                 &gs->earthTextures,
+                                 pom::maths::vec3(0.5, 0.1, 0.5) * 1.f,
+                                 1.f,
+                                 0.f,
+                                 0.4,
+                                 0,
+                                 0,
+                                 3.8,
+                                 3.6,
+                                 3.3,
+                                 e2);
 }
 
 POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
@@ -535,7 +593,9 @@ POM_CLIENT_EXPORT void clientBegin(GameState* gamestate)
 
     gamestate->commandBuffer = pom::gfx::CommandBuffer::create(pom::gfx::CommandBufferSpecialization::GRAPHICS);
     gamestate->sphereMesh = pom::geometry::sphere();
-    gamestate->pbrTextures = PbrTextures::load(pom::getAssetPath() + "wood_table_001_2k/");
+    gamestate->earthTextures = PbrTextures::load(pom::getAssetPath() + "earth_2k/");
+    gamestate->bhTextures = PbrTextures::load(pom::getAssetPath() + "wood_table_001_2k/");
+
     initSkybox(gamestate);
     initBrdfLut(gamestate);
     initGrid(gamestate);
@@ -692,13 +752,13 @@ POM_CLIENT_EXPORT void clientUpdate(GameState* gs, pom::DeltaTime dt)
             f32 f = frame;
             *((LightData*)lightBuffer->map()) = {
                 .positions = { 
-                    pom::maths::vec4(4, 4, 4, 0),
+                    pom::maths::vec4(0, 0, 0, 0),
                     // pom::maths::vec4(cos(f / 10.f + TAU * 0.f / 3.f), sin(f / 10.f + TAU * 0.f / 3.f), 1, 0) * 10.f,
                     pom::maths::vec4(cos(f / 10.f + TAU * 1.f / 3.f), sin(f / 10.f + TAU * 1.f / 3.f), 1, 0) * 10.f,
                     pom::maths::vec4(cos(f / 10.f + TAU * 2.f / 3.f), sin(f / 10.f + TAU * 2.f / 3.f), 1, 0) * 10.f, 
                 },
                 .colors = { 
-                    pom::maths::vec4(0, 0, 0, 0), 
+                    pom::maths::vec4(250, 80, 40, 0), 
                     // pom::maths::vec4(900, 0, 0, 0), 
                     pom::maths::vec4(0, 900, 0, 0), 
                     pom::maths::vec4(0, 0, 900, 0), 
