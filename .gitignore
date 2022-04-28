@@ -1,10 +1,4 @@
-# cmake output
-build
-
-# binaries and docs
-bin
-
-# ides, editors, etc
-.vscode
-.vs
-.cache
+# ignore all but the docs directory in this branch
+/*
+!docs/
+!.gitignore

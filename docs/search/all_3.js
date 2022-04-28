@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['d16_5funorm_0',['D16_UNORM',['../group__gfx.html#ggaf953c72c735e0e33ea4ea80f21250f44a03e5886d3d7216eed4f577937132b20f',1,'pom::gfx']]],
+  ['d16_5funorm_5fs8_5fuint_1',['D16_UNORM_S8_UINT',['../group__gfx.html#ggaf953c72c735e0e33ea4ea80f21250f44a48a47554f5203699ef042c25bc04b93c',1,'pom::gfx']]],
+  ['d24_5funorm_5fs8_5fuint_2',['D24_UNORM_S8_UINT',['../group__gfx.html#ggaf953c72c735e0e33ea4ea80f21250f44aa6dc4e4319b85984a4ab81ae89949f88',1,'pom::gfx']]],
+  ['d32_5fsfloat_3',['D32_SFLOAT',['../group__gfx.html#ggaf953c72c735e0e33ea4ea80f21250f44a23a4ce33815655871d103d3071d91072',1,'pom::gfx']]],
+  ['d32_5fsfloat_5fs8_5fuint_4',['D32_SFLOAT_S8_UINT',['../group__gfx.html#ggaf953c72c735e0e33ea4ea80f21250f44a37607c17eb1a7e0092e2c2dac3c072ea',1,'pom::gfx']]],
+  ['data_5',['data',['../structpom_1_1maths_1_1_matrix.html#a7e40dc6370552fd42691184d0a2c3f0d',1,'pom::maths::Matrix::data()'],['../structpom_1_1maths_1_1_vector.html#a623e23f1dc575261fad5d7c1b1f5f7bb',1,'pom::maths::Vector::data()']]],
+  ['debug_6',['DEBUG',['../group__debug.html#gga7d3bad018dad8e0002f7eb1401f030a3adc30ec20708ef7b0f641ef78b7880a15',1,'pom']]],
+  ['debug_20utilities_7',['Debug Utilities',['../group__debug.html',1,'']]],
+  ['delta_8',['delta',['../structpom_1_1_input_event.html#a4a9f15be41cbbd113bb9626f56781a22',1,'pom::InputEvent::MouseScroll']]],
+  ['deltatime_9',['DeltaTime',['../structpom_1_1_delta_time.html',1,'pom']]],
+  ['depthstencilclear_10',['DepthStencilClear',['../group__gfx.html#structpom_1_1gfx_1_1_depth_stencil_clear',1,'pom::gfx']]],
+  ['descriptor_11',['Descriptor',['../group__gfx.html#structpom_1_1gfx_1_1_descriptor',1,'pom::gfx']]],
+  ['descriptorset_12',['DescriptorSet',['../classpom_1_1gfx_1_1_descriptor_set.html',1,'pom::gfx']]],
+  ['descriptorsetvk_13',['DescriptorSetVk',['../classpom_1_1gfx_1_1_descriptor_set_vk.html',1,'pom::gfx']]],
+  ['destroy_14',['destroy',['../classpom_1_1gfx_1_1_context.html#a6ef03ea98c3230a07aaff41dafdb4ce6',1,'pom::gfx::Context']]],
+  ['destroyentity_15',['destroyEntity',['../classpom_1_1_store.html#a2429189767dd79417ff9c8c27c6577d2',1,'pom::Store']]],
+  ['determinegpu_16',['determineGPU',['../classpom_1_1gfx_1_1_instance.html#a23089ae2c459881056cbe43034053161',1,'pom::gfx::Instance::determineGPU()'],['../classpom_1_1gfx_1_1_instance_vk.html#a624385e37aef96ce133ac464ab398f12',1,'pom::gfx::InstanceVk::determineGPU()']]],
+  ['discrete_17',['discrete',['../group__gfx.html#a264b630a8fc0b3b58f1ccd709e97dcb4',1,'pom::gfx::GPU']]],
+  ['dontcare_18',['DONTCARE',['../group__gfx.html#gga8b878ec7530a7c9fa1d569b9bc05e859ad660888667d720bbcc7a06314586e2a2',1,'DONTCARE()pom::gfx'],['../group__gfx.html#gga147751c6b2841250a48cb4af1ae62301ad660888667d720bbcc7a06314586e2a2',1,'DONTCARE()pom::gfx']]],
+  ['draw_19',['draw',['../classpom_1_1gfx_1_1_command_buffer.html#acf9061c2c44c2ae727338f7c3a72fc90',1,'pom::gfx::CommandBuffer::draw()'],['../classpom_1_1gfx_1_1_command_buffer_vk.html#af5e38f95394699c88895ac9281c9c3c6',1,'pom::gfx::CommandBufferVk::draw()']]],
+  ['drawindexed_20',['drawIndexed',['../classpom_1_1gfx_1_1_command_buffer.html#aa1280eb494ed3daaa6147266c6bdd3f4',1,'pom::gfx::CommandBuffer::drawIndexed()'],['../classpom_1_1gfx_1_1_command_buffer_vk.html#a2332585f1eb11872a829eb686d7b876a',1,'pom::gfx::CommandBufferVk::drawIndexed()']]],
+  ['dvec2_21',['dvec2',['../group__types.html#gac376fa777d06ff64675856af6ff5e106',1,'pom::maths']]],
+  ['dvec3_22',['dvec3',['../group__types.html#gaa51ca3e238c02f17b21400088beee508',1,'pom::maths']]],
+  ['dvec4_23',['dvec4',['../group__types.html#ga70a41284019392dd2168d4c1748db07c',1,'pom::maths']]]
+];
