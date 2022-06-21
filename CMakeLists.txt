@@ -9,8 +9,6 @@ set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIG>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
 
-add_executable(pomegranate main.cpp)
-
 # generate compile_commands.json for clang stuffs
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
@@ -26,5 +24,8 @@ endif()
 if(MSVC)
     add_compile_options(/W4 /wd4201)
 else()
-    add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-missing-braces -Werror)
+    add_compile_options(-Wall -Wextra -Werror)
 endif()
+
+add_subdirectory(pomegranate)
+add_subdirectory(sandbox)
