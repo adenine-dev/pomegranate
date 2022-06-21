@@ -1,2 +1,7 @@
+# build stuff
 build/
 bin/
+
+# ide stuff
+.vscode/
+.cache/

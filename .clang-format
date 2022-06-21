@@ -1,0 +1,66 @@
+---
+BasedOnStyle: LLVM
+UseTab: Never
+---
+Language: Cpp
+ColumnLimit: 120
+IndentWidth: 4
+Standard: c++20
+
+BinPackArguments: False
+BinPackParameters: False
+AllowAllArgumentsOnNextLine: False
+AllowAllParametersOfDeclarationOnNextLine: False
+AlignArrayOfStructures: Left
+
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortCaseLabelsOnASingleLine: True
+AllowShortEnumsOnASingleLine: False
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Inline
+AlwaysBreakTemplateDeclarations: Yes
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: False
+  AfterClass: False
+  AfterStruct: False
+  AfterUnion: False
+  AfterControlStatement: Never
+  AfterEnum: False
+  AfterFunction: True
+  AfterNamespace: False
+  AfterExternBlock: True
+  BeforeElse: False
+  BeforeLambdaBody: False
+  BeforeWhile: False
+  SplitEmptyFunction: False
+  SplitEmptyRecord: False
+  SplitEmptyNamespace: False
+
+BreakBeforeConceptDeclarations: True
+BreakBeforeTernaryOperators: True
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: AfterComma
+BreakStringLiterals: True
+
+FixNamespaceComments: True
+
+IncludeBlocks: Preserve
+
+IndentAccessModifiers: False
+IndentCaseBlocks: False
+IndentCaseLabels: False
+IndentPPDirectives: BeforeHash
+IndentWrappedFunctionNames: False
+NamespaceIndentation: All
+
+InsertTrailingCommas: Wrapped
+
+PPIndentWidth: -1
+
+PackConstructorInitializers: CurrentLine
+
+SeparateDefinitionBlocks: Always
+---

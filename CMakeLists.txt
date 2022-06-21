@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20.0)
 
 project(pomegranate VERSION 0.0.1)
 
+set(CMAKE_CXX_STANDARD 20)
+
 # Make binaries output in a dedicated directory depending on config (release, debug, etc).
 set(POM_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<CONFIG>)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${POM_OUTPUT_DIRECTORY})
