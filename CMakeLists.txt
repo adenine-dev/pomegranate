@@ -27,5 +27,9 @@ else()
     add_compile_options(-Wall -Wextra -Werror)
 endif()
 
+# libraries
+add_subdirectory(vendor/fmt)
+
+
 add_subdirectory(pomegranate)
 add_subdirectory(sandbox)
