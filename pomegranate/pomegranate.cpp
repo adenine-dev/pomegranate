@@ -1,10 +1,10 @@
 #include "pomegranate.hpp"
 
-#include <iostream>
+#include <SDL.h>
 
 namespace pom {
     void hello()
     {
-        std::cout << "hello world\n";
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "heck", "heck again", nullptr);
     }
 } // namespace pom

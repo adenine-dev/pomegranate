@@ -4,6 +4,7 @@
 
 int main()
 {
+    pom::hello();
     pom::trace("hello world");
     pom::debug("hello world");
     pom::info("sizeof usize {}", sizeof(usize));

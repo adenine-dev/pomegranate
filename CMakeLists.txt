@@ -28,7 +28,21 @@ else()
 endif()
 
 # libraries
+# fmt
 add_subdirectory(vendor/fmt)
+
+# sdl
+set(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
+
+set(SDL_SHARED OFF)
+
+if(MSVC) # if you're on msvc then some linking errors happen if you don't do this. idk why, should be fine lol.
+    set(OPT_DEF_LIBC ON)
+endif()
+
+add_subdirectory(vendor/SDL)
+
+set(CMAKE_MESSAGE_LOG_LEVEL "STATUS")
 
 
 add_subdirectory(pomegranate)
