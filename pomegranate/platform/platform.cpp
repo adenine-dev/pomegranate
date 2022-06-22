@@ -22,8 +22,30 @@ namespace pom {
 
                 switch (event.window.event) {
                 case SDL_WINDOWEVENT_CLOSE: {
-                    window->processEvent({.windowClosed = true});
+                    window->processEvent({.type = WindowEventType::CLOSE});
                 } break;
+                case SDL_WINDOWEVENT_FOCUS_GAINED: {
+                    window->processEvent({.type = WindowEventType::FOCUS});
+                } break;
+                case SDL_WINDOWEVENT_FOCUS_LOST: {
+                    window->processEvent({.type = WindowEventType::BLUR});
+                } break;
+
+                case SDL_WINDOWEVENT_RESIZED: {
+                    window->processEvent({
+                        .type = WindowEventType::RESIZE,
+                        .resize = {.width = event.window.data1, .height = event.window.data2}
+                    });
+                } break;
+                case SDL_WINDOWEVENT_MOVED: {
+                    window->processEvent({
+                        .type = WindowEventType::MOVE,
+                        .move = {.x = event.window.data1, .y = event.window.data2}
+                    });
+                } break;
+                case SDL_WINDOW_MINIMIZED: {
+                    window->processEvent({.type = WindowEventType::MINIMIZE});
+                }
                 }
             } break;
             }

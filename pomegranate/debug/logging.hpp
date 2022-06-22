@@ -35,37 +35,37 @@ namespace pom {
     void setLogLevel(LogLevel level);
 
     template <typename... Args>
-    constexpr void trace(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void trace(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::TRACE, locFormatInfo, fmt::make_format_args(args...));
     }
 
     template <typename... Args>
-    constexpr void debug(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void debug(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::DEBUG, locFormatInfo, fmt::make_format_args(args...));
     }
 
     template <typename... Args>
-    constexpr void info(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void info(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::INFO, locFormatInfo, fmt::make_format_args(args...));
     }
 
     template <typename... Args>
-    constexpr void warn(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void warn(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::WARN, locFormatInfo, fmt::make_format_args(args...));
     }
 
     template <typename... Args>
-    constexpr void error(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void error(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::ERROR, locFormatInfo, fmt::make_format_args(args...));
     }
 
     template <typename... Args>
-    constexpr void fatal(const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void fatal(const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         _log(LogLevel::FATAL, locFormatInfo, fmt::make_format_args(args...));
 
@@ -73,7 +73,7 @@ namespace pom {
     }
 
     template <typename... Args>
-    constexpr void assert(bool condition, const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    constexpr void assert(bool condition, const FormatLocationInfo &locFormatInfo, Args &&...args)
     {
         if (!condition) {
             _log(LogLevel::FATAL, locFormatInfo, fmt::make_format_args(args...));

@@ -14,7 +14,7 @@ namespace pom {
                                           SDL_WINDOWPOS_UNDEFINED,
                                           720,
                                           480,
-                                          SDL_WINDOW_SHOWN)),
+                                          SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)),
                "Could not create a window. SDL Error: {}",
                SDL_GetError());
 
@@ -28,7 +28,9 @@ namespace pom {
 
     void Window::processEvent(const WindowEvent &event)
     {
-        if (event.windowClosed) {
+        debug("{}", event);
+
+        if (event.type == WindowEventType::CLOSE) {
             closeRequested = true;
         }
     }
