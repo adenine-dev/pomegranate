@@ -1,16 +1,15 @@
 #include "pomegranate.hpp"
 
 #include "debug/logging.hpp"
+#include "platform/window.hpp"
 
 int main()
 {
-    pom::hello();
-    pom::trace("hello world");
-    pom::debug("hello world");
-    pom::info("sizeof usize {}", sizeof(usize));
-    pom::warn("hello world");
-    pom::error("hello world");
-    pom::fatal("hello world");
+    pom::Window window;
+
+    while (!window.shouldClose()) {
+        pom::pollEvents();
+    }
 
     return 0;
 }

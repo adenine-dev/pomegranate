@@ -50,6 +50,7 @@ FixNamespaceComments: True
 IncludeBlocks: Preserve
 
 IndentAccessModifiers: False
+AccessModifierOffset: -4
 IndentCaseBlocks: False
 IndentCaseLabels: False
 IndentPPDirectives: BeforeHash

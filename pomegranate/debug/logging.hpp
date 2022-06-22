@@ -72,6 +72,16 @@ namespace pom {
         POM_DEBUGBREAK();
     }
 
+    template <typename... Args>
+    constexpr void assert(bool condition, const FormatLocationInfo &locFormatInfo, const Args &&...args)
+    {
+        if (!condition) {
+            _log(LogLevel::FATAL, locFormatInfo, fmt::make_format_args(args...));
+
+            POM_DEBUGBREAK();
+        }
+    }
+
 } // namespace pom
 
 template <>

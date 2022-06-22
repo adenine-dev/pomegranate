@@ -2,6 +2,4 @@
 
 #include "base.hpp"
 
-namespace pom {
-    void hello();
-}
+#include "platform/platform.hpp"
