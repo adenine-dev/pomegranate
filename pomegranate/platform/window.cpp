@@ -30,7 +30,7 @@ namespace pom {
     {
         debug("{}", event);
 
-        if (event.type == WindowEventType::CLOSE) {
+        if (event.type == WindowEventType::WINDOW_CLOSE) {
             closeRequested = true;
         }
     }
