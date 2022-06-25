@@ -16,10 +16,11 @@ using i64 = int64_t;
 // NOTE: assumes IEEE-754, to test this uncomment the next lines
 //  static_assert(std::numeric_limits<float>::is_iec559 && std::numeric_limits<double>::is_iec559,
 //                "floating point types are not IEEE-754 compliant");
-using f32 = float;
-using f64 = double;
 
-using byte = unsigned char;
-using usize = size_t;
+using f32 = float;  ///< IEEE-754 compliant 32 bit floating point type.
+using f64 = double; ///< IEEE-754 compliant 64 bit floating point type.
+
+using byte = unsigned char; ///< Unsigned byte type.
+using usize = size_t;       ///< Unsigned size type.
 
 #include "debug/logging.hpp"

@@ -8,24 +8,34 @@ struct SDL_Window;
 
 namespace pom {
 
-    enum WindowEventType {
-        WINDOW_FOCUS,
-        WINDOW_BLUR,
-        WINDOW_MOVE,
-        WINDOW_RESIZE,
-        WINDOW_MINIMIZE,
-        WINDOW_CLOSE,
+    class Window;
 
-        MOUSE_ENTER,
-        MOUSE_LEAVE,
-        MOUSE_MOVE,
-        MOUSE_SCROLL,
-        MOUSE_DOWN,
-        MOUSE_UP,
+    /// The types of events that can be processed by a window.
+    enum WindowEventType {
+        WINDOW_FOCUS,    ///< The window has gained focus
+        WINDOW_BLUR,     ///< The window has lost focus.
+        WINDOW_MOVE,     ///< The window has been moved. (only relevant on platforms where this makes sense)
+        WINDOW_RESIZE,   ///< The window has been resized. (only relevant on platforms where this makes sense)
+        WINDOW_MINIMIZE, ///< The window has been minimized. (only relevant on platforms where this makes sense)
+        WINDOW_CLOSE,    ///< A close has been requested.
+
+        MOUSE_ENTER,  ///< The mouse has entered the window.
+        MOUSE_LEAVE,  ///< The mouse has left the window.
+        MOUSE_MOVE,   ///< The mouse has moved over the window.
+        MOUSE_SCROLL, ///< The mouse has scrolled over the window.
+        MOUSE_DOWN,   ///< A mouse button has been pressed over the window.
+        MOUSE_UP,     ///< A mouse button has been released over the window.
     };
 
+    /// A strong union of all possible window events. To process this, a conditional should be made with the `type`
+    /// field, and then events processed accordingly based on its value.
     struct WindowEvent {
+        /// The type of the event, attempting to access a data field that does not correspond to the type of event
+        /// specified is undefined behavior.
         WindowEventType type;
+
+        /// A pointer to the window that the event fired on.
+        Window *sourceWindow;
 
         union {
             struct WindowFocusData {
@@ -75,20 +85,22 @@ namespace pom {
         };
     };
 
+    /// Creates and manages a window on the platform.
     class Window {
     public:
         Window();
         ~Window();
 
+        /// Returns true if the user has requested the window close by for example pressing the close button. Client
+        /// should close the window if this is true.
         [[nodiscard]] bool shouldClose() { return closeRequested; }
-
-        void processEvent(const WindowEvent &event);
 
     private:
         SDL_Window *handle = nullptr;
         bool closeRequested = false;
 
         friend void pollEvents();
+        void processEvent(const WindowEvent &event);
         static inline const char *WINDOWDATA_NAME = "pomegranate_window_data_ptr";
     };
 } // namespace pom
