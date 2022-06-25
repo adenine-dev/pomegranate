@@ -43,3 +43,6 @@ add_subdirectory(vendor/SDL)
 add_subdirectory(pomegranate)
 add_subdirectory(sandbox)
 add_subdirectory(docs)
+
+add_subdirectory(vendor/doctest)
+add_subdirectory(test)

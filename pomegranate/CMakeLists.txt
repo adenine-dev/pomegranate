@@ -16,3 +16,5 @@ target_include_directories(pomegranate PUBLIC vendor/SDL/include)
 
 target_compile_definitions(pomegranate
     PUBLIC "$<$<PLATFORM_ID:Windows>:POM_PLATFORM_WINDOWS>")
+
+target_precompile_headers(pomegranate PUBLIC pch.hpp base.hpp)
