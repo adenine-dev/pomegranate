@@ -21,7 +21,7 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Inline
 AlwaysBreakTemplateDeclarations: Yes
 
-BreakBeforeBraces: Custom
+BreakBeforeBraces: Attach
 BraceWrapping:
   AfterCaseLabel: False
   AfterClass: False

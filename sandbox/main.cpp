@@ -7,6 +7,8 @@ int main()
 {
     pom::Window window;
 
+    pom::debug("{}", pom::Vector<u32, 3>(1, 2, 3));
+
     while (!window.shouldClose()) {
         pom::pollEvents();
     }
