@@ -8,3 +8,5 @@
 
 
 #include "maths/vector.hpp"
+
+#include "util/slotmap.hpp"
