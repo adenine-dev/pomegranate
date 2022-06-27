@@ -75,3 +75,43 @@ TEST_CASE("Slotmap handles generations and free list minimum size correctly") {
     CHECK(sm.get(k1) == 1);
     CHECK(n == 40); // There should be 40 elements in the free list before the first one is reused.
 }
+
+TEST_CASE("Slotmap iterator behaves as expected work") {
+    pom::Slotmap<u32> sm;
+    u64 expected = 0;
+
+    auto check = [&](u64 expt) {
+        u64 sum = 0;
+        for (u32 x : sm)
+            sum += x;
+
+        CHECK(sum == expt);
+    };
+
+    pom::Slotmap<u32>::Key keys[5000] = {};
+    for (u32 i = 0; i < 5000; i++) {
+        keys[i] = sm.emplace(i);
+        expected += i;
+    }
+    check(expected);
+
+    for (u32 i = 0; i < 1000; i++) {
+        sm.remove(keys[i]);
+        expected -= i;
+    }
+    check(expected);
+
+    for (u32 i = 3000; i < 4000; i++) {
+        sm.remove(keys[i]);
+        expected -= i;
+    }
+
+    check(expected);
+
+    for (u32 i = 3400; i < 3800; i++) {
+        keys[i] = sm.emplace(i);
+        expected += i;
+    }
+
+    check(expected);
+}

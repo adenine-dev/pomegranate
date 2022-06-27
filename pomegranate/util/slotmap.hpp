@@ -19,6 +19,10 @@ namespace pom {
 
         struct FreeIdx {
             u32 page : 32 - std::bit_width(PAGE_SIZE), meta : std::bit_width(PAGE_SIZE);
+
+            constexpr operator u32() const { return std::bit_cast<u32>(*this); }
+
+            constexpr bool operator==(const FreeIdx other) const { return (const u32)other == (const u32) * this; }
         };
     };
 
@@ -116,14 +120,73 @@ namespace pom {
             u16 used = 0;
 
             constexpr ~Page() {
-                for (u16 i = 0; i < used; i++)
-                    if (metadata[i].active)
-                        data[metadata[used].index].~T();
+                if constexpr (!std::is_trivially_destructible_v<T>)
+                    for (u16 i = 0; i < used; i++)
+                        if (metadata[i].active)
+                            data[metadata[used].index].~T();
             }
         };
 
         std::vector<Page *> pages;
         std::deque<FreeIdx> freeList;
+
+        struct Iterator {
+            using iterator_category = std::forward_iterator_tag;
+            using difference_type = std::ptrdiff_t; // unused
+            using value_type = T;
+            using pointer = value_type *;
+            using reference = value_type &;
+
+            using Slotmap = Slotmap<T, Storage, minFreeListSize>;
+
+            constexpr Iterator(const Slotmap *sm, Storage::FreeIdx idx) : sm(sm), idx(idx) {}
+
+            constexpr reference operator*() const {
+                return sm->pages[idx.page]->data[sm->pages[idx.page]->metadata[idx.meta].index];
+            }
+
+            constexpr pointer operator->() {
+                return &sm->pages[idx.page]->data[sm->pages[idx.page]->metadata[idx.meta].index];
+            }
+
+            constexpr Iterator &operator++() {
+                do {
+                    if (++idx.meta >= Storage::PAGE_SIZE) {
+                        idx.meta = 0;
+                        idx.page++;
+                    }
+                } while (idx.page != sm->pages.size() && !sm->pages[idx.page]->metadata[idx.meta].active);
+                return *this;
+            }
+
+            constexpr Iterator operator++(int) {
+                Iterator temp = *this;
+                ++(*this);
+                return temp;
+            }
+
+            friend bool operator==(const Iterator &a, const Iterator &b) { return a.sm == b.sm && a.idx == b.idx; };
+
+            friend bool operator!=(const Iterator &a, const Iterator &b) { return !(a == b); };
+
+        private:
+            const Slotmap *sm;
+            Storage::FreeIdx idx;
+        };
+
+    public:
+        constexpr Iterator begin() {
+            FreeIdx idx = {0, 0};
+            while (idx.page != pages.size() && !pages[idx.page]->metadata[idx.meta].active) {
+                if (++idx.meta >= Storage::PAGE_SIZE) {
+                    idx.meta = 0;
+                    idx.page++;
+                }
+            }
+            return Iterator(this, idx);
+        }
+
+        constexpr Iterator end() { return Iterator(this, {(u32)pages.size(), 0}); }
     };
 
 } // namespace pom
