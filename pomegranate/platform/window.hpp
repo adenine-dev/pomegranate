@@ -4,6 +4,8 @@
 
 #include "inputTypes.hpp"
 
+#include "maths/vector.hpp"
+
 struct SDL_Window;
 
 namespace pom {
@@ -45,11 +47,11 @@ namespace pom {
             } windowBlur;
 
             struct WindowMoveData {
-                i32 x, y;
+                Vector<i32, 2> position;
             } windowMove;
 
             struct WindowResizeData {
-                i32 width, height;
+                Vector<i32, 2> size;
             } windowResize;
 
             struct WindowMinimizeData {
@@ -65,11 +67,11 @@ namespace pom {
             } mouseLeave;
 
             struct MouseMove {
-                i32 x, y;
+                Vector<i32, 2> position;
             } mouseMove;
 
             struct MouseScroll {
-                i32 deltaX, deltaY;
+                Vector<i32, 2> delta;
                 bool flipped;
             } mouseScroll;
 
@@ -85,10 +87,19 @@ namespace pom {
         };
     };
 
+    struct WindowCreateInfo {
+        // NOTE: these are SDL's don't care values.
+        static constexpr Vector<u32, 2> POSITION_DONT_CARE = {0x1FFF0000u, 0x1FFF0000u};
+
+        const char *title = "Pomegranate Window";
+        Vector<u32, 2> size = Vector<u32, 2>(720, 480);
+        Vector<i32, 2> position = POSITION_DONT_CARE;
+    };
+
     /// Creates and manages a window on the platform.
     class Window {
     public:
-        Window();
+        Window(const WindowCreateInfo &createInfo);
         ~Window();
 
         /// Returns true if the user has requested the window close by for example pressing the close button. Client
@@ -170,23 +181,18 @@ struct fmt::formatter<pom::WindowEvent> : formatter<std::string> {
             str = fmt::format("WindowEvent ({}) {{}}", event.type);
         } break;
         case pom::WindowEventType::WINDOW_MOVE: {
-            str =
-                fmt::format("WindowEvent ({}) {{ x: {}, y: {} }}", event.type, event.windowMove.x, event.windowMove.y);
+            str = fmt::format("WindowEvent ({}) {{ position: {} }}", event.type, event.windowMove.position);
         } break;
         case pom::WindowEventType::WINDOW_RESIZE: {
-            str = fmt::format("WindowEvent ({}) {{ width: {}, height: {} }}",
-                              event.type,
-                              event.windowResize.width,
-                              event.windowResize.height);
+            str = fmt::format("WindowEvent ({}) {{ size: {} }}", event.type, event.windowResize.size);
         } break;
         case pom::WindowEventType::MOUSE_MOVE: {
-            str = fmt::format("WindowEvent ({}) {{ x: {}, y: {} }}", event.type, event.mouseMove.x, event.mouseMove.y);
+            str = fmt::format("WindowEvent ({}) {{ position: {} }}", event.type, event.mouseMove.position);
         } break;
         case pom::WindowEventType::MOUSE_SCROLL: {
-            str = fmt::format("WindowEvent ({}) {{ deltaX: {}, deltaY: {}, flipped: {} }}",
+            str = fmt::format("WindowEvent ({}) {{ delta: {}, flipped: {} }}",
                               event.type,
-                              event.mouseScroll.deltaX,
-                              event.mouseScroll.deltaY,
+                              event.mouseScroll.delta,
                               event.mouseScroll.flipped);
         } break;
         case pom::WindowEventType::MOUSE_DOWN: {

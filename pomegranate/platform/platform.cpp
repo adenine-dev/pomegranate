@@ -32,16 +32,12 @@ namespace pom {
                 } break;
 
                 case SDL_WINDOWEVENT_RESIZED: {
-                    window->processEvent({
-                        .type = WindowEventType::WINDOW_RESIZE,
-                        .windowResize = {.width = event.window.data1, .height = event.window.data2}
-                    });
+                    window->processEvent({.type = WindowEventType::WINDOW_RESIZE,
+                                          .windowResize = {.size = {event.window.data1, event.window.data2}}});
                 } break;
                 case SDL_WINDOWEVENT_MOVED: {
-                    window->processEvent({
-                        .type = WindowEventType::WINDOW_MOVE,
-                        .windowMove = {.x = event.window.data1, .y = event.window.data2}
-                    });
+                    window->processEvent({.type = WindowEventType::WINDOW_MOVE,
+                                          .windowMove = {.position = {event.window.data1, event.window.data2}}});
                 } break;
                 case SDL_WINDOW_MINIMIZED: {
                     window->processEvent({.type = WindowEventType::WINDOW_MINIMIZE});
@@ -61,10 +57,8 @@ namespace pom {
                 assert(handle, "Ill formed window event. SDL error: {}", SDL_GetError());
                 Window *window = (Window *)SDL_GetWindowData(handle, Window::WINDOWDATA_NAME);
 
-                window->processEvent({
-                    .type = WindowEventType::MOUSE_MOVE,
-                    .mouseMove = {.x = event.motion.x, .y = event.motion.y}
-                });
+                window->processEvent(
+                    {.type = WindowEventType::MOUSE_MOVE, .mouseMove = {.position = {event.motion.x, event.motion.y}}});
             } break;
             case SDL_MOUSEWHEEL: {
                 SDL_Window *handle = SDL_GetWindowFromID(event.wheel.windowID);
@@ -72,8 +66,7 @@ namespace pom {
                 Window *window = (Window *)SDL_GetWindowData(handle, Window::WINDOWDATA_NAME);
                 window->processEvent({
                     .type = WindowEventType::MOUSE_SCROLL,
-                    .mouseScroll = {.deltaX = event.wheel.x,
-                                    .deltaY = event.wheel.y,
+                    .mouseScroll = {.delta = {event.wheel.x, event.wheel.y},
                                     .flipped = event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED}
                 });
             } break;

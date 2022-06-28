@@ -3,17 +3,16 @@
 #include <SDL.h>
 
 namespace pom {
-    Window::Window()
-    {
+    Window::Window(const WindowCreateInfo &createInfo) {
         assert(SDL_WasInit(SDL_INIT_VIDEO) || SDL_Init(SDL_INIT_VIDEO) == 0,
                "Could not initialize SDL video. SDL Error: {}",
                SDL_GetError());
 
-        assert((handle = SDL_CreateWindow("heck",
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          SDL_WINDOWPOS_UNDEFINED,
-                                          720,
-                                          480,
+        assert((handle = SDL_CreateWindow(createInfo.title,
+                                          createInfo.position.x,
+                                          createInfo.position.y,
+                                          createInfo.size.x,
+                                          createInfo.size.y,
                                           SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE)),
                "Could not create a window. SDL Error: {}",
                SDL_GetError());
